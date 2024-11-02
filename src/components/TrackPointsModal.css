@@ -1,0 +1,25 @@
+.track-points-modal {
+  width: 90%;
+  max-width: 1000px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.points-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.points-table th,
+.points-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.points-table th {
+  background: #f5f5f5;
+  position: sticky;
+  top: 0;
+}

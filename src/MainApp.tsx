@@ -16,6 +16,7 @@ import { ExportModal } from './components/ExportModal';
 
 import { signIn, signOut, authSubscribe, User, uploadFile } from "@junobuild/core";
 import { Navbar } from './components/Navbar';
+import { TrackPointsModal } from './components/TrackPointsModal';
 // Fix for default marker icon
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
@@ -50,6 +51,8 @@ function MainApp() {
   const [autoCenter, setAutoCenter] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [showPointsModal, setShowPointsModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
@@ -358,7 +361,7 @@ function MainApp() {
     <div className="App">
       <Navbar user={user} onAuth={handleAuth} />
       <header className="App-header">
-        
+
         {locationError && (
           <div className="location-error">
             {locationError}
@@ -444,66 +447,116 @@ function MainApp() {
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
             <p>Duration: {getDuration()} hours</p>
             <p>Distance: {getTotalDistance()} km</p>
-            <p>Recorded Points: {trackPoints.length}</p>
-            <div className="last-point">
+            <p onClick={() => setShowPointsModal(true)} style={{ cursor: 'pointer' }}>
+              Recorded Points: {trackPoints.length}
+            </p>
+            {/* <div className="last-point">
               <h3>Last recorded point:</h3>
               <p>Latitude: {trackPoints[trackPoints.length - 1].latitude}</p>
               <p>Longitude: {trackPoints[trackPoints.length - 1].longitude}</p>
               <p>Time: {new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleTimeString()}</p>
-            </div>
+            </div> */}
 
 
           </div>}
-
-        <div className="map-container">
-
-          <MapContainer
-            center={getMapCenter() as [number, number]}
-            zoom={9}
-            style={{ height: '400px', width: '100%' }}
-          >
-            {autoCenter && <RecenterMap position={userLocation} />}
-            <TileLayer
-              url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-              attribution=''
-              maxZoom={17}
+        {/* <div className="view-controls">
+          <label>
+            <input
+              type="radio"
+              value="map"
+              checked={viewMode === 'map'}
+              onChange={(e) => setViewMode('map')}
             />
-            {showPoints && trackPoints.map((point, index) => (
-              <Marker
-                key={point.timestamp}
-                position={[point.latitude, point.longitude]}
-                icon={defaultIcon}
+            Map View
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="list"
+              checked={viewMode === 'list'}
+              onChange={(e) => setViewMode('list')}
+            />
+            List View
+          </label>
+        </div> */}
+
+        {viewMode === 'map' ? (
+          <div className="map-container">
+
+            <MapContainer
+              center={getMapCenter() as [number, number]}
+              zoom={9}
+              style={{ height: '400px', width: '100%' }}
+            >
+              {autoCenter && <RecenterMap position={userLocation} />}
+              <TileLayer
+                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                attribution=''
+                maxZoom={17}
               />
-            ))}
-            {userLocation && <Marker
-              position={userLocation}
-              icon={currentLocationIcon}
-            />}
+              {showPoints && trackPoints.map((point, index) => (
+                <Marker
+                  key={point.timestamp}
+                  position={[point.latitude, point.longitude]}
+                  icon={defaultIcon}
+                />
+              ))}
+              {userLocation && <Marker
+                position={userLocation}
+                icon={currentLocationIcon}
+              />}
 
-            <Polyline
-              positions={getPolylinePoints() as [number, number][]}
-              color="red"
-            />
-          </MapContainer>
-        </div>
-        <div className="map-controls">
-          <label>
-            <input
-              type="checkbox"
-              checked={autoCenter}
-              onChange={(e) => setAutoCenter(e.target.checked)}
-            />
-            Auto Center
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={showPoints}
-              onChange={(e) => setShowPoints(e.target.checked)}
-            />
-            Show Points
-          </label>
-        </div>
+              <Polyline
+                positions={getPolylinePoints() as [number, number][]}
+                color="red"
+              />
+            </MapContainer>
+            <div className="map-controls">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={autoCenter}
+                  onChange={(e) => setAutoCenter(e.target.checked)}
+                />
+                Auto Center
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showPoints}
+                  onChange={(e) => setShowPoints(e.target.checked)}
+                />
+                Show Points
+              </label>
+            </div>
+          </div>
+        ) : (
+          <div className="list-container">
+            <table className="points-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Latitude</th>
+                  <th>Longitude</th>
+                  <th>Elevation</th>
+                  <th>Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trackPoints.map((point, index) => (
+                  <tr key={point.timestamp}>
+                    <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
+                    <td>{point.latitude.toFixed(6)}</td>
+                    <td>{point.longitude.toFixed(6)}</td>
+                    <td>{point.elevation?.toFixed(1) || '-'}</td>
+                    <td>{point.comment || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         <div className="bottom-controls">
           <input
             type="file"
@@ -515,7 +568,7 @@ function MainApp() {
           <button onClick={() => document.getElementById('file-upload')?.click()}>
             Import
           </button>
-          <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length==0}>
+          <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length == 0}>
             Export
           </button>
 
@@ -523,6 +576,7 @@ function MainApp() {
             Clear
           </button>
         </div>
+
       </header>
 
       {showCommentModal && (
@@ -544,6 +598,12 @@ function MainApp() {
           onClose={() => setShowExportModal(false)}
           user={user}
           onLogin={handleAuth}
+        />
+      )}
+      {showPointsModal && (
+        <TrackPointsModal
+          points={trackPoints}
+          onClose={() => setShowPointsModal(false)}
         />
       )}
 
