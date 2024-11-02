@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
+import { CommentModal } from './components/CommentModal';
 
 // Fix for default marker icon
 const defaultIcon = icon({
@@ -19,6 +20,7 @@ interface TrackPoint {
   longitude: number;
   timestamp: number;
   elevation?: number;
+  comment?: string;
 }
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
     minTime: 10, // seconds
     lastRecordedPosition: null as TrackPoint | null
   });
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [pendingPosition, setPendingPosition] = useState<GeolocationPosition | null>(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -144,7 +148,7 @@ function App() {
 
     const timeDiff = (newPosition.timestamp - autoRecordingSettings.lastRecordedPosition.timestamp) / 1000;
     if (timeDiff < autoRecordingSettings.minTime) return false;
-    
+
     const distance = calculateDistance(
       autoRecordingSettings.lastRecordedPosition.latitude,
       autoRecordingSettings.lastRecordedPosition.longitude,
@@ -155,46 +159,78 @@ function App() {
     return distance >= autoRecordingSettings.minDistance;
   };
   const recordPoint = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          if (recordingMode === 'auto' && !shouldRecordNewPoint(position)) {
-            return;
+    if (recordingMode === 'manual') {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setPendingPosition(position);
+            setShowCommentModal(true);
+          },
+          (error) => console.error('Error getting location:', error),
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0,
           }
+        );
+      }
+    } else {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            if (recordingMode === 'auto' && !shouldRecordNewPoint(position)) {
+              return;
+            }
 
-          const newPoint: TrackPoint = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            timestamp: position.timestamp,
-            elevation: position.coords.altitude || undefined,
-          };
+            const newPoint: TrackPoint = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              timestamp: position.timestamp,
+              elevation: position.coords.altitude || undefined,
+              comment: '',
+            };
 
-          setTrackPoints((prev) => [...prev, newPoint]);
-          setAutoRecordingSettings(prev => ({
-            ...prev,
-            lastRecordedPosition: newPoint
-          }));
-        },
-        (error) => console.error('Error getting location:', error),
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        }
-      );
+            setTrackPoints((prev) => [...prev, newPoint]);
+            setAutoRecordingSettings(prev => ({
+              ...prev,
+              lastRecordedPosition: newPoint
+            }));
+          },
+          (error) => console.error('Error getting location:', error),
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0,
+          }
+        );
+      }
     }
   };
+
+  const savePointWithComment = (comment: string) => {
+    if (pendingPosition) {
+      const newPoint: TrackPoint = {
+        latitude: pendingPosition.coords.latitude,
+        longitude: pendingPosition.coords.longitude,
+        timestamp: pendingPosition.timestamp,
+        elevation: pendingPosition.coords.altitude || undefined,
+        comment: comment.trim() || undefined,
+      };
+      setTrackPoints((prev) => [...prev, newPoint]);
+      setPendingPosition(null);
+    }
+  };
+
   const exportToCsv = () => {
-    const header = 'timestamp,latitude,longitude,elevation\n';
+    const header = 'timestamp,latitude,longitude,elevation,comment\n';
     const csvContent = trackPoints.map(point =>
-      `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''}`
+      `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
     ).join('\n');
 
     const csvData = header + csvContent;
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
     saveAs(blob, `hiking-track-${new Date().toISOString()}.csv`);
   };
-
   const clearPoints = () => {
     setTrackPoints([]);
   };
@@ -256,7 +292,7 @@ function App() {
         <div className="controls">
           {recordingMode === 'manual' ? (
             <button onClick={recordPoint}>
-              Record Point 
+              Record Point
             </button>
           ) : (
             <div className="auto-controls">
@@ -331,6 +367,20 @@ function App() {
           </button>
         </div>
       </header>
+
+      {showCommentModal && (
+        <CommentModal
+          onSave={(comment) => {
+            savePointWithComment(comment);
+            setShowCommentModal(false);
+          }}
+          onClose={() => {
+            setShowCommentModal(false);
+            setPendingPosition(null);
+          }}
+        />
+      )}
+
     </div>
   );
 }
