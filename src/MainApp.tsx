@@ -9,7 +9,7 @@ import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
 import { DropdownMenu } from './components/DropdownMenu';
 
-
+import { TrackPoint, generateGPX, generateKML } from "./utils/exportFormats";
 
 // Fix for default marker icon
 const defaultIcon = icon({
@@ -26,13 +26,6 @@ const currentLocationIcon = icon({
   iconAnchor: [12, 41]
 });
 
-interface TrackPoint {
-  latitude: number;
-  longitude: number;
-  timestamp: number;
-  elevation?: number;
-  comment?: string;
-}
 
 function MainApp() {
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
@@ -259,6 +252,36 @@ function MainApp() {
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
     saveAs(blob, `hiking-track-${new Date().toISOString()}.csv`);
   };
+
+  const exportTrack = (format: 'csv' | 'gpx' | 'kml') => {
+    let content: string;
+    let mimeType: string;
+    let fileExtension: string;
+
+    switch (format) {
+      case 'gpx':
+        content = generateGPX(trackPoints);
+        mimeType = 'application/gpx+xml';
+        fileExtension = 'gpx';
+        break;
+      case 'kml':
+        content = generateKML(trackPoints);
+        mimeType = 'application/vnd.google-earth.kml+xml';
+        fileExtension = 'kml';
+        break;
+      default:
+        const header = 'timestamp,latitude,longitude,elevation,comment\n';
+        content = header + trackPoints.map(point =>
+          `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
+        ).join('\n');
+        mimeType = 'text/csv';
+        fileExtension = 'csv';
+    }
+
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+    saveAs(blob, `hiking-track-${new Date().toISOString()}.${fileExtension}`);
+  };
+
   const clearPoints = () => {
     setTrackPoints([]);
   };
@@ -392,16 +415,14 @@ function MainApp() {
           </MapContainer>
         </div>
 
-
-
         <div className="bottom-controls">
-          <button onClick={exportToCsv} disabled={trackPoints.length === 0}>
-            Export to CSV
-          </button>
-          <button
-            onClick={clearPoints}
-            disabled={trackPoints.length === 0 || trackingStatus !== 'idle'}
-          >
+          <select onChange={(e) => exportTrack(e.target.value as 'csv' | 'gpx' | 'kml')} disabled={trackPoints.length === 0}>
+            <option value="">Export as...</option>
+            <option value="csv">CSV</option>
+            <option value="gpx">GPX</option>
+            <option value="kml">KML</option>
+          </select>
+          <button onClick={clearPoints} disabled={trackPoints.length === 0}>
             Clear All
           </button>
         </div>
