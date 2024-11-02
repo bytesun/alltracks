@@ -196,3 +196,10 @@ button:disabled {
   background-color: #f5f5f5;
   font-weight: bold;
 }
+
+.share-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}

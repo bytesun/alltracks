@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { saveAs } from 'file-saver';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { v4 as uuidv4 } from 'uuid';
 
 import './App.css';
 import { icon } from 'leaflet';
@@ -53,6 +54,7 @@ function MainApp() {
   const [user, setUser] = useState<User | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showPointsModal, setShowPointsModal] = useState(false);
+  const [trackId] = useState(() => uuidv4());
 
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
@@ -206,6 +208,12 @@ function MainApp() {
 
     return distance >= autoRecordingSettings.minDistance;
   };
+
+  const shareTrack = () => {
+    const shareUrl = `${window.location.origin}/track/${trackId}`;
+    navigator.clipboard.writeText(shareUrl);
+  };
+
   const recordPoint = () => {
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
@@ -269,34 +277,6 @@ function MainApp() {
     }
   };
 
-  const exportTrack = (format: 'csv' | 'gpx' | 'kml') => {
-    let content: string;
-    let mimeType: string;
-    let fileExtension: string;
-
-    switch (format) {
-      case 'gpx':
-        content = generateGPX(trackPoints);
-        mimeType = 'application/gpx+xml';
-        fileExtension = 'gpx';
-        break;
-      case 'kml':
-        content = generateKML(trackPoints);
-        mimeType = 'application/vnd.google-earth.kml+xml';
-        fileExtension = 'kml';
-        break;
-      default:
-        const header = 'timestamp,latitude,longitude,elevation,comment\n';
-        content = header + trackPoints.map(point =>
-          `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
-        ).join('\n');
-        mimeType = 'text/csv';
-        fileExtension = 'csv';
-    }
-
-    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-    saveAs(blob, `hiking-track-${new Date().toISOString()}.${fileExtension}`);
-  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -450,6 +430,10 @@ function MainApp() {
             <p onClick={() => setShowPointsModal(true)} style={{ cursor: 'pointer' }}>
               Recorded Points: {trackPoints.length}
             </p>
+            <button onClick={shareTrack} className="share-button">
+              <span className="material-icons">share</span>
+              Share Track
+            </button>
             {/* <div className="last-point">
               <h3>Last recorded point:</h3>
               <p>Latitude: {trackPoints[trackPoints.length - 1].latitude}</p>
