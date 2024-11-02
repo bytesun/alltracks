@@ -37,14 +37,30 @@ function App() {
   });
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<GeolocationPosition | null>(null);
+  const [locationError, setLocationError] = useState<string>('');
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
           setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setLocationError(''); // Clear any previous errors
         },
-        (error) => console.log('Location error:', error),
+        (error) => {
+          let errorMessage = 'Unable to get your location. ';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += 'Please enable location permissions.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += 'Location information unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage += 'Location request timed out.';
+              break;
+          }
+          setLocationError(errorMessage);
+        },
         {
           enableHighAccuracy: true,
           timeout: 5000,
@@ -120,6 +136,7 @@ function App() {
     }
   };
   const startTracking = () => {
+    setTrackPoints([]);
     setIsTracking(true);
     setTrackingStatus('tracking');
     startAutoRecording();
@@ -238,6 +255,11 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>HikingTrack</h1>
+        {locationError && (
+          <div className="location-error">
+            {locationError}
+          </div>
+        )}
         <div className="recording-mode">
           <label>
             <input
