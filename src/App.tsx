@@ -6,6 +6,7 @@ import './App.css';
 import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
+import { DropdownMenu } from './components/DropdownMenu';
 
 // Fix for default marker icon
 const defaultIcon = icon({
@@ -254,6 +255,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <DropdownMenu />
         <h1>HikingTrack</h1>
         {locationError && (
           <div className="location-error">
