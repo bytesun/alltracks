@@ -1,0 +1,37 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  height: 20px;
+  color:rgb(4, 114, 4);
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  
+  font-weight: 800;
+}
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-1px);
+}
+
+.brand-icon {
+  font-size: 24px;
+}
+
+.brand-text {
+
+  font-weight: bold;
+  color: #2ecc71;
+  /* Alternative gradient option */
+  background: linear-gradient(45deg, #27ae60, #229954);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

@@ -15,7 +15,7 @@ import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
 import { ExportModal } from './components/ExportModal';
 
 import { signIn, signOut, authSubscribe, User, uploadFile } from "@junobuild/core";
-
+import { Navbar } from './components/Navbar';
 // Fix for default marker icon
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
@@ -356,9 +356,9 @@ function MainApp() {
 
   return (
     <div className="App">
+      <Navbar user={user} onAuth={handleAuth} />
       <header className="App-header">
-        <DropdownMenu user={user} onAuth={handleAuth} />
-        <h2>HikingTrack</h2>
+        
         {locationError && (
           <div className="location-error">
             {locationError}
@@ -383,7 +383,7 @@ function MainApp() {
               onChange={(e) => setRecordingMode('auto')}
               disabled={trackingStatus !== 'idle'}
             />
-            Auto
+            Automatic
           </label>
         </div>
 

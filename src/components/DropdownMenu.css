@@ -1,18 +1,13 @@
 .dropdown-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  position: relative;
 }
 
 .menu-button {
-  background: white;
+  background: transparent;
   border: none;
-  padding: 8px 12px;
+  padding: 8px;
   font-size: 20px;
-  border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .dropdown-menu {
@@ -21,9 +16,10 @@
   right: 0;
   background: white;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin-top: 8px;
   min-width: 150px;
+  z-index: 1000;
 }
 
 .dropdown-menu ul {

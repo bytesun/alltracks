@@ -1,4 +1,6 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
+import {User, authSubscribe, signIn,signOut} from "@junobuild/core";
+import { Navbar } from '../components/Navbar';
 import './Events.css';
 
 interface Event {
@@ -30,7 +32,25 @@ const mockEvents: Event[] = [
 ];
 
 export const Events = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = authSubscribe((user: User | null) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAuth = async (): Promise<void> => {
+    if (user) {
+      await signOut();
+    } else {
+      await signIn();
+    }
+  };
   return (
+    <div>
+      <Navbar user={user} onAuth={handleAuth} />
     <div className="events-container">
       <header className="events-header">
         <h1>Hiking Events</h1>
@@ -71,6 +91,7 @@ export const Events = () => {
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 };

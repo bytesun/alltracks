@@ -1,5 +1,8 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
+import {User, authSubscribe, signIn,signOut} from "@junobuild/core";
+import { Navbar } from '../components/Navbar';
 import './Trails.css';
+
 
 interface Trail {
   id: string;
@@ -33,7 +36,25 @@ const mockTrails: Trail[] = [
 ];
 
 export const Trails = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = authSubscribe((user: User | null) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAuth = async (): Promise<void> => {
+    if (user) {
+      await signOut();
+    } else {
+      await signIn();
+    }
+  };
   return (
+    <div>
+      <Navbar user={user} onAuth={handleAuth} />
     <div className="trails-container">
       <header className="trails-header">
         <h1>Hiking Trails</h1>
@@ -66,6 +87,7 @@ export const Trails = () => {
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 };
