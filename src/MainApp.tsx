@@ -11,7 +11,7 @@ import { DropdownMenu } from './components/DropdownMenu';
 
 import { TrackPoint, generateGPX, generateKML } from "./utils/exportFormats";
 
-import { parseCSV, parseGPX,parseKML} from "./utils/importFormats";
+import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
 
 // Fix for default marker icon
 const defaultIcon = icon({
@@ -44,6 +44,8 @@ function MainApp() {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [pendingPosition, setPendingPosition] = useState<GeolocationPosition | null>(null);
   const [locationError, setLocationError] = useState<string>('');
+  const [autoCenter, setAutoCenter] = useState(false);
+  const [showPoints, setShowPoints] = useState(false);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -287,10 +289,10 @@ function MainApp() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-  
+
     const content = await file.text();
     let points: TrackPoint[] = [];
-  
+
     if (file.name.endsWith('.csv')) {
       points = parseCSV(content);
     } else if (file.name.endsWith('.gpx')) {
@@ -298,10 +300,10 @@ function MainApp() {
     } else if (file.name.endsWith('.kml')) {
       points = parseKML(content);
     }
-  
+
     setTrackPoints(points);
   };
-  
+
   const clearPoints = () => {
     setTrackPoints([]);
   };
@@ -388,6 +390,7 @@ function MainApp() {
             </div>
           )}
         </div>
+   
         {trackPoints.length > 0 &&
           <div className="stats">
 
@@ -404,19 +407,21 @@ function MainApp() {
 
 
           </div>}
+          
         <div className="map-container">
+          
           <MapContainer
             center={getMapCenter() as [number, number]}
             zoom={9}
             style={{ height: '400px', width: '100%' }}
           >
-            <RecenterMap position={userLocation} />
+            {autoCenter && <RecenterMap position={userLocation} />}
             <TileLayer
               url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
               attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
               maxZoom={17}
             />
-            {trackPoints.map((point, index) => (
+            {showPoints && trackPoints.map((point, index) => (
               <Marker
                 key={point.timestamp}
                 position={[point.latitude, point.longitude]}
@@ -434,18 +439,35 @@ function MainApp() {
             />
           </MapContainer>
         </div>
-
+        <div className="map-controls">
+          <label>
+            <input
+              type="checkbox"
+              checked={autoCenter}
+              onChange={(e) => setAutoCenter(e.target.checked)}
+            />
+            Auto Center
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={showPoints}
+              onChange={(e) => setShowPoints(e.target.checked)}
+            />
+            Show Points
+          </label>
+        </div>
         <div className="bottom-controls">
-        <input
-    type="file"
-    accept=".csv,.gpx,.kml"
-    onChange={handleFileUpload}
-    style={{ display: 'none' }}
-    id="file-upload"
-  />
-  <label htmlFor="file-upload" className="upload-btn">
-    Import
-  </label>
+          <input
+            type="file"
+            accept=".csv,.gpx,.kml"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+            id="file-upload"
+          />
+          <label htmlFor="file-upload" className="upload-btn">
+            Import
+          </label>
           <select onChange={(e) => exportTrack(e.target.value as 'csv' | 'gpx' | 'kml')} disabled={trackPoints.length === 0}>
             <option value="">Export as...</option>
             <option value="csv">CSV</option>
