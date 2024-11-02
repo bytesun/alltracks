@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
 import { icon } from 'leaflet';
+import { useMap } from 'react-leaflet';
 
 // Fix for default marker icon
 const defaultIcon = icon({
@@ -23,6 +24,15 @@ interface TrackPoint {
 function App() {
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
+  const [recordingMode, setRecordingMode] = useState<'manual' | 'auto'>('manual');
+  const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timer | null>(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [trackingStatus, setTrackingStatus] = useState<'idle' | 'tracking' | 'paused'>('idle');
+  const [autoRecordingSettings, setAutoRecordingSettings] = useState({
+    minDistance: 10, // meters
+    minTime: 10, // seconds
+    lastRecordedPosition: null as TrackPoint | null
+  });
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -39,6 +49,7 @@ function App() {
       );
     }
   }, []);
+
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
@@ -74,30 +85,95 @@ function App() {
     const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}:${minutes.toString().padStart(2, '0')}`;
   };
-
+  function RecenterMap({ position }: { position: [number, number] }) {
+    const map = useMap();
+    map.setView(position);
+    return null;
+  }
   const getMapCenter = () => {
-    if (trackPoints.length === 0) {
-      return [49.2827, -123.1207];
+    if (isTracking) {
+      return userLocation;
     }
-    const lastPoint = trackPoints[trackPoints.length - 1];
-    return [lastPoint.latitude, lastPoint.longitude];
+    if (trackPoints.length > 0) {
+      const lastPoint = trackPoints[trackPoints.length - 1];
+      return [lastPoint.latitude, lastPoint.longitude];
+    }
+    return userLocation;
   };
 
   const getPolylinePoints = () => {
     return trackPoints.map(point => [point.latitude, point.longitude]);
   };
+  const startAutoRecording = () => {
+    const interval = setInterval(recordPoint, 10000); // Records every 10 seconds
+    setRecordingInterval(interval);
+  };
 
+  const stopAutoRecording = () => {
+    if (recordingInterval) {
+      clearInterval(recordingInterval);
+      setRecordingInterval(null);
+    }
+  };
+  const startTracking = () => {
+    setIsTracking(true);
+    setTrackingStatus('tracking');
+    startAutoRecording();
+  };
+
+  const pauseTracking = () => {
+    setIsTracking(false);
+    setTrackingStatus('paused');
+    stopAutoRecording();
+  };
+
+  const resumeTracking = () => {
+    setIsTracking(true);
+    setTrackingStatus('tracking');
+    startAutoRecording();
+  };
+
+  const stopTracking = () => {
+    setIsTracking(false);
+    setTrackingStatus('idle');
+    stopAutoRecording();
+  };
+
+  const shouldRecordNewPoint = (newPosition: GeolocationPosition): boolean => {
+    if (!autoRecordingSettings.lastRecordedPosition) return true;
+
+    const timeDiff = (newPosition.timestamp - autoRecordingSettings.lastRecordedPosition.timestamp) / 1000;
+    if (timeDiff < autoRecordingSettings.minTime) return false;
+    
+    const distance = calculateDistance(
+      autoRecordingSettings.lastRecordedPosition.latitude,
+      autoRecordingSettings.lastRecordedPosition.longitude,
+      newPosition.coords.latitude,
+      newPosition.coords.longitude
+    ) * 1000; // Convert km to meters
+
+    return distance >= autoRecordingSettings.minDistance;
+  };
   const recordPoint = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          if (recordingMode === 'auto' && !shouldRecordNewPoint(position)) {
+            return;
+          }
+
           const newPoint: TrackPoint = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             timestamp: position.timestamp,
             elevation: position.coords.altitude || undefined,
           };
+
           setTrackPoints((prev) => [...prev, newPoint]);
+          setAutoRecordingSettings(prev => ({
+            ...prev,
+            lastRecordedPosition: newPoint
+          }));
         },
         (error) => console.error('Error getting location:', error),
         {
@@ -108,7 +184,6 @@ function App() {
       );
     }
   };
-
   const exportToCsv = () => {
     const header = 'timestamp,latitude,longitude,elevation\n';
     const csvContent = trackPoints.map(point =>
@@ -127,8 +202,78 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>HikingTrack</h1>
+        <div className="recording-mode">
+          <label>
+            <input
+              type="radio"
+              value="manual"
+              checked={recordingMode === 'manual'}
+              onChange={(e) => setRecordingMode('manual')}
+              disabled={trackingStatus !== 'idle'}
+            />
+            Manual
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="auto"
+              checked={recordingMode === 'auto'}
+              onChange={(e) => setRecordingMode('auto')}
+              disabled={trackingStatus !== 'idle'}
+            />
+            Auto
+          </label>
+        </div>
+
+        {recordingMode === 'auto' && trackingStatus === 'idle' && (
+          <div className="auto-settings">
+            <label>
+              Min Distance (m):
+              <input
+                type="number"
+                value={autoRecordingSettings.minDistance}
+                onChange={(e) => setAutoRecordingSettings(prev => ({
+                  ...prev,
+                  minDistance: Number(e.target.value)
+                }))}
+                min="1"
+              />
+            </label>
+            <label>
+              Min Time (s):
+              <input
+                type="number"
+                value={autoRecordingSettings.minTime}
+                onChange={(e) => setAutoRecordingSettings(prev => ({
+                  ...prev,
+                  minTime: Number(e.target.value)
+                }))}
+                min="1"
+              />
+            </label>
+          </div>
+        )}
         <div className="controls">
-          <button onClick={recordPoint}>Record Point ({trackPoints.length})</button>
+          {recordingMode === 'manual' ? (
+            <button onClick={recordPoint}>
+              Record Point 
+            </button>
+          ) : (
+            <div className="auto-controls">
+              {trackingStatus === 'idle' && (
+                <button onClick={startTracking}>Start</button>
+              )}
+              {trackingStatus === 'tracking' && (
+                <button onClick={pauseTracking}>Pause </button>
+              )}
+              {trackingStatus === 'paused' && (
+                <button onClick={resumeTracking}>Resume</button>
+              )}
+              {(trackingStatus === 'tracking' || trackingStatus === 'paused') && (
+                <button onClick={stopTracking}>Stop</button>
+              )}
+            </div>
+          )}
         </div>
         {trackPoints.length > 0 &&
           <div className="stats">
@@ -136,6 +281,7 @@ function App() {
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
             <p>Duration: {getDuration()} hours</p>
             <p>Distance: {getTotalDistance()} km</p>
+            <p>Recorded Points: {trackPoints.length}</p>
             <div className="last-point">
               <h3>Last recorded point:</h3>
               <p>Latitude: {trackPoints[trackPoints.length - 1].latitude}</p>
@@ -151,6 +297,7 @@ function App() {
             zoom={9}
             style={{ height: '400px', width: '100%' }}
           >
+            <RecenterMap position={userLocation} />
             <TileLayer
               url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
               attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
@@ -165,7 +312,7 @@ function App() {
             ))}
             <Polyline
               positions={getPolylinePoints() as [number, number][]}
-              color="blue"
+              color="red"
             />
           </MapContainer>
         </div>
@@ -176,7 +323,10 @@ function App() {
           <button onClick={exportToCsv} disabled={trackPoints.length === 0}>
             Export to CSV
           </button>
-          <button onClick={clearPoints} disabled={trackPoints.length === 0}>
+          <button
+            onClick={clearPoints}
+            disabled={trackPoints.length === 0 || trackingStatus !== 'idle'}
+          >
             Clear All
           </button>
         </div>
