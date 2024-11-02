@@ -2,15 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { saveAs } from 'file-saver';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+
 import './App.css';
 import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
 import { DropdownMenu } from './components/DropdownMenu';
 
+
 // Fix for default marker icon
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
+  shadowUrl: '/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+
+const currentLocationIcon = icon({
+  iconUrl: '/currentlocation.png',
   shadowUrl: '/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41]
@@ -370,6 +379,11 @@ function MainApp() {
                 icon={defaultIcon}
               />
             ))}
+            {userLocation && <Marker
+              position={userLocation}
+              icon={currentLocationIcon}
+            />}
+
             <Polyline
               positions={getPolylinePoints() as [number, number][]}
               color="red"

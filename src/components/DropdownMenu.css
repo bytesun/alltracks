@@ -46,3 +46,12 @@
 .dropdown-menu a:hover {
   background: #f5f5f5;
 }
+.dropdown-menu li {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: #333;
+}
+
+.dropdown-menu li:hover {
+  background: #f5f5f5;
+}

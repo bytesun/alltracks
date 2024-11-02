@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DropdownMenu.css';
+import { signIn } from "@junobuild/core";
+
 
 export const DropdownMenu = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -18,6 +20,15 @@ export const DropdownMenu = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const login = async () => {
+    try {
+      // const result = await signIn();
+      // console.log('Logged in:', result);
+    } catch (error) {
+      console.error('Error logging in:', error);
+    }
+  };
+
   return (
     <div className="dropdown-container" ref={dropdownRef}>
       <button className="menu-button" onClick={() => setIsOpen(!isOpen)}>
@@ -26,21 +37,14 @@ export const DropdownMenu = () => {
       {isOpen && (
         <div className="dropdown-menu">
           <ul>
-            <li>
-              <button onClick={() => {
-                navigate('/trails');
-                setIsOpen(false);
-              }}>
-                Trails
-              </button>
-            </li>
-            <li>
-              <button onClick={() => {
-                navigate('/login');
-                setIsOpen(false);
-              }}>
-                Login
-              </button>
+            {/* <li onClick={() => {
+              navigate('/trails');
+              setIsOpen(false);
+            }}>
+              Trails
+            </li> */}
+            <li onClick={login}>
+              Login
             </li>
           </ul>
         </div>
