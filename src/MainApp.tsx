@@ -12,6 +12,9 @@ import { DropdownMenu } from './components/DropdownMenu';
 import { TrackPoint, generateGPX, generateKML } from "./utils/exportFormats";
 
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
+import { ExportModal } from './components/ExportModal';
+
+import { signIn, signOut, authSubscribe, User, uploadFile } from "@junobuild/core";
 
 // Fix for default marker icon
 const defaultIcon = icon({
@@ -46,7 +49,24 @@ function MainApp() {
   const [locationError, setLocationError] = useState<string>('');
   const [autoCenter, setAutoCenter] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const unsubscribe = authSubscribe((user: User | null) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAuth = async (): Promise<void> => {
+    console.log("signing in ", user)
+    if (user) {
+      await signOut();
+    } else {
+
+      await signIn();
+    }
+  };
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
@@ -246,17 +266,6 @@ function MainApp() {
     }
   };
 
-  const exportToCsv = () => {
-    const header = 'timestamp,latitude,longitude,elevation,comment\n';
-    const csvContent = trackPoints.map(point =>
-      `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
-    ).join('\n');
-
-    const csvData = header + csvContent;
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
-    saveAs(blob, `hiking-track-${new Date().toISOString()}.csv`);
-  };
-
   const exportTrack = (format: 'csv' | 'gpx' | 'kml') => {
     let content: string;
     let mimeType: string;
@@ -307,11 +316,49 @@ function MainApp() {
   const clearPoints = () => {
     setTrackPoints([]);
   };
+
+  const [showExportModal, setShowExportModal] = useState(false);
+
+
+  const handleExport = async (format: string, storage: 'local' | 'cloud') => {
+    let content: string;
+    let mimeType: string;
+
+    switch (format) {
+      case 'gpx':
+        content = generateGPX(trackPoints);
+        mimeType = 'application/gpx+xml';
+        break;
+      case 'kml':
+        content = generateKML(trackPoints);
+        mimeType = 'application/vnd.google-earth.kml+xml';
+        break;
+      default:
+        const header = 'timestamp,latitude,longitude,elevation,comment\n';
+        content = header + trackPoints.map(point =>
+          `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
+        ).join('\n');
+        mimeType = 'text/csv';
+    }
+
+    if (storage === 'local') {
+      const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+      saveAs(blob, `hiking-track-${new Date().toISOString()}.${format}`);
+    } else {
+      const blob = new Blob([content], { type: mimeType });
+      const file = new File([blob], `hiking-track-${new Date().toISOString()}.${format}`, { type: mimeType });
+      const result = await uploadFile({
+        data: file,
+        collection: "tracks"
+      });
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <DropdownMenu />
-        <h1>HikingTrack</h1>
+        <DropdownMenu user={user} onAuth={handleAuth} />
+        <h2>HikingTrack</h2>
         {locationError && (
           <div className="location-error">
             {locationError}
@@ -390,7 +437,7 @@ function MainApp() {
             </div>
           )}
         </div>
-   
+
         {trackPoints.length > 0 &&
           <div className="stats">
 
@@ -407,9 +454,9 @@ function MainApp() {
 
 
           </div>}
-          
+
         <div className="map-container">
-          
+
           <MapContainer
             center={getMapCenter() as [number, number]}
             zoom={9}
@@ -418,7 +465,7 @@ function MainApp() {
             {autoCenter && <RecenterMap position={userLocation} />}
             <TileLayer
               url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-              attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+              attribution=''
               maxZoom={17}
             />
             {showPoints && trackPoints.map((point, index) => (
@@ -465,17 +512,15 @@ function MainApp() {
             style={{ display: 'none' }}
             id="file-upload"
           />
-          <label htmlFor="file-upload" className="upload-btn">
+          <button onClick={() => document.getElementById('file-upload')?.click()}>
             Import
-          </label>
-          <select onChange={(e) => exportTrack(e.target.value as 'csv' | 'gpx' | 'kml')} disabled={trackPoints.length === 0}>
-            <option value="">Export as...</option>
-            <option value="csv">CSV</option>
-            <option value="gpx">GPX</option>
-            <option value="kml">KML</option>
-          </select>
+          </button>
+          <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length==0}>
+            Export
+          </button>
+
           <button onClick={clearPoints} disabled={trackPoints.length === 0}>
-            Clear All
+            Clear
           </button>
         </div>
       </header>
@@ -490,6 +535,15 @@ function MainApp() {
             setShowCommentModal(false);
             setPendingPosition(null);
           }}
+        />
+      )}
+
+      {showExportModal && (
+        <ExportModal
+          onExport={handleExport}
+          onClose={() => setShowExportModal(false)}
+          user={user}
+          onLogin={handleAuth}
         />
       )}
 

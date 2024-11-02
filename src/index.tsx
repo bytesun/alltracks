@@ -4,18 +4,21 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { IdentityKitProvider } from "@nfid/identitykit/react"
-import "@nfid/identitykit/react/styles.css"
- 
+import { initSatellite } from "@junobuild/core";
+
+await initSatellite({
+  satelliteId: "orkad-xyaaa-aaaal-ai7ta-cai"
+});
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
     <Router>
-    <IdentityKitProvider>
+    
       <App />
-      </IdentityKitProvider>
+
     </Router>
   </React.StrictMode>
 );

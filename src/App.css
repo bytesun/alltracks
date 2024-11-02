@@ -162,8 +162,8 @@ button:disabled {
 }
 .upload-btn {
   padding: 8px 16px;
-  background-color: #2196F3;
-  color: white;
+  background-color: #a2a6a9;
+  color: rgb(30, 28, 28);
   border-radius: 4px;
   cursor: pointer;
  

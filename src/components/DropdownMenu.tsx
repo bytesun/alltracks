@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DropdownMenu.css';
-import { IdentityKitProvider, ConnectWallet } from "@nfid/identitykit/react"
-export const DropdownMenu = () => {
+import { User } from "@junobuild/core";
+
+
+interface DropdownMenuProps {
+  user: User | null;
+  onAuth: () => Promise<void>;
+}
+
+export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -18,8 +25,6 @@ export const DropdownMenu = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-
-
   return (
     <div className="dropdown-container" ref={dropdownRef}>
       <button className="menu-button" onClick={() => setIsOpen(!isOpen)}>
@@ -27,7 +32,6 @@ export const DropdownMenu = () => {
       </button>
       {isOpen && (
         <div className="dropdown-menu">
-
           <ul>
             <li onClick={() => {
               navigate('/trails');
@@ -41,8 +45,8 @@ export const DropdownMenu = () => {
             }}>
               Events
             </li>
-            <li>
-            <ConnectWallet />
+            <li onClick={onAuth}>
+              {user ? 'Sign Out' : 'Sign In'}
             </li>
           </ul>
         </div>
