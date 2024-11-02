@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './DropdownMenu.css';
 
 export const DropdownMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -25,10 +27,20 @@ export const DropdownMenu = () => {
         <div className="dropdown-menu">
           <ul>
             <li>
-              <a href="#trails">Trails</a>
+              <button onClick={() => {
+                navigate('/trails');
+                setIsOpen(false);
+              }}>
+                Trails
+              </button>
             </li>
             <li>
-              <a href="#login">Login</a>
+              <button onClick={() => {
+                navigate('/login');
+                setIsOpen(false);
+              }}>
+                Login
+              </button>
             </li>
           </ul>
         </div>
