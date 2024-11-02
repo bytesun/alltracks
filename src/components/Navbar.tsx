@@ -15,7 +15,7 @@ export const Navbar = ({ user, onAuth }: NavbarProps) => {
   return (
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate('/')}>        
-        <span className="brand-text">SunTracker</span>
+        <span className="brand-text">AllTracks</span>
       </div>
       <DropdownMenu user={user} onAuth={onAuth} />
     </nav>

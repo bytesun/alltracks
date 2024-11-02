@@ -34,16 +34,16 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
         <div className="dropdown-menu">
           <ul>
             <li onClick={() => {
-              navigate('/trails');
+              navigate('/tracks');
               setIsOpen(false);
             }}>
-              Trails
+              Tracks
             </li>
             <li onClick={() => {
-              navigate('/events');
+              navigate('/activities');
               setIsOpen(false);
             }}>
-              Events
+              Activities
             </li>
             <li onClick={onAuth}>
               {user ? 'Sign Out' : 'Sign In'}

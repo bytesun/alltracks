@@ -9,8 +9,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<MainApp />} />
-      <Route path="/trails" element={<Trails />} />
-      <Route path="/events" element={<Events />} />
+      <Route path="/tracks" element={<Trails />} />
+      <Route path="/activities" element={<Events />} />
     </Routes>
   );
 }
