@@ -10,6 +10,7 @@ import { CommentModal } from './components/CommentModal';
 import { DropdownMenu } from './components/DropdownMenu';
 
 
+
 // Fix for default marker icon
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
