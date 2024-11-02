@@ -160,3 +160,15 @@ button:disabled {
 .bottom-controls select option {
   padding: 8px;
 }
+.upload-btn {
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+ 
+}
+
+.upload-btn:hover {
+  background-color: #1976D2;
+}

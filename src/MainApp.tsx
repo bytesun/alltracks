@@ -11,6 +11,8 @@ import { DropdownMenu } from './components/DropdownMenu';
 
 import { TrackPoint, generateGPX, generateKML } from "./utils/exportFormats";
 
+import { parseCSV, parseGPX,parseKML} from "./utils/importFormats";
+
 // Fix for default marker icon
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
@@ -282,6 +284,24 @@ function MainApp() {
     saveAs(blob, `hiking-track-${new Date().toISOString()}.${fileExtension}`);
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+  
+    const content = await file.text();
+    let points: TrackPoint[] = [];
+  
+    if (file.name.endsWith('.csv')) {
+      points = parseCSV(content);
+    } else if (file.name.endsWith('.gpx')) {
+      points = parseGPX(content);
+    } else if (file.name.endsWith('.kml')) {
+      points = parseKML(content);
+    }
+  
+    setTrackPoints(points);
+  };
+  
   const clearPoints = () => {
     setTrackPoints([]);
   };
@@ -416,6 +436,16 @@ function MainApp() {
         </div>
 
         <div className="bottom-controls">
+        <input
+    type="file"
+    accept=".csv,.gpx,.kml"
+    onChange={handleFileUpload}
+    style={{ display: 'none' }}
+    id="file-upload"
+  />
+  <label htmlFor="file-upload" className="upload-btn">
+    Import
+  </label>
           <select onChange={(e) => exportTrack(e.target.value as 'csv' | 'gpx' | 'kml')} disabled={trackPoints.length === 0}>
             <option value="">Export as...</option>
             <option value="csv">CSV</option>
