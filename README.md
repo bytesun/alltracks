@@ -1,4 +1,4 @@
-# HikingTrack
+# AllTracks
 
 A web application for tracking hiking activities, managing trails, and organizing hiking events.
 

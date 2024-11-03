@@ -8,14 +8,13 @@ import './App.css';
 import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
-import { DropdownMenu } from './components/DropdownMenu';
 
 import { TrackPoint, generateGPX, generateKML } from "./utils/exportFormats";
 
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
 import { ExportModal } from './components/ExportModal';
 
-import { signIn, signOut, authSubscribe, User, uploadFile } from "@junobuild/core";
+import { signIn, signOut, authSubscribe, User, uploadFile, setDoc } from "@junobuild/core";
 import { Navbar } from './components/Navbar';
 import { TrackPointsModal } from './components/TrackPointsModal';
 // Fix for default marker icon
@@ -128,6 +127,16 @@ function MainApp() {
       );
     }
     return total.toFixed(2);
+  };
+  const getElevationGain = () => {
+    let elevationGain = 0;
+    for (let i = 1; i < trackPoints.length; i++) {
+      const elevationDiff = (trackPoints?.[i].elevation ?? 0) - (trackPoints?.[i - 1].elevation ?? 0);
+      if (elevationDiff > 0) {
+        elevationGain += elevationDiff;
+      }
+    }
+    return elevationGain;
   };
   const getDuration = (): string => {
     if (trackPoints.length < 2) return '0:00';
@@ -303,7 +312,7 @@ function MainApp() {
   const [showExportModal, setShowExportModal] = useState(false);
 
 
-  const handleExport = async (format: string, storage: 'local' | 'cloud') => {
+  const handleExport = async (format: string, storage: 'local' | 'cloud', filename: string) => {
     let content: string;
     let mimeType: string;
 
@@ -324,16 +333,40 @@ function MainApp() {
         mimeType = 'text/csv';
     }
 
+    const expfilename = `${filename}.${format}`;
+
     if (storage === 'local') {
       const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-      saveAs(blob, `hiking-track-${new Date().toISOString()}.${format}`);
+      saveAs(blob, expfilename);
     } else {
       const blob = new Blob([content], { type: mimeType });
-      const file = new File([blob], `hiking-track-${new Date().toISOString()}.${format}`, { type: mimeType });
-      const result = await uploadFile({
+      const file = new File([blob], expfilename, { type: mimeType });
+      const savedAsset = await uploadFile({
         data: file,
         collection: "tracks"
       });
+      console.log(savedAsset);
+      if (savedAsset) {
+        // Get the uploaded file reference
+        const fileRef = savedAsset.downloadUrl;
+
+        // Calculate distance and elevation gain
+        const distance = getTotalDistance();
+        const elevationGain = getElevationGain();
+        const docResult = await setDoc({
+          collection: "tracks",
+          doc: {
+            key: uuidv4(),
+            data: {
+              filename: filename,
+              trackfile: fileRef,
+              distance: distance,
+              elevationGain: elevationGain
+            }
+          }
+        });
+        console.log(docResult);
+      }
     }
   };
 
@@ -430,10 +463,9 @@ function MainApp() {
             <p onClick={() => setShowPointsModal(true)} style={{ cursor: 'pointer' }}>
               Recorded Points: {trackPoints.length}
             </p>
-            <button onClick={shareTrack} className="share-button">
-              <span className="material-icons">share</span>
-              Share Track
-            </button>
+            {/* <button onClick={shareTrack} className="share-button">
+              <span className="material-icons">live</span>
+            </button> */}
             {/* <div className="last-point">
               <h3>Last recorded point:</h3>
               <p>Latitude: {trackPoints[trackPoints.length - 1].latitude}</p>
@@ -582,6 +614,7 @@ function MainApp() {
           onClose={() => setShowExportModal(false)}
           user={user}
           onLogin={handleAuth}
+
         />
       )}
       {showPointsModal && (

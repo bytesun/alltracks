@@ -3,7 +3,7 @@ import './ExportModal.css';
 import { User } from "@junobuild/core";
 
 interface ExportModalProps {
-  onExport: (format: string, storage: 'local' | 'cloud') => void;
+  onExport: (format: string, storage: 'local' | 'cloud', filename: string) => void;
   onClose: () => void;
   user: User | null;
   onLogin: () => void;
@@ -12,10 +12,10 @@ interface ExportModalProps {
 export const ExportModal = ({ onExport, onClose, user, onLogin }: ExportModalProps) => {
   const [format, setFormat] = useState('csv');
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
+  const [filename, setFilename] = useState('');
 
   const handleExport = async () => {
-  
-    onExport(format, storage);
+    onExport(format, storage, filename);
     onClose();
   };
 
@@ -24,6 +24,16 @@ export const ExportModal = ({ onExport, onClose, user, onLogin }: ExportModalPro
       <div className="modal-content">
         <h3>Export Track</h3>
         <div className="export-options">
+          <div className="option-group">
+            <label>Filename:</label>
+            <input
+              type="text"
+              value={filename}
+              onChange={(e) => setFilename(e.target.value)}
+              placeholder="Enter filename"
+              className="filename-input"
+            />
+          </div>
           <div className="option-group">
             <label>Format:</label>
             <select value={format} onChange={(e) => setFormat(e.target.value)}>
@@ -39,6 +49,7 @@ export const ExportModal = ({ onExport, onClose, user, onLogin }: ExportModalPro
               <option disabled={!user} value="cloud">Cloud Storage</option>
             </select>
           </div>
+
         </div>
         <div className="modal-buttons">
           <button onClick={handleExport}>
