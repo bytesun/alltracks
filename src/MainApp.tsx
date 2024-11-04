@@ -494,10 +494,8 @@ function MainApp() {
             List View
           </label>
         </div> */}
-
         {viewMode === 'map' ? (
           <div className="map-container">
-
             <MapContainer
               center={getMapCenter() as [number, number]}
               zoom={9}
@@ -509,6 +507,33 @@ function MainApp() {
                 attribution=''
                 maxZoom={17}
               />
+              <div className="leaflet-top leaflet-left custom-controls">
+                <div className="leaflet-control leaflet-bar">
+                  <a 
+                    href="#" 
+                    className={`leaflet-control-button ${autoCenter ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setAutoCenter(!autoCenter)
+                    }}
+                    title="Auto Center"
+                  >
+                    <span className="material-icons">my_location</span>
+                  </a>
+                  <a 
+                    href="#" 
+                    className={`leaflet-control-button ${showPoints ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowPoints(!showPoints)
+                    }}
+                    title="Show Points"
+                  >
+                    <span className="material-icons">place</span>
+                  </a>
+                </div>
+              </div>
+              {/* Rest of map components */}
               {showPoints && trackPoints.map((point, index) => (
                 <Marker
                   key={point.timestamp}
@@ -526,24 +551,7 @@ function MainApp() {
                 color="red"
               />
             </MapContainer>
-            <div className="map-controls">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={autoCenter}
-                  onChange={(e) => setAutoCenter(e.target.checked)}
-                />
-                Auto Center
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={showPoints}
-                  onChange={(e) => setShowPoints(e.target.checked)}
-                />
-                Show Points
-              </label>
-            </div>
+            
           </div>
         ) : (
           <div className="list-container">

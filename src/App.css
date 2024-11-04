@@ -203,3 +203,27 @@ button:disabled {
   gap: 8px;
   margin-top: 12px;
 }
+.leaflet-control-button {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  text-decoration: none;
+  color: #333;
+  background: white;
+  display: block;
+  border-bottom: 1px solid #ccc;
+}
+
+.leaflet-control-button.active {
+  background: #f4f4f4;
+  color: #2196F3;
+}
+
+.leaflet-control-button .material-icons {
+  font-size: 18px;
+  line-height: 30px;
+}
+.custom-controls {
+  margin-top: 80px !important;
+}
