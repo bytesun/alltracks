@@ -380,28 +380,27 @@ function MainApp() {
             {locationError}
           </div>
         )}
-        <div className="recording-mode">
-          <label>
-            <input
-              type="radio"
-              value="manual"
-              checked={recordingMode === 'manual'}
-              onChange={(e) => setRecordingMode('manual')}
-              disabled={trackingStatus !== 'idle'}
-            />
-            Manual
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="auto"
-              checked={recordingMode === 'auto'}
-              onChange={(e) => setRecordingMode('auto')}
-              disabled={trackingStatus !== 'idle'}
-            />
-            Automatic
-          </label>
-        </div>
+        {(!trackPoints || trackPoints.length == 0) && (
+          <div className="recording-mode">
+            <label>
+              <input
+                type="radio"
+                value="manual"
+                checked={recordingMode === 'manual'}
+                onChange={(e) => setRecordingMode('manual')}
+              />
+              Manual
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="auto"
+                checked={recordingMode === 'auto'}
+                onChange={(e) => setRecordingMode('auto')}
+              />
+              Automatic
+            </label>
+          </div>)}
 
         {recordingMode === 'auto' && trackingStatus === 'idle' && (
           <div className="auto-settings">
