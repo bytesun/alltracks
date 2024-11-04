@@ -459,6 +459,7 @@ function MainApp() {
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
             <p>Duration: {getDuration()} hours</p>
             <p>Distance: {getTotalDistance()} km</p>
+            <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
             <p onClick={() => setShowPointsModal(true)} style={{ cursor: 'pointer' }}>
               Recorded Points: {trackPoints.length}
             </p>
