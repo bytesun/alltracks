@@ -227,3 +227,18 @@ button:disabled {
 .custom-controls {
   margin-top: 80px !important;
 }
+
+.points-count-link {
+  cursor: pointer;
+  color: #2196F3;
+  transition: opacity 0.2s;
+}
+
+.points-count-link:hover {
+  opacity: 0.8;
+}
+
+.clickable-count {
+  font-weight: bold;
+  text-decoration: underline;
+}

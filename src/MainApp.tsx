@@ -461,8 +461,11 @@ function MainApp() {
             <p>Duration: {getDuration()} hours</p>
             <p>Distance: {getTotalDistance()} km</p>
             <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
-            <p onClick={() => setShowPointsModal(true)} style={{ cursor: 'pointer' }}>
-              Recorded Points: {trackPoints.length}
+            <p
+              onClick={() => setShowPointsModal(true)}
+              className="points-count-link"
+            >
+              Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
             {/* <button onClick={shareTrack} className="share-button">
               <span className="material-icons">live</span>
@@ -511,8 +514,8 @@ function MainApp() {
               />
               <div className="leaflet-top leaflet-left custom-controls">
                 <div className="leaflet-control leaflet-bar">
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className={`leaflet-control-button ${autoCenter ? 'active' : ''}`}
                     onClick={(e) => {
                       e.preventDefault()
@@ -522,8 +525,8 @@ function MainApp() {
                   >
                     <span className="material-icons">my_location</span>
                   </a>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     className={`leaflet-control-button ${showPoints ? 'active' : ''}`}
                     onClick={(e) => {
                       e.preventDefault()
@@ -553,7 +556,7 @@ function MainApp() {
                 color="red"
               />
             </MapContainer>
-            
+
           </div>
         ) : (
           <div className="list-container">
