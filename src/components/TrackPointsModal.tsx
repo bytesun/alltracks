@@ -11,9 +11,12 @@ export const TrackPointsModal = ({ points, onClose }: TrackPointsModalProps) => 
   return (
     <div className="modal-overlay">
       <div className="modal-content track-points-modal">
-        <h3>Track Points</h3>
+        <div className="modal-header">
+          <h3>Track Points</h3>
+          <button className="close-icon" onClick={onClose}>×</button>
+        </div>
         <div className="points-list">
-          {points.map((point, index) => (
+          {[...points].reverse().map((point, index) => (
             <div key={point.timestamp} className="point-item">
               <div className="point-time">
                 {new Date(point.timestamp).toLocaleString()}
@@ -32,7 +35,6 @@ export const TrackPointsModal = ({ points, onClose }: TrackPointsModalProps) => 
             </div>
           ))}
         </div>
-        <button onClick={onClose}>Close</button>
       </div>
     </div>
   );
