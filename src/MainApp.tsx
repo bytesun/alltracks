@@ -467,38 +467,11 @@ function MainApp() {
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
-            {/* <button onClick={shareTrack} className="share-button">
-              <span className="material-icons">live</span>
-            </button> */}
-            {/* <div className="last-point">
-              <h3>Last recorded point:</h3>
-              <p>Latitude: {trackPoints[trackPoints.length - 1].latitude}</p>
-              <p>Longitude: {trackPoints[trackPoints.length - 1].longitude}</p>
-              <p>Time: {new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleTimeString()}</p>
-            </div> */}
+           
 
 
           </div>}
-        {/* <div className="view-controls">
-          <label>
-            <input
-              type="radio"
-              value="map"
-              checked={viewMode === 'map'}
-              onChange={(e) => setViewMode('map')}
-            />
-            Map View
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="list"
-              checked={viewMode === 'list'}
-              onChange={(e) => setViewMode('list')}
-            />
-            List View
-          </label>
-        </div> */}
+        
         {viewMode === 'map' ? (
           <div className="map-container">
             <MapContainer
