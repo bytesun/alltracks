@@ -312,7 +312,7 @@ function MainApp() {
   const [showExportModal, setShowExportModal] = useState(false);
 
 
-  const handleExport = async (format: string, storage: 'local' | 'cloud', filename: string) => {
+  const handleExport = async (format: string, storage: 'local' | 'cloud', filename: string, description: string) => {
     let content: string;
     let mimeType: string;
 
@@ -359,6 +359,7 @@ function MainApp() {
             key: uuidv4(),
             data: {
               filename: filename,
+              description: description,
               trackfile: fileRef,
               distance: distance,
               elevationGain: elevationGain
