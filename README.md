@@ -2,8 +2,6 @@
 
 A web application for tracking hiking activities, managing trails, and organizing hiking events.
 
-live https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io
-
 ## Features
 
 - **Live Tracking**
