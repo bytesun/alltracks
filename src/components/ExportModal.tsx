@@ -66,7 +66,7 @@ export const ExportModal = ({ onExport, onClose, user, onLogin }: ExportModalPro
                 <label>Storage:</label>
                 <select value={storage} onChange={(e) => setStorage(e.target.value as 'local' | 'cloud')}>
                   <option value="local">Local Download</option>
-                  <option disabled={!user} value="cloud">Cloud Storage</option>
+                  <option disabled={!user} value="cloud">Cloud Storage{!user && ' (login required)'}</option>
                 </select>
               </div>
             </div>
