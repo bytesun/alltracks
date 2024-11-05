@@ -1,36 +1,42 @@
+import React, { useState } from 'react';
+import "../App.css";
+type TrackingStatus = 'idle' | 'tracking' | 'paused';
+type RecordingMode = 'manual' | 'auto';
 
-import React from 'react';
-
-interface TrackControlsProps {
-  recordingMode: 'manual' | 'auto';
-  trackingStatus: 'idle' | 'tracking' | 'paused';
-  autoRecordingSettings: {
-    minDistance: number;
-    minTime: number;
-  };
-  onRecordPoint: () => void;
-  onModeChange: (mode: 'manual' | 'auto') => void;
+export interface TrackControlsProps {
+  isTracking: boolean;
   onStartTracking: () => void;
+  onStopTracking: () => void;
+  onExport: () => void;
+  onShowPoints: () => void;
+  onAddComment: () => void;
+  onRecordPoint: () => void;
   onPauseTracking: () => void;
   onResumeTracking: () => void;
-  onStopTracking: () => void;
-  onSettingsChange: (settings: { minDistance: number; minTime: number }) => void;
 }
 
 export const TrackControls: React.FC<TrackControlsProps> = ({
-  recordingMode,
-  trackingStatus,
-  autoRecordingSettings,
-  onRecordPoint,
-  onModeChange,
+  isTracking,
   onStartTracking,
-  onPauseTracking,
-  onResumeTracking,
   onStopTracking,
-  onSettingsChange,
+  onExport,
+  onShowPoints,
+  onAddComment,
+  onRecordPoint,
+  onPauseTracking,
+  onResumeTracking
 }) => {
+  const [recordingMode, setRecordingMode] = useState<RecordingMode>('manual');
+  const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>('idle');
+
+  const handleModeChange = (mode: RecordingMode) => {
+    setRecordingMode(mode);
+  };
+
+  
+ 
   return (
-    <div>
+    <div className="track-controls">
       {trackingStatus === 'idle' && (
         <div className="recording-mode">
           <label>
@@ -38,7 +44,7 @@ export const TrackControls: React.FC<TrackControlsProps> = ({
               type="radio"
               value="manual"
               checked={recordingMode === 'manual'}
-              onChange={() => onModeChange('manual')}
+              onChange={() => handleModeChange('manual')}
             />
             Manual
           </label>
@@ -47,7 +53,7 @@ export const TrackControls: React.FC<TrackControlsProps> = ({
               type="radio"
               value="auto"
               checked={recordingMode === 'auto'}
-              onChange={() => onModeChange('auto')}
+              onChange={() => handleModeChange('auto')}
             />
             Automatic
           </label>

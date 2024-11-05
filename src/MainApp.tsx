@@ -116,7 +116,7 @@ function MainApp() {
   };
 
   const getTotalDistance = (): string => {
-    if (trackPoints.length < 2) return '0.00';
+    if (trackPoints.length < 2) return "00.00";
     let total = 0;
     for (let i = 1; i < trackPoints.length; i++) {
       total += calculateDistance(
@@ -353,6 +353,7 @@ function MainApp() {
         // Calculate distance and elevation gain
         const distance = getTotalDistance();
         const elevationGain = getElevationGain();
+        const duration = getDuration();
         const docResult = await setDoc({
           collection: "tracks",
           doc: {
@@ -360,8 +361,10 @@ function MainApp() {
             data: {
               filename: filename,
               description: description,
+              startime: new Date(trackPoints[0].timestamp).toLocaleString(),
               trackfile: fileRef,
               distance: distance,
+              duration: duration,
               elevationGain: elevationGain
             }
           }
