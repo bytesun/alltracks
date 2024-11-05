@@ -276,7 +276,7 @@ function MainApp() {
     }
   };
 
-  const savePointWithComment = (comment: string) => {
+  const savePointWithComment = async (comment: string) => {
     if (pendingPosition) {
       const newPoint: TrackPoint = {
         latitude: pendingPosition.coords.latitude,
@@ -285,6 +285,17 @@ function MainApp() {
         elevation: pendingPosition.coords.altitude || undefined,
         comment: comment.trim() || undefined,
       };
+
+      if(user){
+       const result = await setDoc({
+          collection: "live_tracks",
+          doc: {
+            key: `track_${trackId}_${pendingPosition.timestamp}`,
+            data: newPoint
+          }
+        });
+        console.log(result);
+      }
       setTrackPoints((prev) => [...prev, newPoint]);
       setPendingPosition(null);
     }
