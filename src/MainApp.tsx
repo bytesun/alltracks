@@ -362,6 +362,7 @@ function MainApp() {
               filename: filename,
               description: description,
               startime: new Date(trackPoints[0].timestamp).toLocaleString(),
+              endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
               trackfile: fileRef,
               distance: distance,
               duration: duration,

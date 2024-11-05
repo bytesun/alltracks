@@ -15,6 +15,7 @@ interface TrackData {
   duration: number;
   elevationGain: number;
   trackfile: string;
+  enddtime: string;
 }
 
 export const Track: React.FC = () => {
@@ -74,6 +75,10 @@ export const Track: React.FC = () => {
         <div className="stat">
           <label>Elevation Gain</label>
           <span>{track?.data.elevationGain.toFixed(0) || 0}m</span>
+        </div>
+        <div className="stat">
+          <label>End</label>
+          <span>{(track?.data.enddtime || 0)} </span>
         </div>
       </div>
     </div>
