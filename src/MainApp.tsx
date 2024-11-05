@@ -35,6 +35,7 @@ const currentLocationIcon = icon({
 
 function MainApp() {
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
+  const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
   const [recordingMode, setRecordingMode] = useState<'manual' | 'auto'>('manual');
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timer | null>(null);
@@ -165,6 +166,9 @@ function MainApp() {
 
   const getPolylinePoints = () => {
     return trackPoints.map(point => [point.latitude, point.longitude]);
+  };
+  const getPolylineImportPoints = () => {
+    return importPoints.map(point => [point.latitude, point.longitude]);
   };
   const startAutoRecording = () => {
     const interval = setInterval(recordPoint, 10000); // Records every 10 seconds
@@ -302,7 +306,7 @@ function MainApp() {
       points = parseKML(content);
     }
 
-    setTrackPoints(points);
+    setImportPoints(points);
   };
 
   const clearPoints = () => {
@@ -471,11 +475,11 @@ function MainApp() {
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
-           
+
 
 
           </div>}
-        
+
         {viewMode === 'map' ? (
           <div className="map-container">
             <MapContainer
@@ -531,6 +535,10 @@ function MainApp() {
               <Polyline
                 positions={getPolylinePoints() as [number, number][]}
                 color="red"
+              />
+              <Polyline
+                positions={getPolylineImportPoints() as [number, number][]}
+                color="green"
               />
             </MapContainer>
 
