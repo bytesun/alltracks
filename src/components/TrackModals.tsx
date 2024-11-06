@@ -41,6 +41,7 @@ export const TrackModals: React.FC<TrackModalsProps> = ({
         <CommentModal
           onSave={onCommentSave}
           onClose={onCommentClose}
+          user={user}
         />
       )}
 

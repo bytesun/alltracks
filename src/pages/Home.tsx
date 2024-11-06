@@ -178,6 +178,7 @@ export const Home: React.FC<{ user: User | null; onLogin: () => Promise<void> }>
             setShowCommentModal(false);
           }}
           onClose={() => setShowCommentModal(false)}
+          user={user}
         />
       )}
 
