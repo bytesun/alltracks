@@ -11,9 +11,9 @@ import { User, authSubscribe, signIn, signOut } from "@junobuild/core";
 
 import "../styles/Status.css";
 
-const personIcon = icon({
-    iconUrl: '/face-red.svg',
-    iconSize: [24, 24],
+const locationIcon = icon({
+    iconUrl: '/marker-icon.png',
+    iconSize: [24, 35],
     iconAnchor: [12, 12]
 });
 
@@ -140,7 +140,7 @@ export const Status: React.FC = () => {
                     <Marker
                         key={point.timestamp}
                         position={[point.latitude, point.longitude]}
-                        icon={personIcon}
+                        icon={locationIcon}
                     >
                         <Popup>
                             <div>

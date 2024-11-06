@@ -26,7 +26,7 @@ const defaultIcon = icon({
 });
 
 const currentLocationIcon = icon({
-  iconUrl: '/currentlocation.png',
+  iconUrl: '/marker-icon.png',
   shadowUrl: '/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41]
@@ -522,7 +522,7 @@ function MainApp() {
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
               
             </p>
-            <a href='/live/{trackId}'>live</a>
+            {user && <a href={'/live/'+trackId}target="_blank">Live</a>}
 
           </div>}
 

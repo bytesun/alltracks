@@ -6,7 +6,7 @@ import { listDocs } from "@junobuild/core";
 import { parseGPX } from "../utils/importFormats";
 import { icon } from 'leaflet';
 import { Navbar } from '../components/Navbar';
-
+import "../styles/Live.css";
 
 interface EventDetails {
     date: string;
@@ -15,9 +15,9 @@ interface EventDetails {
     coordinates: [number, number];
 }
 
-const personIcon = icon({
-    iconUrl: '/face-red.svg',
-    iconSize: [24, 24],
+const locationIcon = icon({
+    iconUrl: '/marker-icon.png',
+    iconSize: [24, 35],
     iconAnchor: [12, 12]
 });
 
@@ -81,6 +81,18 @@ export const Live: React.FC = () => {
         map.setView(position);
         return null;
     }
+    function RecenterOnLoad() {
+        const map = useMap();
+
+        useEffect(() => {
+            if (trackPoints.length > 0) {
+                const lastPoint = trackPoints[trackPoints.length - 1];
+                map.setView([lastPoint.latitude, lastPoint.longitude], 13);
+            }
+        }, [trackPoints, map]);
+
+        return null;
+    }
     function CenterControl() {
         const map = useMap();
 
@@ -109,12 +121,15 @@ export const Live: React.FC = () => {
     return (
         <div className="event-page">
             <Navbar />
+            <div className="live-container">
+            <h3>Live Track Points</h3>
             <MapContainer
                 center={getMapCenter() as [number, number]}
                 zoom={13}
                 style={{ height: '400px', width: '100%' }}
             >
                 <CenterControl />
+                <RecenterOnLoad />
                 <CenterMapOnPoint />
                 {trailPoints.length > 0 && <RecenterMap position={trailPoints[0]} />}
                 {trailPoints.length > 0 && (
@@ -129,7 +144,7 @@ export const Live: React.FC = () => {
                             trackPoints[trackPoints.length - 1].latitude,
                             trackPoints[trackPoints.length - 1].longitude
                         ]}
-                        icon={personIcon}
+                        icon={locationIcon}
                     />
                 )}
                 <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
@@ -140,7 +155,7 @@ export const Live: React.FC = () => {
                 
             </MapContainer>
             <div className="track-points-list">
-            <h3>Live Track Points</h3>
+            
                 <table className="points-table">
                     <tbody>
                         {[...trackPoints]
@@ -161,6 +176,7 @@ export const Live: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+        </div>
         </div>
     );
 };
