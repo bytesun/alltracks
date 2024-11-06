@@ -124,7 +124,7 @@ export const Status: React.FC = () => {
 
     return (
         <div className="event-page">
-            <Navbar user={user} onAuth={handleAuth} />
+            <Navbar  />
             <div className="status-container">
             <h3>Live Report Points</h3>
             <MapContainer

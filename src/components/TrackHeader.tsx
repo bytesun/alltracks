@@ -15,7 +15,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
 }) => {
   return (
     <header className="App-header">
-      <Navbar user={user} onAuth={onAuth} />
+      <Navbar  />
       {locationError && (
         <div className="location-error">
           {locationError}

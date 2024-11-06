@@ -33,7 +33,7 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
       {isOpen && (
         <div className="dropdown-menu">
           <ul>
-          <li onClick={() => {
+            <li onClick={() => {
               navigate('/status');
               setIsOpen(false);
             }}>
@@ -51,6 +51,14 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
             }}>
               Activities
             </li> */}
+            {user && (
+              <li onClick={() => {
+                navigate('/profile');
+                setIsOpen(false);
+              }}>
+                Profile
+              </li>
+            )}
             <li onClick={onAuth}>
               {user ? 'Sign Out' : 'Sign In'}
             </li>

@@ -65,7 +65,7 @@ export const TrackView = () => {
   
   return (
     <div>
-      <Navbar user={null} onAuth={async () => {}} />
+      <Navbar  />
       <div className="track-view">
         <div className="stats">
           {trackPoints.length > 0 && (

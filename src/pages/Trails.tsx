@@ -54,7 +54,7 @@ export const Trails = () => {
   };
   return (
     <div>
-      <Navbar user={user} onAuth={handleAuth} />
+      <Navbar />
     <div className="trails-container">
       <header className="trails-header">
         <h1>Hiking Trails</h1>

@@ -140,7 +140,7 @@ export const Home: React.FC<{ user: User | null; onLogin: () => Promise<void> }>
   return (
     
     <div className="App">
-        <Navbar user={user} onAuth={onLogin} />
+        <Navbar  />
         <header className="App-header">
         {locationError && (
           <div className="location-error">

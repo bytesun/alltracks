@@ -417,7 +417,7 @@ function MainApp() {
 
   return (
     <div className="App">
-      <Navbar user={user} onAuth={handleAuth} />
+      <Navbar />
       <header className="App-header">
         {showNotice && (<div className="data-notice">
           <span className="material-icons">info</span>

@@ -75,7 +75,7 @@ export const Events = () => {
 
   return (
     <div>
-      <Navbar user={user} onAuth={handleAuth} />
+      <Navbar  />
       <div className="events-container">
         <header className="events-header">
           <h1>Hiking Events</h1>

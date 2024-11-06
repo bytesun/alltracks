@@ -1,6 +1,26 @@
 # AllTracks
 
-A web application for tracking hiking activities, managing trails, and organizing hiking events.
+A web application for outdoor activities tracking and safety.
+
+## Core Features
+
+- **Track Your Journey**
+  - Record your path and revisit where you've been
+  - Manual or automatic tracking modes
+  - Import/Export tracks (GPX, KML, CSV)
+  - View detailed statistics and elevation profiles
+
+- **Share Live Location**
+  - Keep family updated with your real-time position
+  - Share live tracking links
+  - Enable cloud sync for persistent data
+  - Private tracking options available
+
+- **Incident Reporting**
+  - Mark and share hazards or points of interest
+  - Report incidents along your route
+  - View nearby incidents on the map
+  - Community-driven safety alerts
 
 ## Features
 
