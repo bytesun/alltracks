@@ -634,6 +634,25 @@ function MainApp() {
         </div>
 
       </header>
+      <div className="feature-highlights">
+  <div className="feature-card">
+    <span className="material-icons">location_history</span>
+    <h3>Track Your Journey</h3>
+    <p>Record your path and revisit where you've been</p>
+  </div>
+  
+  <div className="feature-card">
+    <span className="material-icons">share_location</span>
+    <h3>Live Location Sharing</h3>
+    <p>Keep family updated with your real-time location</p>
+  </div>
+  
+  <div className="feature-card">
+    <span className="material-icons">warning</span>
+    <h3>Incident Reporting</h3>
+    <p>Mark and share important points of interest or hazards</p>
+  </div>
+</div>
 
       {showCommentModal && (
         <CommentModal
