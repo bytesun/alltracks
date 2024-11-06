@@ -419,10 +419,10 @@ function MainApp() {
     <div className="App">
       <Navbar user={user} onAuth={handleAuth} />
       <header className="App-header">
-      {showNotice && (<div className="data-notice">
-        <span className="material-icons">info</span>
-        <p>Track points are stored in memory. Enable cloud sync or export your data to save permanently.</p>
-      </div>)}
+        {showNotice && (<div className="data-notice">
+          <span className="material-icons">info</span>
+          <p>Track points are stored in memory. Enable cloud sync or export your data to save permanently.</p>
+        </div>)}
         {locationError && (
           <div className="location-error">
             {locationError}
@@ -437,7 +437,8 @@ function MainApp() {
                 checked={recordingMode === 'manual'}
                 onChange={(e) => {
                   setShowNotice(false);
-                  setRecordingMode('manual')}}
+                  setRecordingMode('manual')
+                }}
               />
               Manual
             </label>
@@ -448,7 +449,8 @@ function MainApp() {
                 checked={recordingMode === 'auto'}
                 onChange={(e) => {
                   setShowNotice(false);
-                  setRecordingMode('auto')}}
+                  setRecordingMode('auto')
+                }}
               />
               Automatic
             </label>
@@ -635,24 +637,24 @@ function MainApp() {
 
       </header>
       <div className="feature-highlights">
-  <div className="feature-card">
-    <span className="material-icons">location_history</span>
-    <h3>Track Your Journey</h3>
-    <p>Record your path and revisit where you've been</p>
-  </div>
-  
-  <div className="feature-card">
-    <span className="material-icons">share_location</span>
-    <h3>Live Location Sharing</h3>
-    <p>Keep family updated with your real-time location</p>
-  </div>
-  
-  <div className="feature-card">
-    <span className="material-icons">warning</span>
-    <h3>Incident Reporting</h3>
-    <p>Mark and share important points of interest or hazards</p>
-  </div>
-</div>
+        <div className="feature-card">
+          <span className="material-icons">location_history</span>
+          <h3>Track Your Journey</h3>
+          <p>Record your path and revisit where you've been</p>
+        </div>
+
+        <div className="feature-card">
+          <span className="material-icons">share_location</span>
+          <h3>Live Location Sharing</h3>
+          <p>Keep family updated with your real-time location</p>
+        </div>
+
+        <div className="feature-card">
+          <span className="material-icons">warning</span>
+          <h3>Incident Reporting</h3>
+          <p>Mark and share important points of interest or hazards</p>
+        </div>
+      </div>
 
       {showCommentModal && (
         <CommentModal

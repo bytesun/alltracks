@@ -33,6 +33,12 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
       {isOpen && (
         <div className="dropdown-menu">
           <ul>
+          <li onClick={() => {
+              navigate('/status');
+              setIsOpen(false);
+            }}>
+              Status
+            </li>
             {/* <li onClick={() => {
               navigate('/tracks');
               setIsOpen(false);
