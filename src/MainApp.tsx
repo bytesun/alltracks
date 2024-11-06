@@ -34,6 +34,8 @@ const currentLocationIcon = icon({
 
 
 function MainApp() {
+  const [showNotice, setShowNotice] = useState(true);
+
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
@@ -228,6 +230,7 @@ function MainApp() {
   };
 
   const recordPoint = () => {
+    setShowNotice(false);
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -276,28 +279,50 @@ function MainApp() {
     }
   };
 
-  const savePointWithComment = async (comment: string) => {
+  const savePointWithComment = async (data: {
+    comment: string,
+    cloudEnabled: boolean,
+    isIncident: boolean,
+    isPrivate: boolean
+  }) => {
     if (pendingPosition) {
       const newPoint: TrackPoint = {
         latitude: pendingPosition.coords.latitude,
         longitude: pendingPosition.coords.longitude,
         timestamp: pendingPosition.timestamp,
         elevation: pendingPosition.coords.altitude || undefined,
-        comment: comment.trim() || undefined,
+        comment: data.comment.trim() || undefined,
       };
 
-      if(user){
-       const result = await setDoc({
-          collection: "live_tracks",
-          doc: {
-            key: `track_${trackId}_${pendingPosition.timestamp}`,
-            data: newPoint
-          }
-        });
-        console.log(result);
+      if (data.cloudEnabled) {
+        if (data.isIncident) {
+          const result = await setDoc({
+            collection: "incidents",
+            doc: {
+              key: `incident_${trackId}_${pendingPosition.timestamp}`,
+              data: newPoint
+            }
+          });
+        }
+        if (data.isPrivate) {
+
+        } else {
+          const result = await setDoc({
+            collection: "live_tracks",
+            doc: {
+              key: `track_${trackId}_${pendingPosition.timestamp}`,
+              data: newPoint
+            }
+          });
+        }
+
       }
       setTrackPoints((prev) => [...prev, newPoint]);
       setPendingPosition(null);
+
+      setAutoCenter(true);
+      setTimeout(() => setAutoCenter(false), 100);
+
     }
   };
 
@@ -394,7 +419,10 @@ function MainApp() {
     <div className="App">
       <Navbar user={user} onAuth={handleAuth} />
       <header className="App-header">
-
+      {showNotice && (<div className="data-notice">
+        <span className="material-icons">info</span>
+        <p>Track points are stored in memory. Enable cloud sync or export your data to save permanently.</p>
+      </div>)}
         {locationError && (
           <div className="location-error">
             {locationError}
@@ -407,7 +435,9 @@ function MainApp() {
                 type="radio"
                 value="manual"
                 checked={recordingMode === 'manual'}
-                onChange={(e) => setRecordingMode('manual')}
+                onChange={(e) => {
+                  setShowNotice(false);
+                  setRecordingMode('manual')}}
               />
               Manual
             </label>
@@ -416,7 +446,9 @@ function MainApp() {
                 type="radio"
                 value="auto"
                 checked={recordingMode === 'auto'}
-                onChange={(e) => setRecordingMode('auto')}
+                onChange={(e) => {
+                  setShowNotice(false);
+                  setRecordingMode('auto')}}
               />
               Automatic
             </label>
@@ -605,8 +637,8 @@ function MainApp() {
 
       {showCommentModal && (
         <CommentModal
-          onSave={(comment) => {
-            savePointWithComment(comment);
+          onSave={(data) => {
+            savePointWithComment(data);
             setShowCommentModal(false);
           }}
           onClose={() => {

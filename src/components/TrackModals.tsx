@@ -11,7 +11,10 @@ interface TrackModalsProps {
   showPointsModal: boolean;
   trackPoints: TrackPoint[];
   user: User | null;
-  onCommentSave: (comment: string) => void;
+  onCommentSave: (data:{ comment: string;
+    cloudEnabled: boolean;
+    isIncident: boolean;
+    isPrivate: boolean}) => void;
   onCommentClose: () => void;
   onExport: (format: string, storage: 'local' | 'cloud', filename: string, description: string) => void;
   onExportClose: () => void;

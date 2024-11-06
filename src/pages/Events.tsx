@@ -1,8 +1,9 @@
-import React,{useState,useEffect} from 'react';
-import {User, authSubscribe, signIn,signOut} from "@junobuild/core";
+import React, { useState, useEffect } from 'react';
+import { User, authSubscribe, signIn, signOut } from "@junobuild/core";
 import { Navbar } from '../components/Navbar';
+import { CreateEventModal } from '../components/CreateEventModal';
 import './Events.css';
-
+import { setDoc, listDocs } from "@junobuild/core";
 interface Event {
   id: string;
   title: string;
@@ -33,6 +34,8 @@ const mockEvents: Event[] = [
 
 export const Events = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
@@ -41,6 +44,9 @@ export const Events = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    fetchEvents();
+  }, []);
   const handleAuth = async (): Promise<void> => {
     if (user) {
       await signOut();
@@ -48,50 +54,63 @@ export const Events = () => {
       await signIn();
     }
   };
+  const fetchEvents = async () => {
+    const eventsList = await listDocs({
+      collection: "events"
+    });
+    setEvents(eventsList.items.map(doc => doc.data as Event));
+  };
+
+  const handleCreateEvent = async (formData: any) => {
+    await setDoc({
+      collection: "events",
+      doc: {
+        key: formData.eventId,
+        data: formData
+      }
+    });
+    setShowCreateModal(false);
+    fetchEvents();
+  };
+
   return (
     <div>
       <Navbar user={user} onAuth={handleAuth} />
-    <div className="events-container">
-      <header className="events-header">
-        <h1>Hiking Events</h1>
-        <button className="create-event-btn">Create Event</button>
-      </header>
-      
-      <div className="events-list">
-        {mockEvents.map(event => (
-          <div key={event.id} className="event-card">
-            <div className="event-image">
-              <img src={event.imageUrl} alt={event.title} />
-              <div className="event-date">
-                <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-              </div>
-            </div>
-            
-            <div className="event-details">
-              <h2>{event.title}</h2>
-              <div className="event-info">
-                <span>🕒 {event.time}</span>
-                <span>📍 {event.location}</span>
-                <span>🏃‍♂️ {event.trail}</span>
-              </div>
-              <p>{event.description}</p>
-              <div className="event-footer">
-                <div className="participants">
-                  {event.participants}/{event.maxParticipants} participants
-                  <div className="progress-bar">
-                    <div 
-                      className="progress" 
-                      style={{width: `${(event.participants/event.maxParticipants) * 100}%`}}
-                    ></div>
-                  </div>
+      <div className="events-container">
+        <header className="events-header">
+          <h1>Hiking Events</h1>
+          <button
+            className="create-event-btn"
+            onClick={() => setShowCreateModal(true)}
+            disabled={!user}
+          >
+            Create Event
+          </button>
+        </header>
+
+        <div className="events-list">
+          {events.map(event => (
+            <div key={event.id} className="event-card">
+              <div className="event-image">
+                <img src={event.imageUrl} alt={event.title} />
+                <div className="event-date">
+                  <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>
-                
+              </div>
+
+              <div className="event-details">
+                <h2>{event.title}</h2>
+                <div className="event-info">
+                  <span>🕒 {new Date(event.time).toLocaleTimeString()}</span>
+                  <span>🏃‍♂️ {event.trail}</span>
+                </div>
+                <p>{event.description}</p>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+      {showCreateModal && <CreateEventModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateEvent} />}
     </div>
   );
 };

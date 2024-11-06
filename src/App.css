@@ -242,3 +242,23 @@ button:disabled {
   font-weight: bold;
   text-decoration: underline;
 }
+
+.data-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff3e0;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+.data-notice .material-icons {
+  color: #f57c00;
+}
+
+.data-notice p {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+}

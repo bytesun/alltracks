@@ -169,10 +169,10 @@ export const Home: React.FC<{ user: User | null; onLogin: () => Promise<void> }>
 
       {showCommentModal && (
         <CommentModal 
-          onSave={(comment) => {
+          onSave={(data) => {
             if (trackPoints.length > 0) {
               const lastPoint = trackPoints[trackPoints.length - 1];
-              const updatedPoint = { ...lastPoint, comment };
+              const updatedPoint = { ...lastPoint, comment:data.comment };
               setTrackPoints(prev => [...prev.slice(0, -1), updatedPoint]);
             }
             setShowCommentModal(false);

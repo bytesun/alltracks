@@ -6,6 +6,7 @@ import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
 import { Track } from './pages/Track';
 import { Event } from './pages/Event';
+import { Live } from './pages/Live';
 
 export const App: React.FC = () => {
   return (
@@ -15,6 +16,8 @@ export const App: React.FC = () => {
       <Route path="/events" element={<Events />} />
       <Route path="/track/:trackId" element={<Track />} />
       <Route path="/event/:eventId" element={<Event />} />
+      <Route path="/live/:liveId" element={<Live />} />
+     
     </Routes>
   );
 };
