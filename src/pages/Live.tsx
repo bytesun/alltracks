@@ -5,6 +5,7 @@ import { TrackPoint } from '../utils/exportFormats';
 import { listDocs } from "@junobuild/core";
 import { parseGPX } from "../utils/importFormats";
 import { icon } from 'leaflet';
+import { Navbar } from '../components/Navbar';
 
 
 interface EventDetails {
@@ -54,9 +55,11 @@ export const Live: React.FC = () => {
     useEffect(() => {
         const fetchTrackPoints = async () => {
             const tracks = await listDocs({
-                collection: "live_tracks",
+                collection: "live_tracks",                
                 filter:{
-                    owner: liveId
+                    matcher: {
+                        key: "^"+liveId+"_",
+                    }
                 }
                 
             });
@@ -105,7 +108,7 @@ export const Live: React.FC = () => {
 
     return (
         <div className="event-page">
-
+            <Navbar />
             <MapContainer
                 center={getMapCenter() as [number, number]}
                 zoom={13}

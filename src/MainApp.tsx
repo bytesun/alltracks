@@ -58,6 +58,7 @@ function MainApp() {
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId] = useState(() => uuidv4());
 
+
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
       setUser(user);
@@ -299,7 +300,7 @@ function MainApp() {
           const result = await setDoc({
             collection: "incidents",
             doc: {
-              key: `incident_${trackId}_${pendingPosition.timestamp}`,
+              key: `${trackId}_${pendingPosition.timestamp}`,
               data: newPoint
             }
           });
@@ -310,7 +311,7 @@ function MainApp() {
           const result = await setDoc({
             collection: "live_tracks",
             doc: {
-              key: `track_${trackId}_${pendingPosition.timestamp}`,
+              key: `${trackId}_${pendingPosition.timestamp}`,
               data: newPoint
             }
           });
@@ -519,9 +520,9 @@ function MainApp() {
               className="points-count-link"
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
+              
             </p>
-
-
+            <a href='/live/{trackId}'>live</a>
 
           </div>}
 
