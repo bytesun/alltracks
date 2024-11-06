@@ -12,8 +12,8 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
         <h2>Profile</h2>
         <div className="profile-info">
           <div className="info-item">
-            <span className="material-icons">email</span>
-            <p></p>
+            <span className="material-icons">badge</span>
+            <p>{user?.key}</p>
           </div>
           <div className="info-item">
             <span className="material-icons">access_time</span>

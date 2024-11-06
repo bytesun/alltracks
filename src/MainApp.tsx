@@ -72,7 +72,9 @@ function MainApp() {
       await signOut();
     } else {
 
-      await signIn();
+      await signIn({
+        derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app"
+      });
     }
   };
   useEffect(() => {
@@ -229,7 +231,18 @@ function MainApp() {
     const shareUrl = `${window.location.origin}/track/${trackId}`;
     navigator.clipboard.writeText(shareUrl);
   };
+  function RecenterOnImport() {
+    const map = useMap();
 
+    useEffect(() => {
+        if (importPoints.length > 0) {
+            const firstPoint = importPoints[0];
+            map.setView([firstPoint.latitude, firstPoint.longitude], 13);
+        }
+    }, [importPoints, map]);
+
+    return null;
+}
   const recordPoint = () => {
     setShowNotice(false);
     if (recordingMode === 'manual') {
@@ -534,6 +547,7 @@ function MainApp() {
               style={{ height: '400px', width: '100%' }}
             >
               {autoCenter && <RecenterMap position={userLocation} />}
+              <RecenterOnImport />
               <TileLayer
                 url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                 attribution=''
