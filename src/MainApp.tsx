@@ -338,9 +338,8 @@ function MainApp() {
       setTimeout(() => setAutoCenter(false), 100);
 
     }
+
   };
-
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
