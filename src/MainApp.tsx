@@ -16,7 +16,16 @@ import { ExportModal } from './components/ExportModal';
 
 import { signIn, signOut, authSubscribe, User, uploadFile, setDoc } from "@junobuild/core";
 import { Navbar } from './components/Navbar';
+
 import { TrackPointsModal } from './components/TrackPointsModal';
+import { getDoc } from "@junobuild/core";
+
+interface ProfileSettings {
+  storageId: string;
+  trackPointCollection: string;
+  trackFileCollection: string;
+}
+
 // Fix for default marker icon
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
@@ -57,8 +66,25 @@ function MainApp() {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId] = useState(() => uuidv4());
+  const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
 
-
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      if (user?.key) {
+        const doc = await getDoc<ProfileSettings>({
+          collection: "profiles",
+          key: user.key
+        });
+        
+        if (doc?.data) {
+          setUserSettings(doc.data);
+        }
+      }
+    };
+  
+    loadUserSettings();
+  }, [user]);
+  
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
       setUser(user);
@@ -318,8 +344,15 @@ function MainApp() {
             }
           });
         }
-        if (data.isPrivate) {
-
+        if (data.isPrivate && userSettings?.trackPointCollection) {
+          const result = await setDoc({
+            satellite:{satelliteId:userSettings?.storageId},
+            collection: userSettings.trackPointCollection,
+            doc: {              
+              key: `${trackId}_${pendingPosition.timestamp}`,
+              data: newPoint
+            }
+          });
         } else {
           const result = await setDoc({
             collection: "live_tracks",
