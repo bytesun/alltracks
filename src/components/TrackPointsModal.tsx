@@ -32,6 +32,23 @@ export const TrackPointsModal = ({ points, onClose }: TrackPointsModalProps) => 
                   {point.comment}
                 </div>
               )}
+              {point.photo && (
+                <div className="point-photo">
+                  <img
+                    src={point.photo}
+                    alt="Point photo"
+                    style={{
+                      width: '200px',
+                      maxHeight: '200px',
+                      objectFit: 'cover',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                      marginTop: '8px'
+                    }}
+                    onClick={() => window.open(point.photo, '_blank')}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>
