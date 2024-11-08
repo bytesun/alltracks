@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+
 import { User } from "@junobuild/core"
 import './Profile.css';
 import { Navbar } from '../components/Navbar';
@@ -17,9 +19,8 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
     storageId: '',
     trackPointCollection: '',
     trackFileCollection: ''
-
   });
-
+  const [activeTab, setActiveTab] = useState('profile');
 
   useEffect(() => {
     if (user) {
@@ -43,7 +44,9 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
 
     loadSettings();
   }, [user]);
-
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
   const handleSettingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSettings(prev => ({
@@ -80,7 +83,6 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
         });
       }
       
-
       setSaveStatus('success');
     } catch (error) {
       setSaveStatus('error');
@@ -95,93 +97,125 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
     <>
       <Navbar />
       <div className="profile-container">
-
-        <h2>Profile</h2>
-        <div className="profile-info">
-          <div className="info-item">
-            <span className="material-icons">badge</span>
-            <p>{user?.key}</p>
-          </div>
-          <div className="info-item">
-            <span className="material-icons">access_time</span>
-            <p>Member since: {new Date().toLocaleDateString()}</p>
-          </div>
-        </div>
-        <div className="profile-settings">
-          <h3>Settings</h3>
-          <div className="settings-header">
-            <span>Storage Configuration</span>
-            <a
-              href="https://juno.build/docs/create-a-satellite"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="help-link"
+        <div className="profile-layout">
+          <div className="profile-sidebar">
+            <div 
+              className={`sidebar-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('profile')}
             >
-              <span className="material-icons">help_outline</span>
-              Setup Guide
-            </a>
-          </div>
-          <form onSubmit={handleSubmit}>
-            <div className="settings-item">
-
-              <div className="setting-content">
-                <label>Storage ID</label>
-                <input
-                  type="text"
-                  name="storageId"
-                  value={settings.storageId}
-                  onChange={handleSettingChange}
-                  placeholder="Sattelite id on Juno"
-                  required
-                />
-              </div>
+              <span className="material-icons">person</span>
+              Profile
             </div>
-            <div className="settings-item">
-
-              <div className="setting-content">
-                <label>Track Point Collection</label>
-                <input
-                  type="text"
-                  name="trackPointCollection"
-                  value={settings.trackPointCollection}
-                  onChange={handleSettingChange}
-                  placeholder="Enter datastore collection ID for track points"
-                />
-              </div>
-            </div>
-            <div className="settings-item">
-
-              <div className="setting-content">
-                <label>Track File Collection</label>
-                <input
-                  type="text"
-                  name="trackFileCollection"
-                  value={settings.trackFileCollection}
-                  onChange={handleSettingChange}
-                  placeholder="Enter storagecollection ID  for track file "
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="save-settings"
-              disabled={isSubmitting}
+            <div 
+              className={`sidebar-item ${activeTab === 'storage' ? 'active' : ''}`}
+              onClick={() => setActiveTab('storage')}
             >
-              {isSubmitting ? (
-                <span className="material-icons spinning">refresh</span>
-              ) : 'Save Settings'}
-            </button>
-            {saveStatus === 'success' && (
-              <div className="save-notification success">
-                Settings saved successfully!
+              <span className="material-icons">cloud</span>
+              Storage
+            </div>
+            <div 
+              className={`sidebar-item ${activeTab === 'group' ? 'active' : ''}`}
+              onClick={() => setActiveTab('group')}
+            >
+              <span className="material-icons">group</span>
+              Groups
+            </div>
+          </div>
+          <div className="profile-content">
+            {activeTab === 'profile' && (
+              <>
+                <h2>Profile</h2>
+                <div className="profile-info">
+                  <div className="info-item">
+                    <span className="material-icons">badge</span>
+                    <p>{user?.key}</p>
+                  </div>
+                  <div className="info-item">
+                    <span className="material-icons">access_time</span>
+                    <p>Member since: {new Date().toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </>
+            )}
+            {activeTab === 'storage' && (
+              <div className="profile-settings">
+                <h3>Settings</h3>
+                <div className="settings-header">
+                  <span>Private Storage Configuration</span>
+                  <a
+                    href="https://juno.build/docs/create-a-satellite"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="help-link"
+                  >
+                    <span className="material-icons">help_outline</span>
+                    Setup Guide
+                  </a>
+                </div>
+                <form onSubmit={handleSubmit}>
+                  <div className="settings-item">
+                    <div className="setting-content">
+                      <label>Storage ID</label>
+                      <input
+                        type="text"
+                        name="storageId"
+                        value={settings.storageId}
+                        onChange={handleSettingChange}
+                        placeholder="Sattelite Id"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="settings-item">
+                    <div className="setting-content">
+                      <label>Track Point </label>
+                      <input
+                        type="text"
+                        name="trackPointCollection"
+                        value={settings.trackPointCollection}
+                        onChange={handleSettingChange}
+                        placeholder="Enter datastore collection ID for track points"
+                      />
+                    </div>
+                  </div>
+                  <div className="settings-item">
+                    <div className="setting-content">
+                      <label>Track File </label>
+                      <input
+                        type="text"
+                        name="trackFileCollection"
+                        value={settings.trackFileCollection}
+                        onChange={handleSettingChange}
+                        placeholder="Enter storage collection ID  for track file "
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="save-settings"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <span className="material-icons spinning">refresh</span>
+                    ) : 'Save Settings'}
+                  </button>
+                  {saveStatus === 'success' && (
+                    <div className="save-notification success">
+                      Settings saved successfully!
+                    </div>
+                  )}
+                  {saveStatus === 'error' && (
+                    <div className="save-notification error">
+                      Failed to save settings. Please try again.
+                    </div>
+                  )}
+                </form>
               </div>
             )}
-            {saveStatus === 'error' && (
-              <div className="save-notification error">
-                Failed to save settings. Please try again.
-              </div>
+            {activeTab === 'group' && (
+              <div className="profile-settings"></div>
             )}
-          </form>
+          </div>
         </div>
       </div>
     </>

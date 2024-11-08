@@ -50,4 +50,5 @@ export interface TrackPoint {
   timestamp: number;
   elevation?: number;
   comment?: string;
+  photo?: string;
 }

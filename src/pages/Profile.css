@@ -93,3 +93,44 @@
 .help-link .material-icons {
   font-size: 18px;
 }
+
+.profile-layout {
+  display: flex;
+  gap: 2rem;
+  min-height: calc(100vh - 60px);
+}
+
+.profile-sidebar {
+  width: 200px;
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.sidebar-item:hover {
+  background-color: #e0e0e0;
+}
+
+.sidebar-item.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.profile-content {
+  flex: 1;
+  padding: 1rem;
+}
+
+.material-icons {
+  font-size: 20px;
+}

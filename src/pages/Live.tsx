@@ -55,13 +55,13 @@ export const Live: React.FC = () => {
     useEffect(() => {
         const fetchTrackPoints = async () => {
             const tracks = await listDocs({
-                collection: "live_tracks",                
-                filter:{
+                collection: "live_tracks",
+                filter: {
                     matcher: {
-                        key: "^"+liveId+"_",
+                        key: "^" + liveId + "_",
                     }
                 }
-                
+
             });
 
             const points = tracks.items.map(doc => doc.data as TrackPoint);
@@ -122,61 +122,79 @@ export const Live: React.FC = () => {
         <div className="event-page">
             <Navbar />
             <div className="live-container">
-            <h3>Live Track Points</h3>
-            <MapContainer
-                center={getMapCenter() as [number, number]}
-                zoom={13}
-                style={{ height: '400px', width: '100%' }}
-            >
-                <CenterControl />
-                <RecenterOnLoad />
-                <CenterMapOnPoint />
-                {trailPoints.length > 0 && <RecenterMap position={trailPoints[0]} />}
-                {trailPoints.length > 0 && (
-                    <Marker
-                        position={trailPoints[0]}
-                        icon={trailHeadIcon}
+                <h3>Live Track Points</h3>
+                <MapContainer
+                    center={getMapCenter() as [number, number]}
+                    zoom={13}
+                    style={{ height: '400px', width: '100%' }}
+                >
+                    <CenterControl />
+                    <RecenterOnLoad />
+                    <CenterMapOnPoint />
+                    {trailPoints.length > 0 && <RecenterMap position={trailPoints[0]} />}
+                    {trailPoints.length > 0 && (
+                        <Marker
+                            position={trailPoints[0]}
+                            icon={trailHeadIcon}
+                        />
+                    )}
+                    {trackPoints.length > 0 && (
+                        <Marker
+                            position={[
+                                trackPoints[trackPoints.length - 1].latitude,
+                                trackPoints[trackPoints.length - 1].longitude
+                            ]}
+                            icon={locationIcon}
+                        />
+                    )}
+                    <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+                    <Polyline
+                        positions={trackPoints.map(p => [p.latitude, p.longitude])}
+                        color="red"
                     />
-                )}
-                {trackPoints.length > 0 && (
-                    <Marker
-                        position={[
-                            trackPoints[trackPoints.length - 1].latitude,
-                            trackPoints[trackPoints.length - 1].longitude
-                        ]}
-                        icon={locationIcon}
-                    />
-                )}
-                <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
-                <Polyline
-                    positions={trackPoints.map(p => [p.latitude, p.longitude])}
-                    color="red"
-                />
-                
-            </MapContainer>
-            <div className="track-points-list">
-            
-                <table className="points-table">
-                    <tbody>
-                        {[...trackPoints]
-                            .sort((a, b) => b.timestamp - a.timestamp)
-                            .map((point) => (
-                                <tr
-                                    key={point.timestamp}
-                                    onClick={() => setSelectedPoint(point)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
-                                    <td>{point.latitude.toFixed(6)}</td>
-                                    <td>{point.longitude.toFixed(6)}</td>
-                                    <td>{point.elevation?.toFixed(1) || '-'} m</td>
-                                    <td>{point.comment} </td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
+
+                </MapContainer>
+                <div className="track-points-list">
+
+                    <table className="points-table">
+                        <tbody>
+                            {[...trackPoints]
+                                .sort((a, b) => b.timestamp - a.timestamp)
+                                .map((point) => (
+                                    <tr
+                                        key={point.timestamp}
+                                        onClick={() => setSelectedPoint(point)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
+                                        <td>{point.latitude.toFixed(6)}</td>
+                                        <td>{point.longitude.toFixed(6)}</td>
+                                        <td>{point.elevation?.toFixed(1) || '-'} m</td>
+                                        <td>{point.comment} </td>
+                                        <td>
+                                            {point.photo && (
+                                                <img
+                                                    src={point.photo}
+                                                    alt="Point photo"
+                                                    style={{
+                                                        width: '50px',
+                                                        height: '50px',
+                                                        objectFit: 'cover',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(point.photo, '_blank');
+                                                    }}
+                                                />
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
         </div>
     );
 };

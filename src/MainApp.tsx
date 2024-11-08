@@ -75,16 +75,16 @@ function MainApp() {
           collection: "profiles",
           key: user.key
         });
-        
+
         if (doc?.data) {
           setUserSettings(doc.data);
         }
       }
     };
-  
+
     loadUserSettings();
   }, [user]);
-  
+
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
       setUser(user);
@@ -99,7 +99,7 @@ function MainApp() {
     } else {
 
       await signIn({
-        derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app"
+        derivationOrigin: "https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app"
       });
     }
   };
@@ -261,16 +261,17 @@ function MainApp() {
     const map = useMap();
 
     useEffect(() => {
-        if (importPoints.length > 0) {
-            const firstPoint = importPoints[0];
-            map.setView([firstPoint.latitude, firstPoint.longitude], 13);
-        }
+      if (importPoints.length > 0) {
+        const firstPoint = importPoints[0];
+        map.setView([firstPoint.latitude, firstPoint.longitude], 13);
+      }
     }, [importPoints, map]);
 
     return null;
-}
+  }
   const recordPoint = () => {
     setShowNotice(false);
+    
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -323,8 +324,17 @@ function MainApp() {
     comment: string,
     cloudEnabled: boolean,
     isIncident: boolean,
-    isPrivate: boolean
+    isPrivate: boolean,
+    photo: File | undefined,
   }) => {
+    let photoAsset;
+    if (data.photo && data.cloudEnabled) {
+      const photoFile = new File([data.photo], `photo_${Date.now()}.jpg`, { type: data.photo.type });
+      photoAsset = await uploadFile({
+        collection: "photos",
+        data: photoFile
+      });
+    }
     if (pendingPosition) {
       const newPoint: TrackPoint = {
         latitude: pendingPosition.coords.latitude,
@@ -332,6 +342,7 @@ function MainApp() {
         timestamp: pendingPosition.timestamp,
         elevation: pendingPosition.coords.altitude || undefined,
         comment: data.comment.trim() || undefined,
+        photo: photoAsset ? photoAsset.downloadUrl : undefined
       };
 
       if (data.cloudEnabled) {
@@ -346,9 +357,9 @@ function MainApp() {
         }
         if (data.isPrivate && userSettings?.trackPointCollection) {
           const result = await setDoc({
-            satellite:{satelliteId:userSettings?.storageId},
+            satellite: { satelliteId: userSettings?.storageId },
             collection: userSettings.trackPointCollection,
-            doc: {              
+            doc: {
               key: `${trackId}_${pendingPosition.timestamp}`,
               data: newPoint
             }
@@ -431,7 +442,7 @@ function MainApp() {
         data: file,
         collection: "tracks"
       });
-      console.log(savedAsset);
+
       if (savedAsset) {
         // Get the uploaded file reference
         const fileRef = savedAsset.downloadUrl;
@@ -456,7 +467,7 @@ function MainApp() {
             }
           }
         });
-        console.log(docResult);
+
       }
     }
   };
@@ -565,9 +576,9 @@ function MainApp() {
               className="points-count-link"
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
-              
+
             </p>
-            {user && <a href={'/live/'+trackId}target="_blank">Live</a>}
+            {user && <a href={'/live/' + trackId} target="_blank">Live</a>}
 
           </div>}
 
