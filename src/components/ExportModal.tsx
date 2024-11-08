@@ -3,7 +3,7 @@ import './ExportModal.css';
 import { User } from "@junobuild/core";
 
 interface ExportModalProps {
-  onExport: (format: string, storage: 'local' | 'cloud', filename: string, description: string) => void;
+  onExport: (format: string, storage: 'local' | 'cloud', filename: string, description: string,eventId: string) => void;
   onClose: () => void;
   user: User | null;
   onLogin: () => void;
@@ -14,10 +14,11 @@ export const ExportModal = ({ onExport, onClose, user, onLogin }: ExportModalPro
   const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [eventId, setEventId] = useState("0");
 
   const handleExport = async () => {
     setIsLoading(true);
-    await onExport(format, storage, filename, description);
+    await onExport(format, storage, filename, description, eventId);
     setIsLoading(false);
     onClose();
   };
@@ -33,6 +34,16 @@ export const ExportModal = ({ onExport, onClose, user, onLogin }: ExportModalPro
           </div>
         ) : (
           <>
+          <div className="option-group">
+                <label>Event ID:</label>
+                <input
+                  type="text"
+                  value={eventId}
+                  onChange={(e) => setEventId(e.target.value)}
+                  placeholder="Enter event ID"
+                  className="eventid-input"
+                />
+              </div>
             <div className="export-options">
               <div className="option-group">
                 <label>Filename:</label>

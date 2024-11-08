@@ -329,7 +329,7 @@ function MainApp() {
   }) => {
     let photoAsset;
     if (data.photo && data.cloudEnabled) {
-      const photoFile = new File([data.photo], `photo_${Date.now()}.jpg`, { type: data.photo.type });
+      const photoFile = new File([data.photo], `${trackId}_${Date.now()}.jpg`, { type: data.photo.type });
       photoAsset = await uploadFile({
         collection: "photos",
         data: photoFile
@@ -409,7 +409,7 @@ function MainApp() {
   const [showExportModal, setShowExportModal] = useState(false);
 
 
-  const handleExport = async (format: string, storage: 'local' | 'cloud', filename: string, description: string) => {
+  const handleExport = async (format: string, storage: 'local' | 'cloud', filename: string, description: string, eventId: string) => {
     let content: string;
     let mimeType: string;
 
@@ -430,7 +430,7 @@ function MainApp() {
         mimeType = 'text/csv';
     }
 
-    const expfilename = `${filename}.${format}`;
+    const expfilename = `${eventId}_${filename}_${trackId}.${format}`;
 
     if (storage === 'local') {
       const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
@@ -454,8 +454,9 @@ function MainApp() {
         const docResult = await setDoc({
           collection: "tracks",
           doc: {
-            key: uuidv4(),
+            key: eventId+"_" +uuidv4(),
             data: {
+              eventId,
               filename: filename,
               description: description,
               startime: new Date(trackPoints[0].timestamp).toLocaleString(),
