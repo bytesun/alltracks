@@ -4,13 +4,22 @@ import { Navigate } from 'react-router-dom';
 import { User } from "@junobuild/core"
 import './Profile.css';
 import { Navbar } from '../components/Navbar';
-import {Doc, setDoc, getDoc } from "@junobuild/core";
+import { Doc, setDoc, getDoc } from "@junobuild/core";
+import { Tracks } from '../components/Tracks';
 interface ProfileSettings {
   storageId: string;
   trackPointCollection: string;
   trackFileCollection: string;
 
 }
+interface Track {
+  id: string;
+  name: string;
+  distance: number;
+  date: string;
+}
+
+
 export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -21,6 +30,21 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
     trackFileCollection: ''
   });
   const [activeTab, setActiveTab] = useState('profile');
+  // Add this with other useState declarations
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+  // Add this with other useEffect hooks to load tracks
+  useEffect(() => {
+    const loadTracks = async () => {
+      if (user?.key) {
+        // Load tracks from your storage here
+        // For now using empty array
+        setTracks([]);
+      }
+    };
+
+    loadTracks();
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -35,7 +59,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
           collection: "profiles",
           key: user.key
         });
-        setMydoc(doc||null);
+        setMydoc(doc || null);
         if (doc?.data) {
           setSettings(doc.data);
         }
@@ -63,9 +87,9 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
     }
     setIsSubmitting(true);
     setSaveStatus('idle');
-    
+
     try {
-      if(mydoc?.key) {
+      if (mydoc?.key) {
         await setDoc({
           collection: "profiles",
           doc: {
@@ -82,7 +106,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
           }
         });
       }
-      
+
       setSaveStatus('success');
     } catch (error) {
       setSaveStatus('error');
@@ -99,26 +123,33 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
       <div className="profile-container">
         <div className="profile-layout">
           <div className="profile-sidebar">
-            <div 
+            <div
               className={`sidebar-item ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={() => setActiveTab('profile')}
             >
               <span className="material-icons">person</span>
               Profile
             </div>
-            <div 
+            <div
               className={`sidebar-item ${activeTab === 'storage' ? 'active' : ''}`}
               onClick={() => setActiveTab('storage')}
             >
               <span className="material-icons">cloud</span>
               Storage
             </div>
-            <div 
+            <div
               className={`sidebar-item ${activeTab === 'group' ? 'active' : ''}`}
               onClick={() => setActiveTab('group')}
             >
               <span className="material-icons">group</span>
               Groups
+            </div>
+            <div
+              className={`sidebar-item ${activeTab === 'tracks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tracks')}
+            >
+              <span className="material-icons">route</span>
+              Tracks
             </div>
           </div>
           <div className="profile-content">
@@ -215,6 +246,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
             {activeTab === 'group' && (
               <div className="profile-settings"></div>
             )}
+            {activeTab === 'tracks' && <Tracks user={user} />}
           </div>
         </div>
       </div>

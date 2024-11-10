@@ -1,0 +1,81 @@
+.tracks-list {
+  margin-top: 20px;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.track-item:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.track-info {
+  flex: 1;
+  margin-left: 16px;
+}
+
+.track-title {
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.track-meta {
+  display: flex;
+  gap: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.track-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.track-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.track-button.edit {
+  background-color: #007bff;
+  color: white;
+}
+
+.track-button.delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.empty-tracks {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.create-track-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}

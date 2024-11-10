@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import { useNavigate } from 'react-router-dom';
+import {Navigate, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import { User } from "@junobuild/core";
 import { DropdownMenu } from './DropdownMenu';
@@ -24,6 +24,7 @@ export const Navbar = () => {
         derivationOrigin:"https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io/", 
         maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
       });
+      navigate('/profile');
     }
   };
   return (
