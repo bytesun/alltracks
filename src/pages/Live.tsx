@@ -38,6 +38,8 @@ export const Live: React.FC = () => {
         // Add more trail coordinates as needed
     ]);
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
+    const [modalPhoto, setModalPhoto] = useState<string | null>(null);
+
 
     function CenterMapOnPoint() {
         const map = useMap();
@@ -184,17 +186,34 @@ export const Live: React.FC = () => {
                                                     }}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        window.open(point.photo, '_blank');
+                                                        if (point.photo) {
+                                                            setModalPhoto(point.photo);
+                                                        }
+
                                                     }}
                                                 />
                                             )}
                                         </td>
                                     </tr>
                                 ))}
+
                         </tbody>
+
                     </table>
+
                 </div>
+
             </div>
+            {modalPhoto && (
+                <div className="modal-overlay" onClick={() => setModalPhoto(null)}>
+                    <div className="modal-content">
+                        <img src={modalPhoto} alt="Full size" />
+                        <button className="modal-close" onClick={() => setModalPhoto(null)}>×</button>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
+

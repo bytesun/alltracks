@@ -19,6 +19,7 @@ import { Navbar } from './components/Navbar';
 
 import { TrackPointsModal } from './components/TrackPointsModal';
 import { getDoc } from "@junobuild/core";
+// import { saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
 
 interface ProfileSettings {
   storageId: string;
@@ -49,7 +50,8 @@ function MainApp() {
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
   const [recordingMode, setRecordingMode] = useState<'manual' | 'auto'>('manual');
-  const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timer | null>(null);
+  const [recordingInterval, setRecordingInterval] = useState<ReturnType<typeof setInterval> | null>(null);
+
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<'idle' | 'tracking' | 'paused'>('idle');
   const [autoRecordingSettings, setAutoRecordingSettings] = useState({
@@ -67,6 +69,16 @@ function MainApp() {
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId] = useState(() => uuidv4());
   const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
+
+  // useEffect(() => {
+  //   const loadPoints = async () => {
+  //     const savedPoints = await getTrackPointsFromIndexDB(trackId);
+  //     if (savedPoints.length > 0) {
+  //       setTrackPoints(savedPoints);
+  //     }
+  //   };
+  //   loadPoints();
+  // }, [trackId]);
 
   useEffect(() => {
     const loadUserSettings = async () => {
@@ -99,7 +111,7 @@ function MainApp() {
     } else {
 
       await signIn({
-        derivationOrigin: "https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app"
+        maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours       
       });
     }
   };
@@ -179,11 +191,13 @@ function MainApp() {
     const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}:${minutes.toString().padStart(2, '0')}`;
   };
+
   function RecenterMap({ position }: { position: [number, number] }) {
     const map = useMap();
     map.setView(position);
     return null;
   }
+
   const getMapCenter = () => {
     if (isTracking) {
       return userLocation;
@@ -265,7 +279,7 @@ function MainApp() {
         const firstPoint = importPoints[0];
         map.setView([firstPoint.latitude, firstPoint.longitude], 13);
       }
-    }, [importPoints, map]);
+    }, [importPoints]);
 
     return null;
   }
@@ -345,6 +359,16 @@ function MainApp() {
         photo: photoAsset ? photoAsset.downloadUrl : undefined
       };
 
+      //--save to local first
+      setTrackPoints((prev) => [...prev, newPoint]);
+      //save to  IndexDB
+      const updatedPoints = [...trackPoints, newPoint];
+      // await saveTrackPointsToIndexDB(trackId, updatedPoints);
+      setPendingPosition(null);
+
+      setAutoCenter(true);
+      setTimeout(() => setAutoCenter(false), 100);
+
       if (data.cloudEnabled) {
         if (data.isIncident) {
           const result = await setDoc({
@@ -375,11 +399,7 @@ function MainApp() {
         }
 
       }
-      setTrackPoints((prev) => [...prev, newPoint]);
-      setPendingPosition(null);
-
-      setAutoCenter(true);
-      setTimeout(() => setAutoCenter(false), 100);
+      
 
     }
 
@@ -408,79 +428,94 @@ function MainApp() {
 
   const [showExportModal, setShowExportModal] = useState(false);
 
+const handleExport = async (
+  format: string, 
+  storage: 'local' | 'cloud', 
+  filename: string, 
+  description: string, 
+  eventId: string,
+  isPrivateStorage: boolean
+) => {
+  let content: string;
+  let mimeType: string;
 
-  const handleExport = async (format: string, storage: 'local' | 'cloud', filename: string, description: string, eventId: string) => {
-    let content: string;
-    let mimeType: string;
+  switch (format) {
+    case 'gpx':
+      content = generateGPX(trackPoints);
+      mimeType = 'application/gpx+xml';
+      break;
+    case 'kml':
+      content = generateKML(trackPoints);
+      mimeType = 'application/vnd.google-earth.kml+xml';
+      break;
+    default:
+      const header = 'timestamp,latitude,longitude,elevation,comment\n';
+      content = header + trackPoints.map(point =>
+        `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
+      ).join('\n');
+      mimeType = 'text/csv';
+  }
 
-    switch (format) {
-      case 'gpx':
-        content = generateGPX(trackPoints);
-        mimeType = 'application/gpx+xml';
-        break;
-      case 'kml':
-        content = generateKML(trackPoints);
-        mimeType = 'application/vnd.google-earth.kml+xml';
-        break;
-      default:
-        const header = 'timestamp,latitude,longitude,elevation,comment\n';
-        content = header + trackPoints.map(point =>
-          `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
-        ).join('\n');
-        mimeType = 'text/csv';
+  const expfilename = `${eventId}_${filename}_${trackId}.${format}`;
+
+  if (storage === 'local') {
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+    saveAs(blob, expfilename);
+  } else {
+    const blob = new Blob([content], { type: mimeType });
+    const file = new File([blob], expfilename, { type: mimeType });
+    
+    // Use private storage if selected and available
+    const uploadOptions = isPrivateStorage && userSettings?.storageId ? {
+      satellite: { satelliteId: userSettings.storageId },
+      collection: userSettings.trackFileCollection,
+      data: file
+    } : {
+      collection: "tracks",
+      data: file
+    };
+
+    const savedAsset = await uploadFile(uploadOptions);
+
+    if (savedAsset) {
+      const fileRef = savedAsset.downloadUrl;
+      const docData = {
+        eventId,
+        filename: filename,
+        description: description,
+        startime: new Date(trackPoints[0].timestamp).toLocaleString(),
+        endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
+        trackfile: fileRef,
+        distance: getTotalDistance(),
+        duration: getDuration(),
+        elevationGain: getElevationGain()
+      };
+
+      // Save metadata to private or public collection
+      const docOptions = isPrivateStorage && userSettings?.storageId ? {
+        satellite: { satelliteId: userSettings.storageId },
+        collection: userSettings.trackFileCollection,
+        doc: {
+          key: eventId + "_" + uuidv4(),
+          data: docData
+        }
+      } : {
+        collection: "tracks",
+        doc: {
+          key: eventId + "_" + uuidv4(),
+          data: docData
+        }
+      };
+
+      await setDoc(docOptions);
     }
-
-    const expfilename = `${eventId}_${filename}_${trackId}.${format}`;
-
-    if (storage === 'local') {
-      const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-      saveAs(blob, expfilename);
-    } else {
-      const blob = new Blob([content], { type: mimeType });
-      const file = new File([blob], expfilename, { type: mimeType });
-      const savedAsset = await uploadFile({
-        data: file,
-        collection: "tracks"
-      });
-
-      if (savedAsset) {
-        // Get the uploaded file reference
-        const fileRef = savedAsset.downloadUrl;
-
-        // Calculate distance and elevation gain
-        const distance = getTotalDistance();
-        const elevationGain = getElevationGain();
-        const duration = getDuration();
-        const docResult = await setDoc({
-          collection: "tracks",
-          doc: {
-            key: eventId+"_" +uuidv4(),
-            data: {
-              eventId,
-              filename: filename,
-              description: description,
-              startime: new Date(trackPoints[0].timestamp).toLocaleString(),
-              endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
-              trackfile: fileRef,
-              distance: distance,
-              duration: duration,
-              elevationGain: elevationGain
-            }
-          }
-        });
-
-      }
-    }
-  };
-
+  }
+};
   return (
     <div className="App">
       <Navbar />
       <header className="App-header">
-        {showNotice && (<div className="data-notice">
-          <span className="material-icons">info</span>
-          <p>Track points are stored in memory. Enable cloud sync or export your data to save permanently.</p>
-        </div>)}
+        
         {locationError && (
           <div className="location-error">
             {locationError}
@@ -623,7 +658,7 @@ function MainApp() {
                   </a>
                 </div>
               </div>
-              {/* Rest of map components */}
+            
               {showPoints && trackPoints.map((point, index) => (
                 <Marker
                   key={point.timestamp}

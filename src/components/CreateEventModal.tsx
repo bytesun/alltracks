@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { setDoc } from "@junobuild/core";
 import './CreateEventModal.css';
-import { time } from 'console';
 interface CreateEventModalProps {
     onClose: () => void;
     onSubmit: (formData: any) => Promise<void>;

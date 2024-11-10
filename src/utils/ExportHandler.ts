@@ -2,6 +2,7 @@ import { saveAs } from 'file-saver';
 import { TrackPoint, generateGPX, generateKML } from './exportFormats';
 import { uploadFile, setDoc } from '@junobuild/core';
 import { v4 as uuidv4 } from 'uuid';
+// import { openDB } from 'idb';
 
 export class ExportHandler {
   static async exportTrack(
@@ -13,6 +14,24 @@ export class ExportHandler {
     distance: number,
     elevationGain: number
   ) {
+    // // Save to IndexDB first
+    // const db = await openDB('tracks-db', 1, {
+    //   upgrade(db) {
+    //     db.createObjectStore('tracks', { keyPath: 'id' });
+    //   },
+    // });
+
+    // await db.put('tracks', {
+    //   id: filename,
+    //   points: trackPoints,
+    //   description,
+    //   timestamp: Date.now(),
+    //   format,
+    //   distance,
+    //   elevationGain
+    // });
+
+    // Continue with export
     const { content, mimeType } = this.generateContent(trackPoints, format);
     const expFilename = `${filename}.${format}`;
 
@@ -22,8 +41,8 @@ export class ExportHandler {
       return this.cloudExport(content, mimeType, expFilename, filename, description, distance, elevationGain);
     }
   }
-
-  private static generateContent(trackPoints: TrackPoint[], format: string) {
+  
+ private static generateContent(trackPoints: TrackPoint[], format: string) {
     let content: string;
     let mimeType: string;
 

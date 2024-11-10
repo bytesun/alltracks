@@ -5,7 +5,6 @@ import { TrackPoint } from '../utils/exportFormats';
 import { getDoc, Doc } from "@junobuild/core";
 import { parseGPX, parseKML, parseCSV } from '../utils/importFormats';
 import "../styles/Track.css";
-import { parse } from 'path';
 
 interface TrackData {  
   filename: string;

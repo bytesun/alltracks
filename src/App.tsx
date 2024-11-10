@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MainApp  from './MainApp';
-import { Home } from './pages/Home';
+
 import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
 import { Track } from './pages/Track';

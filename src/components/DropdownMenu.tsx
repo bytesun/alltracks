@@ -59,7 +59,10 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
                 Profile
               </li>
             )}
-            <li onClick={onAuth}>
+            <li onClick={()=>{
+              setIsOpen(false);
+              onAuth();
+            }}>
               {user ? 'Sign Out' : 'Sign In'}
             </li>
           </ul>

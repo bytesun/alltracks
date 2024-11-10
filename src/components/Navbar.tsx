@@ -8,7 +8,6 @@ import { authSubscribe, signIn, signOut } from '@junobuild/core';
 export const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const unsubscribe = authSubscribe((user: User | null) => {
@@ -21,7 +20,10 @@ export const Navbar = () => {
     if (user) {
       await signOut();
     } else {
-      await signIn();
+      await signIn({
+        derivationOrigin:"https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io/", 
+        maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
+      });
     }
   };
   return (
