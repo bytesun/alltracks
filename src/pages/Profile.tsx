@@ -6,6 +6,8 @@ import './Profile.css';
 import { Navbar } from '../components/Navbar';
 import { Doc, setDoc, getDoc } from "@junobuild/core";
 import { Tracks } from '../components/Tracks';
+import { Trails } from '../components/Trails';
+
 interface ProfileSettings {
   storageId: string;
   trackPointCollection: string;
@@ -151,6 +153,14 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">route</span>
               Tracks
             </div>
+            <div 
+              className={`sidebar-item ${activeTab === 'trails' ? 'active' : ''}`}
+              onClick={() => setActiveTab('trails')}
+            >
+              <span className="material-icons">terrain</span>
+              Trails
+            </div>
+
           </div>
           <div className="profile-content">
             {activeTab === 'profile' && (
@@ -168,6 +178,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
                 </div>
               </>
             )}
+
             {activeTab === 'storage' && (
               <div className="profile-settings">
                 <h3>Settings</h3>
@@ -247,6 +258,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <div className="profile-settings"></div>
             )}
             {activeTab === 'tracks' && <Tracks user={user} />}
+            {activeTab === 'trails' && <Trails user={user} />}
           </div>
         </div>
       </div>
