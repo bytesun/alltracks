@@ -32,57 +32,48 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
       </button>
       {isOpen && (
         <div className="dropdown-menu">
-          <ul>
-
-            <li>  <a
-              href='https://icevent.app'
-              target='_blank'
-              rel='noopener noreferrer'
-              
-            >
+        <ul>
+          <li>
+            <a href='https://icevent.app' target='_blank' rel='noopener noreferrer'>
+              <span className="material-icons">event</span>
               Events
             </a>
-            </li>
+          </li>
+          <li onClick={() => {
+            navigate('/trails');
+            setIsOpen(false);
+          }}>
+            <span className="material-icons">hiking</span>
+            Trails
+          </li>
+          <li onClick={() => {
+            navigate('/status');
+            setIsOpen(false);
+          }}>
+            <span className="material-icons">info</span>
+            Status
+          </li>
+          {user && (
             <li onClick={() => {
-              navigate('/trails');
+              navigate('/profile');
               setIsOpen(false);
             }}>
-              Trails
+              <span className="material-icons">person</span>
+              Profile
             </li>
-            {/* <li onClick={() => {
-              navigate('/tracks');
-              setIsOpen(false);
-            }}>
-              Tracks
-            </li>
-            <li onClick={() => {
-              navigate('/activities');
-              setIsOpen(false);
-            }}>
-              Activities
-            </li> */}
-            <li onClick={() => {
-              navigate('/status');
-              setIsOpen(false);
-            }}>
-              Status
-            </li>
-            {user && (
-              <li onClick={() => {
-                navigate('/profile');
-                setIsOpen(false);
-              }}>
-                Profile
-              </li>
-            )}
-            <li onClick={() => {
-              setIsOpen(false);
-              onAuth();
-            }}>
-              {user ? 'Sign Out' : 'Sign In'}
-            </li>
-          </ul>
-        </div>
+          )}
+          <li onClick={() => {
+            setIsOpen(false);
+            onAuth();
+          }}>
+            <span className="material-icons">
+              {user ? 'logout' : 'login'}
+            </span>
+            {user ? 'Sign Out' : 'Sign In'}
+          </li>
+        </ul>
+      </div>
+      
       )}
     </div>
   );

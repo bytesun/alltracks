@@ -29,12 +29,24 @@
 }
 
 .dropdown-menu li {
-  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.dropdown-menu .material-icons {
+  font-size: 20px;
+  width: 24px;
+  display: flex;
+  justify-content: center;
 }
 
 .dropdown-menu a {
-  display: block;
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
   color: #333;
   text-decoration: none;
 }

@@ -294,3 +294,23 @@ button:disabled {
   color: #666;
   line-height: 1.4;
 }
+.home-footer {
+  padding: 24px;
+  text-align: center;
+  margin-top: auto;
+}
+
+.guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #007bff;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.guide-link:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}

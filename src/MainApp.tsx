@@ -753,7 +753,15 @@ const handleExport = async (
           <p>Mark and share important points of interest or hazards</p>
         </div>
       </div>
-
+      <footer className="home-footer">
+        <a 
+          href="/guide" 
+          className="guide-link"
+        >
+          <span className="material-icons">help_outline</span>
+          User Guide
+        </a>
+      </footer>
       {showCommentModal && (
         <CommentModal
           onSave={(data) => {

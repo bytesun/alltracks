@@ -9,6 +9,7 @@ import { Event } from './pages/Event';
 import { Live } from './pages/Live';
 import { Status } from './pages/Status';
 import { Profile } from './pages/Profile';
+import { Guide } from './pages/Guide';
 import { authSubscribe, User } from "@junobuild/core";
 
 export const App: React.FC = () => {
@@ -31,6 +32,7 @@ export const App: React.FC = () => {
       <Route path="/live/:liveId" element={<Live />} />
       <Route path="/status" element={<Status />} />
       <Route path="/profile" element={<Profile user={user} />} />
+      <Route path="/guide" element={<Guide />} />
      
     </Routes>
   );
