@@ -56,13 +56,35 @@ export const Status: React.FC = () => {
 
     useEffect(() => {
         const fetchTrackPoints = async () => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+ 
             const tracks = await listDocs({
                 collection: "incidents",
+                filter: {
+                    matcher: {
+                        createdAt: {
+                            matcher: "greaterThan",
+                            timestamp: BigInt(today.getTime()* 1_000_000)
+                        },
+                    },
 
+                }
             });
 
             const points = tracks.items.map(doc => doc.data as TrackPoint);
-            setTrackPoints(points);
+            console.log(points);
+            const filteredPoints = userLocation ? points.filter(point => {
+                const distance = calculateDistance(
+                    point.latitude,
+                    point.longitude,
+                    userLocation[0],
+                    userLocation[1]
+                );
+                return distance <= 10000;
+            }) : [];
+
+            setTrackPoints(filteredPoints);
         };
         fetchTrackPoints();
     }, []);
@@ -117,11 +139,30 @@ export const Status: React.FC = () => {
         );
     }
 
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const R = 6371e3; // Earth's radius in meters
+        const φ1 = lat1 * Math.PI/180;
+        const φ2 = lat2 * Math.PI/180;
+        const Δφ = (lat2-lat1) * Math.PI/180;
+        const Δλ = (lon2-lon1) * Math.PI/180;
+    
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+        return R * c;
+    };
+    
     return (
         <div className="event-page">
             <Navbar />
             <div className="status-container">
                 <h3>Live Report Points</h3>
+                <p className="track-description">
+                    Showing tracking important points of interest or hazards from today within 10km of your location
+                    {trackPoints.length > 0 && ` (${trackPoints.length} points found)`}
+                </p>
                 <MapContainer
                     center={getMapCenter() as [number, number]}
                     zoom={13}
@@ -184,7 +225,7 @@ export const Status: React.FC = () => {
                                                         if (point.photo) {
                                                             setModalPhoto(point.photo);
                                                         }
-                                                   
+
                                                     }}
                                                 />
                                             )}
