@@ -1,0 +1,76 @@
+.settings-container {
+  max-width: 800px;
+  padding: 20px;
+}
+
+.settings-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.settings-section h4 {
+  color: #333;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+}
+
+.setting-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.setting-content label {
+  min-width: 160px;
+  font-weight: 500;
+  color: #555;
+}
+
+.setting-content input[type="text"],
+.setting-content input[type="number"] {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.setting-content input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+.save-settings {
+  background: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.save-settings:hover {
+  background: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .setting-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .setting-content label {
+    min-width: auto;
+  }
+  
+  .setting-content input[type="text"],
+  .setting-content input[type="number"] {
+    width: 100%;
+  }
+}
