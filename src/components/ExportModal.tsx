@@ -20,7 +20,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, use
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
   const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
-  const [eventId, setEventId] = useState('');
+  const [eventId, setEventId] = useState('0');
   // Add new state
   const [isPrivateStorage, setIsPrivateStorage] = useState(false);
 

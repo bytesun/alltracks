@@ -7,6 +7,7 @@ import { Navbar } from '../components/Navbar';
 import { Doc, setDoc, getDoc } from "@junobuild/core";
 import { Tracks } from '../components/Tracks';
 import { Trails } from '../components/Trails';
+import { GroupManagement } from '../components/GroupManagement';
 
 interface ProfileSettings {
   storageId: string;
@@ -255,7 +256,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               </div>
             )}
             {activeTab === 'group' && (
-              <div className="profile-settings"></div>
+              <GroupManagement user={user} />
             )}
             {activeTab === 'tracks' && <Tracks user={user} />}
             {activeTab === 'trails' && <Trails user={user} />}

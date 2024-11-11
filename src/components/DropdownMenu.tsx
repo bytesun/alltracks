@@ -33,11 +33,26 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
       {isOpen && (
         <div className="dropdown-menu">
           <ul>
+
+            <li>  <a
+              href='https://icevent.app'
+              target='_blank'
+              rel='noopener noreferrer'
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'block',
+                width: '100%'
+              }}
+            >
+              Events
+            </a>
+            </li>
             <li onClick={() => {
-              navigate('/status');
+              navigate('/trails');
               setIsOpen(false);
             }}>
-              Status
+              Trails
             </li>
             {/* <li onClick={() => {
               navigate('/tracks');
@@ -51,6 +66,12 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
             }}>
               Activities
             </li> */}
+            <li onClick={() => {
+              navigate('/status');
+              setIsOpen(false);
+            }}>
+              Status
+            </li>
             {user && (
               <li onClick={() => {
                 navigate('/profile');
@@ -59,7 +80,7 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
                 Profile
               </li>
             )}
-            <li onClick={()=>{
+            <li onClick={() => {
               setIsOpen(false);
               onAuth();
             }}>
