@@ -6,13 +6,14 @@ interface FeedbackModalProps {
     isOpen: boolean;
     onClose: () => void;
     user: User | null;
-}
-
-export const FeedbackModal = ({ isOpen, onClose, user }: FeedbackModalProps) => {
+    showNotification: (message: string, type: 'success' | 'error' | 'info') => void;
+  }
+export const FeedbackModal = ({ isOpen, onClose, user ,showNotification }: FeedbackModalProps) => {
     const [feedback, setFeedback] = useState({
         message: '',
         type: 'general'
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
         await setDoc({
@@ -27,7 +28,9 @@ export const FeedbackModal = ({ isOpen, onClose, user }: FeedbackModalProps) => 
                 }
             }
         });
+        showNotification('Thank you for your feedback!', 'success');
         setFeedback({ message: '', type: 'general' });
+        setIsSubmitting(false);
         onClose();
     };
 
@@ -56,7 +59,7 @@ export const FeedbackModal = ({ isOpen, onClose, user }: FeedbackModalProps) => 
                         onChange={(e) => setFeedback({ ...feedback, message: e.target.value })}
                         placeholder="Tell us your thoughts..."
                     />
-                    <button onClick={handleSubmit}>Submit Feedback</button>
+                    <button  disabled={isSubmitting} onClick={handleSubmit}>{isSubmitting ? 'Submitting...' : 'Submit Feedback'}</button>
                 </div>
             </div>
         </div>

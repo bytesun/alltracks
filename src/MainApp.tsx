@@ -20,6 +20,7 @@ import { Navbar } from './components/Navbar';
 import { TrackPointsModal } from './components/TrackPointsModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { getDoc } from "@junobuild/core";
+import { useNotification } from './context/NotificationContext';
 // import { saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
 
 interface ProfileSettings {
@@ -45,6 +46,11 @@ const currentLocationIcon = icon({
 
 
 function MainApp() {
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+  } | null>(null);
+  
   const [showNotice, setShowNotice] = useState(true);
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
@@ -73,6 +79,20 @@ function MainApp() {
   const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
+  const { showNotification } = useNotification();
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+  
+  const handleShowNotification = (message: string, type: 'success' | 'error' | 'info') => {
+    setNotification({ message, type });
+  };
   // useEffect(() => {
   //   const loadPoints = async () => {
   //     const savedPoints = await getTrackPointsFromIndexDB(trackId);
@@ -371,7 +391,7 @@ function MainApp() {
       const updatedPoints = [...trackPoints, newPoint];
       // await saveTrackPointsToIndexDB(trackId, updatedPoints);
       setPendingPosition(null);
-
+      showNotification('Point recorded successfully', 'success');
       setAutoCenter(true);
       setTimeout(() => setAutoCenter(false), 100);
 
@@ -467,6 +487,7 @@ function MainApp() {
     if (storage === 'local') {
       const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
       saveAs(blob, expfilename);
+      showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
     } else {
       const blob = new Blob([content], { type: mimeType });
       const file = new File([blob], expfilename, { type: mimeType });
@@ -515,6 +536,7 @@ function MainApp() {
 
         await setDoc(docOptions);
       }
+      showNotification('Track uploaded to cloud storage', 'success');
     }
   };
   return (
@@ -776,12 +798,13 @@ function MainApp() {
           <span className="material-icons">feedback</span>
           Feedback
         </a>
+       
       </footer>
-
-      <FeedbackModal
+      <FeedbackModal 
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
         user={user}
+        showNotification={showNotification}
       />
 
       {showCommentModal && (
@@ -819,3 +842,6 @@ function MainApp() {
 }
 
 export default MainApp;
+
+
+

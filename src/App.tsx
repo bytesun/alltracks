@@ -12,6 +12,8 @@ import { Profile } from './pages/Profile';
 import { Guide } from './pages/Guide';
 import { authSubscribe, User } from "@junobuild/core";
 
+import { NotificationProvider } from './context/NotificationContext';
+
 export const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
 
@@ -23,18 +25,18 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<MainApp/>} />
-      <Route path="/trails" element={<Trails />} />
-      <Route path="/events" element={<Events />} />
-      <Route path="/track/:trackId" element={<Track />} />
-      <Route path="/event/:eventId" element={<Event />} />
-      <Route path="/live/:liveId" element={<Live />} />
-      <Route path="/status" element={<Status />} />
-      <Route path="/profile" element={<Profile user={user} />} />
-      <Route path="/guide" element={<Guide />} />
-     
-    </Routes>
+    <NotificationProvider>
+      <Routes>
+        <Route path="/" element={<MainApp/>} />
+        <Route path="/trails" element={<Trails />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/track/:trackId" element={<Track />} />
+        <Route path="/event/:eventId" element={<Event />} />
+        <Route path="/live/:liveId" element={<Live />} />
+        <Route path="/status" element={<Status />} />
+        <Route path="/profile" element={<Profile user={user} />} />
+        <Route path="/guide" element={<Guide />} />
+      </Routes>
+    </NotificationProvider>
   );
-};
-export default App;
+};export default App;
