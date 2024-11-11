@@ -295,10 +295,12 @@ button:disabled {
   line-height: 1.4;
 }
 .home-footer {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
   padding: 24px;
-  text-align: center;
-  margin-top: auto;
 }
+
 
 .guide-link {
   display: inline-flex;
@@ -309,8 +311,25 @@ button:disabled {
   padding: 8px 16px;
   border-radius: 4px;
   transition: background-color 0.2s;
+
 }
 
 .guide-link:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.feedback-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #007bff;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+
+.feedback-link:hover {
   background-color: rgba(0, 123, 255, 0.1);
 }
