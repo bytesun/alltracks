@@ -21,7 +21,7 @@ export const Navbar = () => {
       await signOut();
     } else {
       await signIn({
-        // derivationOrigin:"https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io/", 
+        // derivationOrigin:"https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io", 
         maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
       });
       navigate('/profile');

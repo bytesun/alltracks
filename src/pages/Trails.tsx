@@ -1,6 +1,7 @@
 import React,{useState,useEffect} from 'react';
 import {User, authSubscribe, listDocs} from "@junobuild/core";
 import { Navbar } from '../components/Navbar';
+import { Spinner } from '../components/Spinner';
 import './Trails.css';
 
 
@@ -29,6 +30,7 @@ export const Trails = () => {
   const [trails, setTrails] = useState<Trail[]>([]);
   const DEFAULT_TRAIL_IMAGE = 'https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io/logos/alltracks_hero.png';
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filter trails based on selected difficulty
   const filteredTrails = selectedDifficulty 
@@ -43,23 +45,25 @@ export const Trails = () => {
     fetchTrails();
     return () => unsubscribe();
   }, []);
+
   const fetchTrails = async () => {
+    setIsLoading(true);
     const { items } = await listDocs<Trail>({
       collection: "trails"
     });
-    console.log(items);
+
     const formattedTrails = items.map(doc => ({
-      id: doc.data.id,
+      id: doc.key,
       name: doc.data.name,
       length: doc.data.length,
       elevationGain: doc.data.elevationGain,
       difficulty: doc.data.difficulty,
       description: doc.data.description,
-      imageUrl: doc.data.imageUrl|| DEFAULT_TRAIL_IMAGE
-
+      imageUrl: doc.data.imageUrl || DEFAULT_TRAIL_IMAGE
     }));
 
     setTrails(formattedTrails);
+    setIsLoading(false);
   };
 
   return (
@@ -69,7 +73,7 @@ export const Trails = () => {
         <header className="trails-header">
           <h1>Hiking Trails</h1>
           <div className="trails-filters">
-          <select 
+            <select 
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
             >
@@ -80,26 +84,32 @@ export const Trails = () => {
             </select>
           </div>
         </header>
-        <div className="trails-grid">
-          {filteredTrails.map(trail => (
-            <div key={trail.id} className="trail-card">
-              <div className="trail-image">
-                <img src={trail.imageUrl} alt={trail.name} />
-                <span className={`difficulty-badge ${trail.difficulty}`}>
-                  {trail.difficulty}
-                </span>
-              </div>
-              <div className="trail-info">
-                <h2>{trail.name}</h2>
-                <div className="trail-stats">
-                  <span>{trail.length} km</span>
-                  <span>{trail.elevationGain} m </span>
+        {isLoading ? (
+          <div className="loading-container">
+            <Spinner size="large" />
+          </div>
+        ) : (
+          <div className="trails-grid">
+            {filteredTrails.map(trail => (
+              <div key={trail.id} className="trail-card">
+                <div className="trail-image">
+                  <img src={trail.imageUrl} alt={trail.name} />
+                  <span className={`difficulty-badge ${trail.difficulty}`}>
+                    {trail.difficulty}
+                  </span>
                 </div>
-                <p>{trail.description}</p>
+                <div className="trail-info">
+                  <h2>{trail.name}</h2>
+                  <div className="trail-stats">
+                    <span>{trail.length} km</span>
+                    <span>{trail.elevationGain} m </span>
+                  </div>
+                  <p>{trail.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
