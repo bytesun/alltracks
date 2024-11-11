@@ -69,6 +69,7 @@ function MainApp() {
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId] = useState(() => uuidv4());
   const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
+  const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
 
   // useEffect(() => {
   //   const loadPoints = async () => {
@@ -271,18 +272,21 @@ function MainApp() {
     const shareUrl = `${window.location.origin}/track/${trackId}`;
     navigator.clipboard.writeText(shareUrl);
   };
+
   function RecenterOnImport() {
     const map = useMap();
 
     useEffect(() => {
-      if (importPoints.length > 0) {
+      if (importPoints.length > 0 && !initialCenterAfterImportDone) {
         const firstPoint = importPoints[0];
         map.setView([firstPoint.latitude, firstPoint.longitude], 13);
+        setInitialCenterAfterImportDone(true);
       }
     }, [importPoints]);
 
     return null;
   }
+
   const recordPoint = () => {
     setShowNotice(false);
     

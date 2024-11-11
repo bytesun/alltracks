@@ -38,12 +38,7 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
               href='https://icevent.app'
               target='_blank'
               rel='noopener noreferrer'
-              style={{
-                textDecoration: 'none',
-                color: 'inherit',
-                display: 'block',
-                width: '100%'
-              }}
+              
             >
               Events
             </a>

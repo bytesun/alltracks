@@ -2,42 +2,43 @@ import React from 'react';
 import { User, listDocs } from "@junobuild/core";
 import './Tracks.css';
 
-interface Track {
-  id: string;
-  name: string;
+interface TrackData {
+  filename: string;
   distance: number;
   duration: number;
   elevationGain: number;
-  date: string;
+  startime: number;
 }
 
 export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
-  const [tracks, setTracks] = React.useState<Track[]>([]);
+  const [tracks, setTracks] = React.useState<TrackData[]>([]);
 
   React.useEffect(() => {
-    const loadTracks = async () => {
-      if (user?.key) {
-        await listDocs({
-          collection: "tracks",
-          filter: {           
-            owner: user.key,
-          }
-          
-        }).then((docs) => {
-          setTracks(docs.items.map((doc) => ({
-            id: doc.key,
-            name: doc.data.filename,
-            distance: doc.data.distance,
-            duration: doc.data.duration,
-            elevationGain: doc.data.elevationGain,
-            date: doc.data.startime,
-          })));
-        });
-      }
-    };
-
-    loadTracks();
+   if (user) {
+      fetchTracks();
+    }
   }, [user]);
+
+  
+const fetchTracks = async () => {
+  const { items } = await listDocs<TrackData>({
+    collection: "tracks",
+    filter: {
+      owner: user.owner
+    }
+  });
+
+  const formattedTracks = items.map(doc => ({
+
+    filename: doc.data.filename,
+    distance: doc.data.distance,
+    duration: doc.data.duration,
+    elevationGain: doc.data.elevationGain,
+    startime: doc.data.startime,
+  }));
+
+  setTracks(formattedTracks);
+};
 
   return (
     <div className="tracks-section">
@@ -48,15 +49,15 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
       <div className="tracks-list">
         {tracks.length > 0 ? (
           tracks.map((track) => (
-            <div key={track.id} className="track-item">
+            <div key={track.startime} className="track-item">
               <span className="material-icons">route</span>
               <div className="track-info">
-                <div className="track-title">{track.name}</div>
+                <div className="track-title">{track.filename}</div>
                 <div className="track-meta">
                   <span>{track.distance} km</span>
                   <span>{track.duration} hr</span>
                   <span>{track.elevationGain} m</span>
-                  <span>{track.date}</span>
+                  <span>{track.startime}</span>
                 </div>
               </div>
 

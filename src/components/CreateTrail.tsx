@@ -10,14 +10,14 @@ export interface TrailForm {
     difficulty: 'easy' | 'moderate' | 'hard' | 'expert';
     rating: number;
     tags: string[];
-
+    imageUrl: string;
 }
 
 interface CreateTrailProps {
     onClose: () => void;
     onSubmit: (trail: TrailForm, file: File) => void;
-  }
-  
+}
+
 export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) => {
     const [file, setFile] = useState<File | null>(null);
     const [formData, setFormData] = useState<TrailForm>({
@@ -29,6 +29,7 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
         difficulty: 'moderate',
         rating: 0,
         tags: [],
+        imageUrl: ''
 
     });
 
@@ -51,7 +52,7 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
         // Handle form submission
         if (file) {
             onSubmit(formData, file);
-          }
+        }
         onClose(); // Close modal after submission
     };
 
@@ -170,7 +171,16 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
                         </div>
                     </div>
                 </div>
-
+                <div className="trail-form-group">
+                    <label>Trail Image URL</label>
+                    <input
+                        type="text"
+                        name="imageUrl"
+                        value={formData.imageUrl}
+                        onChange={handleInputChange}
+                        placeholder="Enter image URL for trail"
+                    />
+                </div>
                 <button type="submit" className="create-trail-button">
                     Create
                 </button>

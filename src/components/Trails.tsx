@@ -17,6 +17,7 @@ interface Trail {
     tags: string[];
     userId: string;
     fileRef: string;
+    imageUrl: string;
 }
 
 export const Trails: React.FC<{ user: User | null }> = ({ user }) => {
