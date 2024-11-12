@@ -21,6 +21,8 @@ import { TrackPointsModal } from './components/TrackPointsModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { getDoc } from "@junobuild/core";
 import { useNotification } from './context/NotificationContext';
+import { UserStats } from "./types/UserStats";
+
 // import { saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
 
 interface ProfileSettings {
@@ -50,7 +52,7 @@ function MainApp() {
     message: string;
     type: 'success' | 'error' | 'info';
   } | null>(null);
-  
+
   const [showNotice, setShowNotice] = useState(true);
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
@@ -89,7 +91,7 @@ function MainApp() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
-  
+
   const handleShowNotification = (message: string, type: 'success' | 'error' | 'info') => {
     setNotification({ message, type });
   };
@@ -391,7 +393,7 @@ function MainApp() {
       const updatedPoints = [...trackPoints, newPoint];
       // await saveTrackPointsToIndexDB(trackId, updatedPoints);
       setPendingPosition(null);
-      showNotification('Point recorded successfully', 'success');
+      // showNotification('Point recorded successfully', 'success');
       setAutoCenter(true);
       setTimeout(() => setAutoCenter(false), 100);
 
@@ -464,81 +466,143 @@ function MainApp() {
   ) => {
     let content: string;
     let mimeType: string;
+    try {
+      switch (format) {
+        case 'gpx':
+          content = generateGPX(trackPoints);
+          mimeType = 'application/gpx+xml';
+          break;
+        case 'kml':
+          content = generateKML(trackPoints);
+          mimeType = 'application/vnd.google-earth.kml+xml';
+          break;
+        default:
+          const header = 'timestamp,latitude,longitude,elevation,comment\n';
+          content = header + trackPoints.map(point =>
+            `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
+          ).join('\n');
+          mimeType = 'text/csv';
+      }
 
-    switch (format) {
-      case 'gpx':
-        content = generateGPX(trackPoints);
-        mimeType = 'application/gpx+xml';
-        break;
-      case 'kml':
-        content = generateKML(trackPoints);
-        mimeType = 'application/vnd.google-earth.kml+xml';
-        break;
-      default:
-        const header = 'timestamp,latitude,longitude,elevation,comment\n';
-        content = header + trackPoints.map(point =>
-          `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
-        ).join('\n');
-        mimeType = 'text/csv';
-    }
+      const expfilename = `${eventId}_${trackPoints[0].timestamp}.${format}`;
 
-    const expfilename = `${eventId}_${filename}_${trackId}.${format}`;
+      if (storage === 'local') {
+        const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+        saveAs(blob, expfilename);
+        showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
 
-    if (storage === 'local') {
-      const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-      saveAs(blob, expfilename);
-      showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
-    } else {
-      const blob = new Blob([content], { type: mimeType });
-      const file = new File([blob], expfilename, { type: mimeType });
+      } else {
 
-      // Use private storage if selected and available
-      const uploadOptions = isPrivateStorage && userSettings?.storageId ? {
-        satellite: { satelliteId: userSettings.storageId },
-        collection: userSettings.trackFileCollection,
-        data: file
-      } : {
-        collection: "tracks",
-        data: file
-      };
+        const blob = new Blob([content], { type: mimeType });
+        const file = new File([blob], expfilename, { type: mimeType });
 
-      const savedAsset = await uploadFile(uploadOptions);
-
-      if (savedAsset) {
-        const fileRef = savedAsset.downloadUrl;
-        const docData = {
-          eventId,
-          filename: filename,
-          description: description,
-          startime: new Date(trackPoints[0].timestamp).toLocaleString(),
-          endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
-          trackfile: fileRef,
-          distance: getTotalDistance(),
-          duration: getDuration(),
-          elevationGain: getElevationGain()
-        };
-
-        // Save metadata to private or public collection
-        const docOptions = isPrivateStorage && userSettings?.storageId ? {
+        // Use private storage if selected and available
+        const uploadOptions = isPrivateStorage && userSettings?.storageId ? {
           satellite: { satelliteId: userSettings.storageId },
           collection: userSettings.trackFileCollection,
-          doc: {
-            key: eventId + "_" + uuidv4(),
-            data: docData
-          }
+          data: file
         } : {
           collection: "tracks",
-          doc: {
-            key: eventId + "_" + uuidv4(),
-            data: docData
-          }
+          data: file
         };
 
-        await setDoc(docOptions);
+        const savedAsset = await uploadFile(uploadOptions);
+        showNotification(`Uploaded track file`, 'success');
+
+        const totalDistance = getTotalDistance();
+        const duration = getDuration();
+        const elevationGain = getElevationGain();
+
+        if (savedAsset) {
+          const fileRef = savedAsset.downloadUrl;
+          const docData = {
+            eventId,
+            filename: filename,
+            description: description,
+            startime: new Date(trackPoints[0].timestamp).toLocaleString(),
+            endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
+            trackfile: fileRef,
+            distance: totalDistance,
+            duration: duration,
+            elevationGain: elevationGain
+          };
+
+          // Save metadata to private or public collection
+          const docOptions = isPrivateStorage && userSettings?.storageId ? {
+            satellite: { satelliteId: userSettings.storageId },
+            collection: userSettings.trackFileCollection,
+            doc: {
+              key: eventId + "_" + new Date().getTime(),
+              data: docData
+            }
+          } : {
+            collection: "tracks",
+            doc: {
+              key: eventId + "_" + new Date().getTime(),
+              data: docData
+            }
+          };
+
+          await setDoc(docOptions);
+          showNotification('created track record', 'success');
+          //update userstate
+          const userStats = await loadUserStats();
+          if (userStats) {
+            const updatedStats = {              
+              totalDistance: userStats.data.totalDistance + totalDistance,
+              totalHours: userStats.data.totalHours + duration,
+              totalElevation: userStats.data.totalElevation + elevationGain,
+              completedTrails: userStats.data.completedTrails + 1
+            };
+            await setDoc({
+              collection: "stats",
+              doc: {
+                ...userStats,
+                data: updatedStats
+              }
+            });
+            showNotification('updated user stats', 'success');
+          } else {
+            await setDoc({
+              collection: "stats",
+              doc: {
+                key: user.key,
+                data: {
+                  totalDistance: totalDistance,
+                  totalHours: duration,
+                  totalElevation: elevationGain,
+                  completedTrails: 1,
+                  firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleString(),
+                }
+              }
+            });
+            showNotification('created user stats', 'success');
+          }
+          showNotification('Track uploaded to cloud storage', 'success');
+          setTrackPoints([]);
+        }else {
+          showNotification('Failed to upload track file', 'error');
+        }
+        
       }
-      showNotification('Track uploaded to cloud storage', 'success');
+    } catch (error) {
+      showNotification(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
   };
+
+  const loadUserStats = async () => {
+    if (user?.key) {
+      const stats = await getDoc<UserStats>({
+        collection: "stats",
+        key: user.key
+      });
+
+      if (stats?.data) {
+        return stats;
+      }
+    }
+  };
+
   return (
     <div className="App">
       <Navbar />
@@ -798,9 +862,9 @@ function MainApp() {
           <span className="material-icons">feedback</span>
           Feedback
         </a>
-       
+
       </footer>
-      <FeedbackModal 
+      <FeedbackModal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
         user={user}

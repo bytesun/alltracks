@@ -11,6 +11,7 @@ import { GroupManagement } from '../components/GroupManagement';
 import { Inbox } from '../components/Inbox';
 import { Settings } from '../components/Settings';
 import { useNotification } from '../context/NotificationContext';
+import { TrackAchievements } from '../components/TrackAchievements';
 
 interface Track {
   id: string;
@@ -19,6 +20,7 @@ interface Track {
   date: string;
 }
 
+import { UserStats } from '../types/UserStats';
 
 export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
 
@@ -26,6 +28,28 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
   // Add this with other useState declarations
   const [tracks, setTracks] = useState<Track[]>([]);
   const { showNotification } = useNotification();
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalDistance: 0,
+    totalHours: 0,
+    totalElevation: 0,
+    completedTrails: 0,
+    firstHikeDate: new Date().toDateString(),
+  });
+
+  useEffect(() => {
+    const loadUserStats = async () => {
+      const statDoc = await getDoc<UserStats>({
+        collection: "stats",
+        key: user?.key,
+      });
+      setUserStats(statDoc.data);
+    };
+
+    if (user) {
+      loadUserStats();
+    }
+  }, [user]);
+
   // Add this with other useEffect hooks to load tracks
   useEffect(() => {
     const loadTracks = async () => {
@@ -45,11 +69,11 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
     }
   }, [user]);
 
- 
+
   if (!user) {
     return <Navigate to="/" replace />;
   }
-  
+
   return (
     <>
       <Navbar />
@@ -103,21 +127,18 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
           <div className="profile-content">
             {activeTab === 'profile' && (
               <>
-                <h2>Profile</h2>
+                <h2>Profile - <a href="https://oneblock.page" target='_blank'>Page</a></h2>
                 <div className="profile-info">
-                  <div className="info-item">
+                  {/* <div className="info-item">
                     <span className="material-icons">badge</span>
                     <p>{user?.key}</p>
-                  </div>
-                  <div className="info-item">
-                    <span className="material-icons">access_time</span>
-                    <p>Member since: {new Date().toLocaleDateString()}</p>
-                  </div>
+                  </div> */}
+                  <TrackAchievements stats={userStats} />
                 </div>
               </>
             )}
 
-            
+
             {activeTab === 'group' && (
               <GroupManagement user={user} />
             )}
@@ -125,7 +146,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
             {activeTab === 'trails' && <Trails user={user} />}
             {activeTab === 'inbox' && <Inbox user={user} />}
             {activeTab === 'settings' && (
-              <Settings              
+              <Settings
                 user={user}
                 showNotification={showNotification}
               />

@@ -171,7 +171,6 @@ export const Status: React.FC = () => {
                     <RecenterOnLoad />
                     <CenterMapOnPoint />
 
-
                     {trackPoints.map((point) => (
                         <Marker
                             key={point.timestamp}

@@ -13,10 +13,9 @@ interface ExportModalProps {
   ) => void;
   onClose: () => void;
   user: User | null;
-  onLogin: () => Promise<void>;
 }
-export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, user, onLogin }) => {
-  const [format, setFormat] = useState('gpx');
+export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, user }) => {
+  const [format, setFormat] = useState('csv');
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
   const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
