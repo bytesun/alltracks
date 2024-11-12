@@ -11,7 +11,7 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
         <span className="material-icons">straighten</span>
         <div className="achievement-content">
           <h4>Total Distance</h4>
-          <p>{totalDistance } km</p>
+          <p>{totalDistance.toFixed(2) } km</p>
         </div>
       </div>
       
@@ -19,7 +19,7 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
         <span className="material-icons">schedule</span>
         <div className="achievement-content">
           <h4>Total Hours</h4>
-          <p>{totalHours} hrs</p>
+          <p>{totalHours.toFixed(2)} hrs</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
         <span className="material-icons">terrain</span>
         <div className="achievement-content">
           <h4>Total Elevation</h4>
-          <p>{totalElevation} m</p>
+          <p>{totalElevation.toFixed(2)} m</p>
         </div>
       </div>
 

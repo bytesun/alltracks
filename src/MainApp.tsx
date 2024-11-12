@@ -184,8 +184,8 @@ function MainApp() {
     return R * c;
   };
 
-  const getTotalDistance = (): string => {
-    if (trackPoints.length < 2) return "00.00";
+  const getTotalDistance = (): number => {
+    if (trackPoints.length < 2) return 0;
     let total = 0;
     for (let i = 1; i < trackPoints.length; i++) {
       total += calculateDistance(
@@ -195,9 +195,9 @@ function MainApp() {
         trackPoints[i].longitude
       );
     }
-    return total.toFixed(2);
+    return total;
   };
-  const getElevationGain = () => {
+  const getElevationGain = (): number => {
     let elevationGain = 0;
     for (let i = 1; i < trackPoints.length; i++) {
       const elevationDiff = (trackPoints?.[i].elevation ?? 0) - (trackPoints?.[i - 1].elevation ?? 0);
@@ -207,14 +207,13 @@ function MainApp() {
     }
     return elevationGain;
   };
-  const getDuration = (): string => {
-    if (trackPoints.length < 2) return '0:00';
+
+  const getDuration = (): number => {
+    if (trackPoints.length < 2) return 0;
     const startTime = trackPoints[0].timestamp;
     const endTime = trackPoints[trackPoints.length - 1].timestamp;
     const durationMs = endTime - startTime;
-    const hours = Math.floor(durationMs / (1000 * 60 * 60));
-    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}:${minutes.toString().padStart(2, '0')}`;
+    return durationMs / (1000 * 60 * 60); // Convert milliseconds to hours
   };
 
   function RecenterMap({ position }: { position: [number, number] }) {
@@ -552,7 +551,8 @@ function MainApp() {
               totalDistance: userStats.data.totalDistance + totalDistance,
               totalHours: userStats.data.totalHours + duration,
               totalElevation: userStats.data.totalElevation + elevationGain,
-              completedTrails: userStats.data.completedTrails + 1
+              completedTrails: userStats.data.completedTrails + 1,
+              firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleString(),
             };
             await setDoc({
               collection: "stats",
@@ -696,8 +696,8 @@ function MainApp() {
           <div className="stats">
 
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
-            <p>Duration: {getDuration()} hours</p>
-            <p>Distance: {getTotalDistance()} km</p>
+            <p>Duration: {getDuration().toFixed(2)} hours</p>
+            <p>Distance: {getTotalDistance().toFixed(2)} km</p>
             <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
             <p
               onClick={() => setShowPointsModal(true)}
