@@ -16,27 +16,17 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: transform 0.2s;
 }
 
-.navbar-brand:hover {
-  transform: translateY(-1px);
-}
-
-.brand-icon {
-  font-size: 24px;
+.brand-logo {
+  height: 32px;
+  width: auto;
 }
 
 .brand-text {
-
+  font-size: 1.5rem;
   font-weight: bold;
-  color: #2ecc71;
-  /* Alternative gradient option */
-  background: linear-gradient(45deg, #27ae60, #229954);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
-
 .nav-link {
   display: flex;
   align-items: center;

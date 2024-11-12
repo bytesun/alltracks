@@ -29,7 +29,12 @@ export const Navbar = () => {
   };
   return (
     <nav className="navbar">
-      <div className="navbar-brand" onClick={() => navigate('/')}>        
+      <div className="navbar-brand" onClick={() => navigate('/')}> 
+      <img 
+          src="/192x192.png" 
+          alt="AllTracks Logo" 
+          className="brand-logo"
+        />       
         <span className="brand-text">AllTracks</span>
       </div>
       <div className="nav-items">
