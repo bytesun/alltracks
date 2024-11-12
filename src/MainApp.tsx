@@ -890,8 +890,6 @@ function MainApp() {
           onExport={handleExport}
           onClose={() => setShowExportModal(false)}
           user={user}
-          onLogin={handleAuth}
-
         />
       )}
       {showPointsModal && (
