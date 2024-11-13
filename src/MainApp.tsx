@@ -544,47 +544,52 @@ function MainApp() {
 
           await setDoc(docOptions);
           showNotification('created track record', 'success');
+
+
           //update userstate
-          const userStats = await loadUserStats();
-          if (userStats) {
-            const updatedStats = {              
-              totalDistance: userStats.data.totalDistance + totalDistance,
-              totalHours: userStats.data.totalHours + duration,
-              totalElevation: userStats.data.totalElevation + elevationGain,
-              completedTrails: userStats.data.completedTrails + 1,
-              firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleString(),
-            };
-            await setDoc({
-              collection: "stats",
-              doc: {
-                ...userStats,
-                data: updatedStats
-              }
-            });
-            showNotification('updated user stats', 'success');
-          } else {
-            await setDoc({
-              collection: "stats",
-              doc: {
-                key: user.key,
-                data: {
-                  totalDistance: totalDistance,
-                  totalHours: duration,
-                  totalElevation: elevationGain,
-                  completedTrails: 1,
-                  firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleString(),
+          if (!isPrivateStorage) {
+            const userStats = await loadUserStats();
+            if (userStats) {
+              const updatedStats = {
+                totalDistance: userStats.data.totalDistance + totalDistance,
+                totalHours: userStats.data.totalHours + duration,
+                totalElevation: userStats.data.totalElevation + elevationGain,
+                completedTrails: userStats.data.completedTrails + 1,
+                firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleDateString(),
+              };
+              await setDoc({
+                collection: "stats",
+                doc: {
+                  ...userStats,
+                  data: updatedStats
                 }
-              }
-            });
-            showNotification('created user stats', 'success');
-          }
+              });
+              showNotification('updated user stats', 'success');
+            } else {
+              await setDoc({
+                collection: "stats",
+                doc: {
+                  key: user.key,
+                  data: {
+                    totalDistance: totalDistance,
+                    totalHours: duration,
+                    totalElevation: elevationGain,
+                    completedTrails: 1,
+                    firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleDateString(),
+                  }
+                }
+              });
+              showNotification('created user stats', 'success');
+            }
+          }//not private storage
+
           showNotification('Track uploaded to cloud storage', 'success');
           setTrackPoints([]);
-        }else {
+        } else {
           showNotification('Failed to upload track file', 'error');
         }
-        
-      }
+
+      }//cloud storage
     } catch (error) {
       showNotification(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
