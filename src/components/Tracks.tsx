@@ -28,14 +28,36 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
       const result = await listDocs<TrackData>({
         collection: "tracks",
         filter: {
-          owner: user.owner
+          owner: user.owner,
+          matcher: {            
+            createdAt: {
+              matcher: "greaterThan",
+              timestamp: BigInt((Date.now() - 7*24 * 60 * 60 * 1000)*1000000) // 24 hours ago
+            }           
+          },
+          order: {
+            desc: true,
+            field: "updated_at"
+          },
         }
       });
       items = result.items;
     } else {
       const result = await listDocs<TrackData>({
         satellite: { satelliteId: settings.storageId },
-        collection: "tracks"        
+        collection: "tracks",
+        filter: {
+          matcher: {            
+            createdAt: {
+              matcher: "greaterThan",
+              timestamp: BigInt((Date.now() - 7*24 * 60 * 60 * 1000)*1000000) // 24 hours ago
+            }           
+          },
+          order: {
+            desc: true,
+            field: "updated_at"
+          },
+        }        
       });
       items = result.items;
     }
