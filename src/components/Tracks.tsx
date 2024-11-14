@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, listDocs } from "@junobuild/core";
 import './Tracks.css';
-
+import { useStats } from '../context/StatsContext'; 
 interface TrackData {
   filename: string;
   distance: number;
@@ -12,40 +12,73 @@ interface TrackData {
 
 export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
   const [tracks, setTracks] = React.useState<TrackData[]>([]);
+  const [trackVisibility, setTrackVisibility] = React.useState<'public' | 'private'>('public');
+  const { settings } = useStats();
 
   React.useEffect(() => {
-   if (user) {
+    if (user) {
       fetchTracks();
     }
-  }, [user]);
+  }, [user, trackVisibility]);
 
-  
-const fetchTracks = async () => {
-  const { items } = await listDocs<TrackData>({
-    collection: "tracks",
-    filter: {
-      owner: user.owner
+
+  const fetchTracks = async () => {
+    let items = [];
+    if (trackVisibility === 'public') {
+      const result = await listDocs<TrackData>({
+        collection: "tracks",
+        filter: {
+          owner: user.owner
+        }
+      });
+      items = result.items;
+    } else {
+      const result = await listDocs<TrackData>({
+        satellite: { satelliteId: settings.storageId },
+        collection: "tracks"        
+      });
+      items = result.items;
     }
-  });
+    const formattedTracks = items.map(doc => ({
 
-  const formattedTracks = items.map(doc => ({
+      filename: doc.data.filename,
+      distance: doc.data.distance,
+      duration: doc.data.duration,
+      elevationGain: doc.data.elevationGain,
+      startime: doc.data.startime,
+    }));
 
-    filename: doc.data.filename,
-    distance: doc.data.distance,
-    duration: doc.data.duration,
-    elevationGain: doc.data.elevationGain,
-    startime: doc.data.startime,
-  }));
-
-  setTracks(formattedTracks);
-};
+    setTracks(formattedTracks);
+  };
 
   return (
     <div className="tracks-section">
       <div className="settings-header">
         <h3>My Tracks</h3>
       </div>
-      
+      <div className="track-visibility-selector">
+        <label>
+          <input
+            type="radio"
+            name="trackVisibility"
+            value="private"
+            checked={trackVisibility === 'private'}
+            onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
+          />
+          Private Tracks
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="trackVisibility"
+            value="public"
+            checked={trackVisibility === 'public'}
+            onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
+          />
+          Public Tracks
+        </label>
+      </div>
+
       <div className="tracks-list">
         {tracks.length > 0 ? (
           tracks.map((track) => (

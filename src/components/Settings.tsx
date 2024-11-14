@@ -3,15 +3,8 @@ import { User } from "@junobuild/core";
 import { Doc, setDoc, getDoc } from "@junobuild/core";
 import '../styles/Settings.css';
 import { Spinner } from './Spinner';
-
-interface ProfileSettings {
-    storageId: string;
-    trackPointCollection: string;
-    trackFileCollection: string;
-    inboxCollection: string;
-    inboxAttachmentCollection: string;
-
-}
+import { ProfileSettings } from '../types/profileSettings';
+import { useStats } from '../context/StatsContext';
 
 interface SettingsProps {
     user: User;
@@ -21,7 +14,7 @@ interface SettingsProps {
 export const Settings = ({ user, showNotification }: SettingsProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
+    const { updateSettings } = useStats();
 
     const [mydoc, setMydoc] = useState<Doc<ProfileSettings> | null>(null);
     const [settings, setSettings] = useState<ProfileSettings>({
@@ -82,7 +75,7 @@ export const Settings = ({ user, showNotification }: SettingsProps) => {
                     }
                 });
             }
-
+            updateSettings(settings);
             showNotification('Settings saved successfully', 'success');
         } catch (error) {
             showNotification('Failed to save settings', 'error');
