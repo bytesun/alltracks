@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, setDoc, listDocs, uploadFile } from "@junobuild/core";
 import { CreateTrail } from './CreateTrail';
 import './Trails.css';
@@ -24,7 +24,9 @@ export const Trails: React.FC<{ user: User | null }> = ({ user }) => {
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-
+    useEffect(() => {
+        loadTrails();
+    }, []);
     const handleTrailSubmit = async (trailData: TrailForm, file: File) => {
         setIsLoading(true);
         try {

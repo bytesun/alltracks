@@ -74,3 +74,16 @@
     width: 100%;
   }
 }
+
+.guide-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #0066cc;
+    text-decoration: none;
+    margin-bottom: 1rem;
+}
+
+.guide-link:hover {
+    text-decoration: underline;
+}

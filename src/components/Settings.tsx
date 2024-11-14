@@ -90,14 +90,19 @@ export const Settings = ({ user, showNotification }: SettingsProps) => {
             setIsSubmitting(false);
         }
     };
-
     return (
         <div className="settings-container">
-            <h3>Settings</h3>
+            <h3>Private Storage Settings</h3>
+            <div className="settings-header">
+                <a href="https://juno.build" target="_blank" rel="noopener noreferrer" className="guide-link">
+                    <span className="material-icons">help_outline</span>
+                    View Juno Setup Guide
+                </a>
+            </div>
 
             <form onSubmit={handleSubmit}>
                 <div className="settings-section">
-                    <h4>Private Storage Configuration</h4>
+      
                     <div className="setting-content">
                         <label>Storage ID</label>
                         <input

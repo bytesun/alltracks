@@ -63,14 +63,21 @@
 .trail-info {
   padding: 16px;
 }
+.download-link {
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.download-link:hover {
+  color: #666;
+}
 
 .trail-stats {
   display: flex;
-  gap: 16px;
-  color: #666;
-  margin: 8px 0;
+  align-items: center;
+  gap: 1rem;
 }
-
 .trail-info p {
   color: #444;
   line-height: 1.5;

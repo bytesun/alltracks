@@ -25,6 +25,8 @@ export const Status: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
     const [modalPhoto, setModalPhoto] = useState<string | null>(null);
+    const [showIncidents, setShowIncidents] = useState(true);
+    const [showInscriptions, setShowInscriptions] = useState(false);
 
     function CenterMapOnPoint() {
         const map = useMap();
@@ -58,7 +60,7 @@ export const Status: React.FC = () => {
         const fetchTrackPoints = async () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
- 
+            
             const tracks = await listDocs({
                 collection: "incidents",
                 filter: {
@@ -73,7 +75,7 @@ export const Status: React.FC = () => {
             });
 
             const points = tracks.items.map(doc => doc.data as TrackPoint);
-            console.log(points);
+
             const filteredPoints = userLocation ? points.filter(point => {
                 const distance = calculateDistance(
                     point.latitude,
@@ -158,7 +160,27 @@ export const Status: React.FC = () => {
         <div className="event-page">
             <Navbar />
             <div className="status-container">
-                <h3>Live Report Points</h3>
+                <div className="status-header">
+                    <h3>Live Report Points</h3>
+                    <div className="status-filters">
+                        <label>
+                            <input 
+                                type="checkbox"
+                                checked={showIncidents}
+                                onChange={(e) => setShowIncidents(e.target.checked)}
+                            />
+                            Incidents
+                        </label>
+                        <label>
+                            <input 
+                                type="checkbox"
+                                checked={showInscriptions}
+                                onChange={(e) => setShowInscriptions(e.target.checked)}
+                            />
+                            Inscriptions
+                        </label>
+                    </div>
+                </div>
                 <p className="track-description">
                     Showing tracking important points of interest or hazards from today within 10km of your location
                     {trackPoints.length > 0 && ` (${trackPoints.length} points found)`}

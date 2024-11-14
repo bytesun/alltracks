@@ -42,7 +42,13 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
         collection: "stats",
         key: user?.key,
       });
-      setUserStats(statDoc.data);
+      setUserStats(statDoc?.data || {
+        totalDistance: 0,
+        totalHours: 0,
+        totalElevation: 0,
+        completedTrails: 0,
+        firstHikeDate: new Date().toDateString(),
+      });
     };
 
     if (user) {
@@ -87,7 +93,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">person</span>
               Profile
             </div>
-            <div
+            {/* <div
               className={`sidebar-item ${activeTab === 'inbox' ? 'active' : ''}`}
               onClick={() => setActiveTab('inbox')}
             >
@@ -101,7 +107,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
             >
               <span className="material-icons">group</span>
               Groups
-            </div>
+            </div> */}
             <div
               className={`sidebar-item ${activeTab === 'tracks' ? 'active' : ''}`}
               onClick={() => setActiveTab('tracks')}
@@ -127,12 +133,12 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
           <div className="profile-content">
             {activeTab === 'profile' && (
               <>
-                <h2>Profile - <a href="https://oneblock.page" target='_blank'>Page</a></h2>
+                <h2>Profile </h2>
                 <div className="profile-info">
-                  {/* <div className="info-item">
+                  <div className="info-item">
                     <span className="material-icons">badge</span>
                     <p>{user?.key}</p>
-                  </div> */}
+                  </div>
                   <TrackAchievements stats={userStats} />
                 </div>
               </>
