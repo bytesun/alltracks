@@ -80,6 +80,7 @@ function MainApp() {
   const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
   const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const { showNotification } = useNotification();
 
@@ -450,7 +451,10 @@ function MainApp() {
   };
 
   const clearPoints = () => {
-    setTrackPoints([]);
+    const confirmed = window.confirm("Are you sure you want to clear all track points? This action cannot be undone.");
+    if (confirmed) {
+      setTrackPoints([]);
+    }
   };
 
   const [showExportModal, setShowExportModal] = useState(false);
@@ -465,6 +469,7 @@ function MainApp() {
   ) => {
     let content: string;
     let mimeType: string;
+    setIsExporting(true);
     try {
       switch (format) {
         case 'gpx':
@@ -511,6 +516,7 @@ function MainApp() {
         const totalDistance = getTotalDistance();
         const duration = getDuration();
         const elevationGain = getElevationGain();
+        const speedKmh = totalDistance / duration;
 
         if (savedAsset) {
           const fileRef = savedAsset.downloadUrl;
@@ -546,8 +552,8 @@ function MainApp() {
           showNotification('created track record', 'success');
 
 
-          //update userstate
-          if (!isPrivateStorage) {
+          //update userstate when it's public and long enough
+          if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
             const userStats = await loadUserStats();
             if (userStats) {
               const updatedStats = {
@@ -581,7 +587,9 @@ function MainApp() {
               });
               showNotification('created user stats', 'success');
             }
-          }//not private storage
+          }else{
+            showNotification('it is not valid hiking track', 'error');
+          }
 
           showNotification('Track uploaded to cloud storage', 'success');
           setTrackPoints([]);
@@ -592,6 +600,8 @@ function MainApp() {
       }//cloud storage
     } catch (error) {
       showNotification(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -817,11 +827,11 @@ function MainApp() {
           <button onClick={() => document.getElementById('file-upload')?.click()}>
             Import
           </button>
-          <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length == 0}>
+          <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length < 2 || isExporting}>
             Export
           </button>
 
-          <button onClick={clearPoints} disabled={trackPoints.length === 0}>
+          <button onClick={clearPoints} disabled={trackPoints.length === 0 || isExporting}>
             Clear
           </button>
         </div>

@@ -65,7 +65,7 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
             checked={trackVisibility === 'private'}
             onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
           />
-          Private Tracks
+          Private 
         </label>
         <label>
           <input
@@ -75,7 +75,7 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
             checked={trackVisibility === 'public'}
             onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
           />
-          Public Tracks
+          Public 
         </label>
       </div>
 
@@ -87,9 +87,9 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
               <div className="track-info">
                 <div className="track-title">{track.filename}</div>
                 <div className="track-meta">
-                  <span>{track.distance} km</span>
-                  <span>{track.duration} hr</span>
-                  <span>{track.elevationGain} m</span>
+                  <span>{track.distance.toFixed(2)} km</span>
+                  <span>{track.duration.toFixed(2)} hr</span>
+                  <span>{track.elevationGain.toFixed(2)} m</span>
                   <span>{track.startime}</span>
                 </div>
               </div>

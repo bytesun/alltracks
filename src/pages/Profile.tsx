@@ -133,7 +133,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
           <div className="profile-content">
             {activeTab === 'profile' && (
               <>
-                <h2>Profile </h2>
+                <h2>Proof Of Hiking </h2>
                 <div className="profile-info">
                   <div className="info-item">
                     <span className="material-icons">badge</span>
