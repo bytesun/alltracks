@@ -52,12 +52,12 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
         overflowY: 'auto',
         paddingRight: '15px'
       }}>
-        <h3>Add Point Note</h3>
+        <h3>Record a point</h3>
         <form onSubmit={handleSubmit}>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Enter your note (optional)"
+            placeholder="Enter your inscription  (optional)"
             rows={2}
           />
 

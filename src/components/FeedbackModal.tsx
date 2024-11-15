@@ -16,6 +16,7 @@ export const FeedbackModal = ({ isOpen, onClose, user ,showNotification }: Feedb
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
+        setIsSubmitting(true);
         await setDoc({
             satellite: { satelliteId: "ruc7a-fiaaa-aaaal-ab4ha-cai" },
             collection: "inbox",
@@ -59,9 +60,15 @@ export const FeedbackModal = ({ isOpen, onClose, user ,showNotification }: Feedb
                         onChange={(e) => setFeedback({ ...feedback, message: e.target.value })}
                         placeholder="Tell us your thoughts..."
                     />
-                    <button  disabled={isSubmitting} onClick={handleSubmit}>{isSubmitting ? 'Submitting...' : 'Submit Feedback'}</button>
-                </div>
-            </div>
+                      <button disabled={isSubmitting} onClick={handleSubmit}>
+                        {isSubmitting ? (
+                          <span className="material-icons spinning">refresh</span>
+                        ) : (
+                          'Submit Feedback'
+                        )}
+                      </button>
+                  </div>
+              </div>
         </div>
     );
 };

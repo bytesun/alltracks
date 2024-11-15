@@ -28,36 +28,14 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
       const result = await listDocs<TrackData>({
         collection: "tracks",
         filter: {
-          owner: user.owner,
-          matcher: {            
-            createdAt: {
-              matcher: "greaterThan",
-              timestamp: BigInt((Date.now() - 7*24 * 60 * 60 * 1000)*1000000) // 24 hours ago
-            }           
-          },
-          order: {
-            desc: true,
-            field: "updated_at"
-          },
+          owner: user.owner
         }
       });
       items = result.items;
     } else {
       const result = await listDocs<TrackData>({
         satellite: { satelliteId: settings.storageId },
-        collection: "tracks",
-        filter: {
-          matcher: {            
-            createdAt: {
-              matcher: "greaterThan",
-              timestamp: BigInt((Date.now() - 7*24 * 60 * 60 * 1000)*1000000) // 24 hours ago
-            }           
-          },
-          order: {
-            desc: true,
-            field: "updated_at"
-          },
-        }        
+        collection: "tracks"        
       });
       items = result.items;
     }
@@ -87,7 +65,7 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
             checked={trackVisibility === 'private'}
             onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
           />
-          Private 
+          Private Tracks
         </label>
         <label>
           <input
@@ -97,7 +75,7 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
             checked={trackVisibility === 'public'}
             onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
           />
-          Public 
+          Public Tracks
         </label>
       </div>
 
@@ -109,9 +87,9 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
               <div className="track-info">
                 <div className="track-title">{track.filename}</div>
                 <div className="track-meta">
-                  <span>{track.distance.toFixed(2)} km</span>
-                  <span>{track.duration.toFixed(2)} hr</span>
-                  <span>{track.elevationGain.toFixed(2)} m</span>
+                  <span>{track.distance} km</span>
+                  <span>{track.duration} hr</span>
+                  <span>{track.elevationGain} m</span>
                   <span>{track.startime}</span>
                 </div>
               </div>

@@ -23,8 +23,9 @@ import { useNotification } from './context/NotificationContext';
 import { UserStats } from "./types/UserStats";
 import { StartTrackModal } from './components/StartTrackModal';
 
-import { saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
+import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
+import { ClearTracksModal } from './components/ClearTracksModal';
 
 
 interface ProfileSettings {
@@ -85,8 +86,14 @@ function MainApp() {
   const [isExporting, setIsExporting] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
   const [hasCloudPoints, setHasCloudPoints] = useState(false);
+  const [showClearModal, setShowClearModal] = useState(false);
+
 
   const { showNotification } = useNotification();
+
+  useEffect(() => {
+    setupIndexedDB();
+  }, []);
 
   useEffect(() => {
     const savedTrackId = Cookies.get('lastTrackId');
@@ -96,27 +103,26 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => {
-        setNotification(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
-
-  const handleShowNotification = (message: string, type: 'success' | 'error' | 'info') => {
-    setNotification({ message, type });
-  };
-
-  useEffect(() => {
     const loadPoints = async () => {
       const savedPoints = await getTrackPointsFromIndexDB(trackId);
       if (savedPoints.length > 0) {
         setTrackPoints(savedPoints);
       }
     };
-    loadPoints();
+    if (trackId) {
+      loadPoints();
+    }
   }, [trackId]);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
 
   useEffect(() => {
     const loadUserSettings = async () => {
@@ -142,17 +148,7 @@ function MainApp() {
     return () => unsubscribe();
   }, []);
 
-  const handleAuth = async (): Promise<void> => {
-    console.log("signing in ", user)
-    if (user) {
-      await signOut();
-    } else {
 
-      await signIn({
-        maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours       
-      });
-    }
-  };
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
@@ -304,10 +300,6 @@ function MainApp() {
     return distance >= autoRecordingSettings.minDistance;
   };
 
-  const shareTrack = () => {
-    const shareUrl = `${window.location.origin}/track/${trackId}`;
-    navigator.clipboard.writeText(shareUrl);
-  };
 
   function RecenterOnImport() {
     const map = useMap();
@@ -464,13 +456,11 @@ function MainApp() {
   };
 
   const clearPoints = () => {
-    const confirmed = window.confirm("Are you sure you want to clear all track points? This action cannot be undone.");
-    if (confirmed) {
       Cookies.remove('lastTrackId');
       setTrackId(null)
       setTrackPoints([]);
       showNotification('Track cleared', 'success');
-    }
+    
   };
 
   const [showExportModal, setShowExportModal] = useState(false);
@@ -608,7 +598,7 @@ function MainApp() {
           }
 
           showNotification('Track uploaded to cloud storage', 'success');
-          
+
           clearPoints();
         } else {
           showNotification('Failed to upload track file', 'error');
@@ -638,21 +628,21 @@ function MainApp() {
     trackId: string;
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
-        minTime: number;
-        maxTime: number;
-        minDistance: number;
+      minTime: number;
+      maxTime: number;
+      minDistance: number;
     }
   }) => {
-    Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 }); 
+    Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
     setTrackId(trackSettings.trackId);
     setRecordingMode(trackSettings.recordingMode);
-    setAutoRecordingSettings({...trackSettings.autoRecordingSettings,lastRecordedPosition: null});
+    setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);
     if (trackSettings.recordingMode === 'auto') {
       startTracking();
     }
   };
- 
+
   return (
     <div className="App">
       <Navbar />
@@ -667,7 +657,7 @@ function MainApp() {
         {!trackId && <div className="controls">
           <button onClick={() => setShowStartModal(true)}>Start Track</button>
         </div>}
-   
+
         {!showStartModal && trackId && <div className="controls">
           {recordingMode === 'manual' ? (
             <button onClick={recordPoint}>
@@ -815,7 +805,10 @@ function MainApp() {
             Export
           </button>
 
-          <button onClick={clearPoints} disabled={!trackId && (trackPoints.length === 0 || isExporting)}>
+          {/* <button onClick={clearPoints} disabled={!trackId && (trackPoints.length === 0 || isExporting)}>
+            Clear
+          </button> */}
+          <button onClick={() => setShowClearModal(true)} disabled={ isExporting}>
             Clear
           </button>
         </div>
@@ -843,16 +836,17 @@ function MainApp() {
 
 
       <footer className="home-footer">
+       
         <a
           href="/guide"
-          className="guide-link"
+          className="footer-link"
         >
-          <span className="material-icons">help_outline</span>
+          <span className="material-icons">help</span>
           User Guide
         </a>
         <a
           href="#"
-          className="feedback-link"
+          className="footer-link"          
           onClick={(e) => {
             e.preventDefault();
             setShowFeedbackModal(true);
@@ -891,7 +885,7 @@ function MainApp() {
           onExport={handleExport}
           onClose={() => setShowExportModal(false)}
           user={user}
-          trackId={trackId} 
+          trackId={trackId}
         />
       )}
       {showPointsModal && (
@@ -906,11 +900,21 @@ function MainApp() {
           onStart={handleStartTrack}
         />
       )}
+      {showClearModal && (
+        <ClearTracksModal
+          onClose={() => setShowClearModal(false)}
+          onClear={() => {
+            clearPoints();
+            setShowClearModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }
 
 export default MainApp;
+
 
 
 

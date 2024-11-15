@@ -31,7 +31,7 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
       <div className="achievement-card">
         <span className="material-icons">calendar_today</span>
         <div className="achievement-content">
-          <h4>Hiking Since</h4>
+          <h4>Since</h4>
           <p>{firstHikeDate}</p>
         </div>
       </div>

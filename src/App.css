@@ -303,7 +303,7 @@ button:disabled {
   text-align: center;
 }
 
-.guide-link, .feedback-link {
+.footer-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
