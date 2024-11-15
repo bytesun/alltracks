@@ -23,7 +23,9 @@ import { useNotification } from './context/NotificationContext';
 import { UserStats } from "./types/UserStats";
 import { StartTrackModal } from './components/StartTrackModal';
 
-// import { saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
+import { saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
+import Cookies from 'js-cookie';
+
 
 interface ProfileSettings {
   storageId: string;
@@ -87,6 +89,13 @@ function MainApp() {
   const { showNotification } = useNotification();
 
   useEffect(() => {
+    const savedTrackId = Cookies.get('lastTrackId');
+    if (savedTrackId) {
+      setTrackId(savedTrackId);
+    }
+  }, []);
+
+  useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => {
         setNotification(null);
@@ -98,15 +107,16 @@ function MainApp() {
   const handleShowNotification = (message: string, type: 'success' | 'error' | 'info') => {
     setNotification({ message, type });
   };
-  // useEffect(() => {
-  //   const loadPoints = async () => {
-  //     const savedPoints = await getTrackPointsFromIndexDB(trackId);
-  //     if (savedPoints.length > 0) {
-  //       setTrackPoints(savedPoints);
-  //     }
-  //   };
-  //   loadPoints();
-  // }, [trackId]);
+
+  useEffect(() => {
+    const loadPoints = async () => {
+      const savedPoints = await getTrackPointsFromIndexDB(trackId);
+      if (savedPoints.length > 0) {
+        setTrackPoints(savedPoints);
+      }
+    };
+    loadPoints();
+  }, [trackId]);
 
   useEffect(() => {
     const loadUserSettings = async () => {
@@ -393,7 +403,7 @@ function MainApp() {
       setTrackPoints((prev) => [...prev, newPoint]);
       //save to  IndexDB
       const updatedPoints = [...trackPoints, newPoint];
-      // await saveTrackPointsToIndexDB(trackId, updatedPoints);
+      await saveTrackPointsToIndexDB(trackId, updatedPoints);
       setPendingPosition(null);
       // showNotification('Point recorded successfully', 'success');
       setAutoCenter(true);
@@ -456,7 +466,10 @@ function MainApp() {
   const clearPoints = () => {
     const confirmed = window.confirm("Are you sure you want to clear all track points? This action cannot be undone.");
     if (confirmed) {
+      Cookies.remove('lastTrackId');
+      setTrackId(null)
       setTrackPoints([]);
+      showNotification('Track cleared', 'success');
     }
   };
 
@@ -595,7 +608,8 @@ function MainApp() {
           }
 
           showNotification('Track uploaded to cloud storage', 'success');
-          setTrackPoints([]);
+          
+          clearPoints();
         } else {
           showNotification('Failed to upload track file', 'error');
         }
@@ -629,6 +643,7 @@ function MainApp() {
         minDistance: number;
     }
   }) => {
+    Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 }); 
     setTrackId(trackSettings.trackId);
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({...trackSettings.autoRecordingSettings,lastRecordedPosition: null});
@@ -800,7 +815,7 @@ function MainApp() {
             Export
           </button>
 
-          <button onClick={clearPoints} disabled={trackPoints.length === 0 || isExporting}>
+          <button onClick={clearPoints} disabled={!trackId && (trackPoints.length === 0 || isExporting)}>
             Clear
           </button>
         </div>
