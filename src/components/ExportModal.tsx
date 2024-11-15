@@ -13,13 +13,14 @@ interface ExportModalProps {
   ) => void;
   onClose: () => void;
   user: User | null;
+  trackId: string;
 }
-export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, user }) => {
+export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, user, trackId }) => {
   const [format, setFormat] = useState('csv');
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
   const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
-  const [eventId, setEventId] = useState('0');
+  const [eventId, setEventId] = useState(trackId);
   // Add new state
   const [isPrivateStorage, setIsPrivateStorage] = useState(false);
 

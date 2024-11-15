@@ -91,7 +91,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               onClick={() => setActiveTab('profile')}
             >
               <span className="material-icons">person</span>
-              Profile
+              POH
             </div>
             {/* <div
               className={`sidebar-item ${activeTab === 'inbox' ? 'active' : ''}`}
@@ -135,10 +135,10 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <>
                 <h2>Proof Of Hiking </h2>
                 <div className="profile-info">
-                  <div className="info-item">
+                  {/* <div className="info-item">
                     <span className="material-icons">badge</span>
                     <p>{user?.key}</p>
-                  </div>
+                  </div> */}
                   <TrackAchievements stats={userStats} />
                 </div>
               </>

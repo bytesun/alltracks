@@ -76,11 +76,12 @@ function MainApp() {
   const [user, setUser] = useState<User | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showPointsModal, setShowPointsModal] = useState(false);
-  const [trackId] = useState(() => uuidv4());
+  const [trackId, setTrackId] = useState();
   const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
   const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
 
   const { showNotification } = useNotification();
 
@@ -587,7 +588,7 @@ function MainApp() {
               });
               showNotification('created user stats', 'success');
             }
-          }else{
+          } else {
             showNotification('it is not valid hiking track', 'error');
           }
 
@@ -617,7 +618,101 @@ function MainApp() {
       }
     }
   };
+  const handleStartTrack = (settings) => {
+    setTrackId(settings.trackId);
+    // setRecordingMode(settings.mode);
+    setShowStartModal(false);
+    if (recordingMode === 'auto') {
+      startTracking();
+    }
+  };
+  const StartTrackModal = ({ onClose, onStart }) => {
 
+    const [trackSettings, setTrackSettings] = useState({
+      trackId: uuidv4(),
+      mode: 'manual'
+    });
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h2>Start New Track</h2>
+          <div className="form-group">
+            <label>Track ID</label>
+            <input
+              type="text"
+              value={trackSettings.trackId}
+              onChange={(e) => setTrackSettings({ ...trackSettings, trackId: e.target.value })}
+            />
+          </div>
+      
+            <div className='controls'>
+            {(!trackPoints || trackPoints.length == 0) && (
+              <div className="recording-mode">
+                <label>
+                  <input
+                    type="radio"
+                    value="manual"
+                    checked={recordingMode === 'manual'}
+                    onChange={(e) => {
+                      setShowNotice(false);
+                      setRecordingMode('manual')
+                    }}
+                  />
+                  Manual
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    value="auto"
+                    checked={recordingMode === 'auto'}
+                    onChange={(e) => {
+                      setShowNotice(false);
+                      setRecordingMode('auto')
+                    }}
+                  />
+                  Automatic
+                </label>
+              </div>)}
+
+            {recordingMode === 'auto' && trackingStatus === 'idle' && (
+              <div className="auto-settings">
+                <label>
+                  Min Distance (m):
+                  <input
+                    type="number"
+                    value={autoRecordingSettings.minDistance}
+                    onChange={(e) => setAutoRecordingSettings(prev => ({
+                      ...prev,
+                      minDistance: Number(e.target.value)
+                    }))}
+                    min="1"
+                  />
+                </label>
+                <label>
+                  Min Time (s):
+                  <input
+                    type="number"
+                    value={autoRecordingSettings.minTime}
+                    onChange={(e) => setAutoRecordingSettings(prev => ({
+                      ...prev,
+                      minTime: Number(e.target.value)
+                    }))}
+                    min="1"
+                  />
+                </label>
+              </div>
+            )}
+            </div>
+          
+          <div className="modal-buttons">
+            <button onClick={() => onStart(trackSettings)}>Start</button>
+            <button onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className="App">
       <Navbar />
@@ -628,63 +723,13 @@ function MainApp() {
             {locationError}
           </div>
         )}
-        {(!trackPoints || trackPoints.length == 0) && (
-          <div className="recording-mode">
-            <label>
-              <input
-                type="radio"
-                value="manual"
-                checked={recordingMode === 'manual'}
-                onChange={(e) => {
-                  setShowNotice(false);
-                  setRecordingMode('manual')
-                }}
-              />
-              Manual
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="auto"
-                checked={recordingMode === 'auto'}
-                onChange={(e) => {
-                  setShowNotice(false);
-                  setRecordingMode('auto')
-                }}
-              />
-              Automatic
-            </label>
-          </div>)}
 
-        {recordingMode === 'auto' && trackingStatus === 'idle' && (
-          <div className="auto-settings">
-            <label>
-              Min Distance (m):
-              <input
-                type="number"
-                value={autoRecordingSettings.minDistance}
-                onChange={(e) => setAutoRecordingSettings(prev => ({
-                  ...prev,
-                  minDistance: Number(e.target.value)
-                }))}
-                min="1"
-              />
-            </label>
-            <label>
-              Min Time (s):
-              <input
-                type="number"
-                value={autoRecordingSettings.minTime}
-                onChange={(e) => setAutoRecordingSettings(prev => ({
-                  ...prev,
-                  minTime: Number(e.target.value)
-                }))}
-                min="1"
-              />
-            </label>
-          </div>
-        )}
-        <div className="controls">
+        {!trackId && <div className="controls">
+          <button onClick={() => setShowStartModal(true)}>Start Track</button>
+        </div>}
+        {trackId}
+
+        {!showStartModal && trackId && <div className="controls">
           {recordingMode === 'manual' ? (
             <button onClick={recordPoint}>
               Record Point
@@ -705,7 +750,7 @@ function MainApp() {
               )}
             </div>
           )}
-        </div>
+        </div>}
 
         {trackPoints.length > 0 &&
           <div className="stats">
@@ -879,6 +924,8 @@ function MainApp() {
         </a>
 
       </footer>
+
+
       <FeedbackModal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
@@ -905,6 +952,7 @@ function MainApp() {
           onExport={handleExport}
           onClose={() => setShowExportModal(false)}
           user={user}
+          trackId={trackId} 
         />
       )}
       {showPointsModal && (
@@ -913,7 +961,12 @@ function MainApp() {
           onClose={() => setShowPointsModal(false)}
         />
       )}
-
+      {showStartModal && (
+        <StartTrackModal
+          onClose={() => setShowStartModal(false)}
+          onStart={handleStartTrack}
+        />
+      )}
     </div>
   );
 }
