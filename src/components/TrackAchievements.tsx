@@ -4,9 +4,44 @@ import { UserStats } from  "../types/UserStats";
 
 export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => {
   const { totalDistance, totalHours, totalElevation, completedTrails, firstHikeDate } = stats;
-  
+  const calculateScore = () => {
+    const distancePoints = totalDistance * 10;  // 10 points per km
+    const elevationPoints = totalElevation * 0.5;  // 0.5 points per meter climbed
+    const trailPoints = completedTrails * 100;  // 100 points per completed trail
+    const hoursPoints = totalHours * 20;  // 20 points per hour hiked
+    
+    // Calculate experience bonus based on first hike date
+    const daysSinceFirstHike = Math.floor((new Date().getTime() - new Date(firstHikeDate).getTime()) / (1000 * 60 * 60 * 24));
+    const experienceBonus = daysSinceFirstHike * 0.5;  // 0.5 points per day since first hike
+    
+    return Math.floor(distancePoints + elevationPoints + trailPoints + hoursPoints + experienceBonus);
+  };
+
   return (
     <div className="achievements-grid">
+
+    
+      <div className="achievement-card highlight">
+        <span className="material-icons">stars</span>
+        <div className="achievement-content">
+          <h4>Hiker Score</h4>
+          <p>{calculateScore()}</p>
+        </div>
+      </div>
+      <div className="achievement-card">
+        <span className="material-icons">calendar_today</span>
+        <div className="achievement-content">
+          <h4>Hiking Since</h4>
+          <p>{firstHikeDate}</p>
+        </div>
+      </div>
+      <div className="achievement-card">
+        <span className="material-icons">hiking</span>
+        <div className="achievement-content">
+          <h4>Trails Completed</h4>
+          <p>{completedTrails}</p>
+        </div>
+      </div>
       <div className="achievement-card">
         <span className="material-icons">straighten</span>
         <div className="achievement-content">
@@ -31,22 +66,9 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
         </div>
       </div>
 
-      <div className="achievement-card">
-        <span className="material-icons">hiking</span>
-        <div className="achievement-content">
-          <h4>Trails Completed</h4>
-          <p>{completedTrails}</p>
-        </div>
-      </div>
 
-      <div className="achievement-card">
-        <span className="material-icons">calendar_today</span>
-        <div className="achievement-content">
-          <h4>Hiking Since</h4>
-          <p>{firstHikeDate}</p>
-        </div>
-      </div>
-    
+
+
     </div>
   );
 };

@@ -45,3 +45,36 @@
   font-size: 24px;
   font-weight: 700;
 }
+.achievement-card.highlight {
+  background: linear-gradient(135deg, #7FD3A3, #4BB6C4);
+  color: #1A3C40;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(75, 182, 196, 0.2);
+}
+
+.achievement-card.highlight .material-icons {
+  color: #FF9F1C;
+  font-size: 32px;
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.8; }
+}
+
+.achievement-card.highlight h4 {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #1A3C40;
+}
+.achievement-card.highlight p {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #FF4B4B;
+}
+.achievement-card.highlight p {
+  font-size: 1.5em;
+  font-weight: bold;
+}
