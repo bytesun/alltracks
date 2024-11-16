@@ -8,7 +8,7 @@ import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
 
-import {  generateGPX, generateKML } from "./utils/exportFormats";
+import { generateGPX, generateKML } from "./utils/exportFormats";
 import { TrackPoint } from './types/TrackPoint';
 
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
@@ -250,7 +250,7 @@ function MainApp() {
     return importPoints.map(point => [point.latitude, point.longitude]);
   };
   const startAutoRecording = () => {
-    const interval = setInterval(recordPoint, autoRecordingSettings.minTime * 1000); 
+    const interval = setInterval(recordPoint, autoRecordingSettings.minTime * 1000);
     setRecordingInterval(interval);
   };
 
@@ -355,6 +355,9 @@ function MainApp() {
               ...prev,
               lastRecordedPosition: newPoint
             }));
+            //save to  IndexDB
+            const updatedPoints = [...trackPoints, newPoint];
+            saveTrackPointsToIndexDB(trackId, updatedPoints);
           },
           (error) => showNotification('Error getting location:', "error"),
           {
@@ -453,11 +456,11 @@ function MainApp() {
   };
 
   const clearPoints = () => {
-      Cookies.remove('lastTrackId');
-      setTrackId(null)
-      setTrackPoints([]);
-      showNotification('Track cleared', 'success');
-    
+    Cookies.remove('lastTrackId');
+    setTrackId(null)
+    setTrackPoints([]);
+    showNotification('Track cleared', 'success');
+
   };
 
   const [showExportModal, setShowExportModal] = useState(false);
@@ -809,7 +812,7 @@ function MainApp() {
           {/* <button onClick={clearPoints} disabled={!trackId && (trackPoints.length === 0 || isExporting)}>
             Clear
           </button> */}
-          <button onClick={() => setShowClearModal(true)} disabled={ isExporting}>
+          <button onClick={() => setShowClearModal(true)} disabled={isExporting}>
             Clear
           </button>
         </div>
@@ -837,7 +840,7 @@ function MainApp() {
 
 
       <footer className="home-footer">
-       
+
         <a
           href="/guide"
           className="footer-link"
@@ -847,7 +850,7 @@ function MainApp() {
         </a>
         <a
           href="#"
-          className="footer-link"          
+          className="footer-link"
           onClick={(e) => {
             e.preventDefault();
             setShowFeedbackModal(true);
