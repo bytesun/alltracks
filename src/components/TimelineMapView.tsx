@@ -42,7 +42,6 @@ const MapController: React.FC<{ selectedPoint: TrackPoint | null }> = ({ selecte
 };
 
 
-
 export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
     trackPoints,
     isLoading,
@@ -66,7 +65,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                 <MapContainer
                     center={trackPoints.length > 0
                         ? [trackPoints[0].latitude, trackPoints[0].longitude]
-                        : [51.505, -0.09]}
+                        : [49.2827, -123.1207]}
                     zoom={13}
                     style={{ height: '100%', width: '100%' }}
                 >

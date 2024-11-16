@@ -5,7 +5,7 @@ import MainApp  from './MainApp';
 import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
 import { Track } from './pages/Track';
-import { Event } from './pages/Event';
+
 import { Live } from './pages/Live';
 import { Status } from './pages/Status';
 import { Profile } from './pages/Profile';
