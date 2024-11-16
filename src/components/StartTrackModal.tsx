@@ -60,6 +60,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
     
   };
 
+  
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -153,7 +154,9 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
         </div>
 
         <div className="modal-buttons">
-          <button onClick={() => onStart({
+          <button
+           disabled={!trackId || !recordingMode || trackId ===''}
+           onClick={() => onStart({
             trackId,
             recordingMode,
             autoRecordingSettings
