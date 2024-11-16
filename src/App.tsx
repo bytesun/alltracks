@@ -12,6 +12,7 @@ import { Profile } from './pages/Profile';
 import { Guide } from './pages/Guide';
 import { GroupPage } from './pages/GroupPage';
 import { UserPage } from './pages/UserPage';
+import { EventPage } from './pages/EventPage';
 import { authSubscribe, User } from "@junobuild/core";
 
 import { NotificationProvider } from './context/NotificationContext';
@@ -34,7 +35,7 @@ export const App: React.FC = () => {
           <Route path="/trails" element={<Trails />} />
           <Route path="/events" element={<Events />} />
           <Route path="/track/:trackId" element={<Track />} />
-          <Route path="/event/:eventId" element={<Event />} />
+          <Route path="/event/:eventId" element={<EventPage />} />
           <Route path="/live/:liveId" element={<Live />} />
           <Route path="/status" element={<Status />} />
           <Route path="/profile" element={<Profile user={user} />} />
