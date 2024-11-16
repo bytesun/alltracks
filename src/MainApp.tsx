@@ -62,7 +62,7 @@ function MainApp() {
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
-  const [recordingMode, setRecordingMode] = useState<'manual' | 'auto'>('manual');
+  const [recordingMode, setRecordingMode] = useState<'' | 'manual' | 'auto'>('');
   const [recordingInterval, setRecordingInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
   const [isTracking, setIsTracking] = useState(false);
@@ -250,7 +250,7 @@ function MainApp() {
     return importPoints.map(point => [point.latitude, point.longitude]);
   };
   const startAutoRecording = () => {
-    const interval = setInterval(recordPoint, 10000); // Records every 10 seconds
+    const interval = setInterval(recordPoint, autoRecordingSettings.minTime * 1000); 
     setRecordingInterval(interval);
   };
 
@@ -318,7 +318,7 @@ function MainApp() {
 
   const recordPoint = () => {
     setShowNotice(false);
-
+    // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -431,12 +431,8 @@ function MainApp() {
           });
           setHasCloudPoints(true);
         }
-
       }
-
-
     }
-
   };
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -599,7 +595,7 @@ function MainApp() {
           }
 
           showNotification('Track uploaded to cloud storage', 'success');
-          
+
           clearTrackFromIndexDB(trackId);
           clearPoints();
 
@@ -636,8 +632,10 @@ function MainApp() {
       minDistance: number;
     }
   }) => {
+
     Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
     setTrackId(trackSettings.trackId);
+    console.log('recordingMode', trackSettings.recordingMode);
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);

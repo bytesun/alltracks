@@ -79,7 +79,6 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             ))}
           </select>
         </div>}
-
         {(selectedTrack === 'new'|| existingTracks.length === 0) && (
           <div className="form-group">
             <label>Track ID</label>
@@ -87,10 +86,10 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
               type="text"
               value={trackId}
               onChange={(e) => setTrackId(e.target.value)}
+              className="track-id-input"
             />
           </div>
         )}
-
         <div className='controls'>
           <div className="recording-mode">
             <label>
@@ -119,30 +118,36 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
 
           {recordingMode === 'auto' && (
             <div className="auto-settings">
-              <label>
-                Min Distance (m):
-                <input
-                  type="number"
-                  value={autoRecordingSettings.minDistance}
-                  onChange={(e) => setAutoRecordingSettings(prev => ({
-                    ...prev,
-                    minDistance: Number(e.target.value)
-                  }))}
-                  min="1"
-                />
-              </label>
-              <label>
-                Min Time (s):
-                <input
-                  type="number"
-                  value={autoRecordingSettings.minTime}
-                  onChange={(e) => setAutoRecordingSettings(prev => ({
-                    ...prev,
-                    minTime: Number(e.target.value)
-                  }))}
-                  min="1"
-                />
-              </label>
+              <div className="setting-field">
+                <label>
+                  Min Distance (m):
+                  <input
+                    type="number"
+                    value={autoRecordingSettings.minDistance}
+                    onChange={(e) => setAutoRecordingSettings(prev => ({
+                      ...prev,
+                      minDistance: Number(e.target.value)
+                    }))}
+                    min="1"
+                    className="setting-input"
+                  />
+                </label>
+              </div>
+              <div className="setting-field">
+                <label>
+                  Min Time (s):
+                  <input
+                    type="number"
+                    value={autoRecordingSettings.minTime}
+                    onChange={(e) => setAutoRecordingSettings(prev => ({
+                      ...prev,
+                      minTime: Number(e.target.value)
+                    }))}
+                    min="1"
+                    className="setting-input"
+                  />
+                </label>
+              </div>
             </div>
           )}
         </div>
