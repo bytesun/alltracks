@@ -24,7 +24,7 @@ import { useNotification } from './context/NotificationContext';
 import { UserStats } from "./types/UserStats";
 import { StartTrackModal } from './components/StartTrackModal';
 
-import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB } from './utils/IndexDBHandler';
+import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
 
@@ -599,8 +599,10 @@ function MainApp() {
           }
 
           showNotification('Track uploaded to cloud storage', 'success');
-
+          
+          clearTrackFromIndexDB(trackId);
           clearPoints();
+
         } else {
           showNotification('Failed to upload track file', 'error');
         }
