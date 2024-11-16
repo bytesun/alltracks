@@ -15,12 +15,12 @@ export const Guide = () => {
             <div className="guide-item">
               <span className="material-icons">login</span>
               <div>
-                <h3>Sign In with Internet Identity</h3>
+                <h3>Internet Identity Authentication</h3>
                 <ul>
-                  <li>Click "Sign In" in the top menu</li>
-                  <li>Create or use existing Internet Identity</li>
+                  <li>Sign in with Internet Identity</li>
                   <li>Access your personalized dashboard</li>
-                  <li>Set up your profile information</li>
+                  <li>View your hiking statistics</li>
+                  <li>Track your achievements</li>
                 </ul>
               </div>
             </div>
@@ -28,37 +28,30 @@ export const Guide = () => {
         </section>
 
         <section className="guide-section">
-          <h2>Trail Features</h2>
+          <h2>Track Recording</h2>
           <div className="guide-content">
             <div className="guide-item">
               <span className="material-icons">add_location</span>
               <div>
-                <h3>Creating Trails</h3>
+                <h3>Starting a Track</h3>
                 <ul>
-                  <li>Navigate to Trails section</li>
-                  <li>Click "Create New Trail"</li>
-                  <li>Fill required information:
-                    <ul>
-                      <li>Trail name and description</li>
-                      <li>Length and elevation gain</li>
-                      <li>Difficulty level</li>
-                      <li>Route type (loop, out-and-back, etc.)</li>
-                      <li>Upload GPX/KML file</li>
-                    </ul>
-                  </li>
+                  <li>Choose manual or automatic recording</li>
+                  <li>Set auto-recording intervals</li>
+                  <li>Optional group sharing</li>
+                  <li>Continue previous tracks</li>
                 </ul>
               </div>
             </div>
             
             <div className="guide-item">
-              <span className="material-icons">map</span>
+              <span className="material-icons">photo_camera</span>
               <div>
-                <h3>Trail Navigation</h3>
+                <h3>Track Points</h3>
                 <ul>
-                  <li>View trail on interactive map</li>
-                  <li>Filter trails by difficulty</li>
-                  <li>Check elevation profile</li>
-                  <li>View trail statistics</li>
+                  <li>Capture location with photos</li>
+                  <li>Add comments to points</li>
+                  <li>Record elevation data</li>
+                  <li>View full-size photos</li>
                 </ul>
               </div>
             </div>
@@ -66,35 +59,30 @@ export const Guide = () => {
         </section>
 
         <section className="guide-section">
-          <h2>Group Management</h2>
+          <h2>Timeline Views</h2>
           <div className="guide-content">
             <div className="guide-item">
-              <span className="material-icons">group_add</span>
+              <span className="material-icons">timeline</span>
               <div>
-                <h3>Creating Groups</h3>
+                <h3>Personal Timeline</h3>
                 <ul>
-                  <li>Go to Profile - Groups</li>
-                  <li>Click "Create New Group"</li>
-                  <li>Set group details:
-                    <ul>
-                      <li>Group name and description</li>
-                      <li>Upload group badge</li>
-                      <li>Connect ICEvent calendar</li>
-                    </ul>
-                  </li>
+                  <li>View your track history</li>
+                  <li>Filter by date range</li>
+                  <li>Interactive map display</li>
+                  <li>Detailed point information</li>
                 </ul>
               </div>
             </div>
             
             <div className="guide-item">
-              <span className="material-icons">event</span>
+              <span className="material-icons">groups</span>
               <div>
-                <h3>Event Integration</h3>
+                <h3>Group & Event Timelines</h3>
                 <ul>
-                  <li>Access ICEvent platform</li>
-                  <li>View group calendar</li>
-                  <li>Join upcoming activities</li>
-                  <li>Track event participation</li>
+                  <li>View shared group activities</li>
+                  <li>Track event participants</li>
+                  <li>Access group photos</li>
+                  <li>Historical group data</li>
                 </ul>
               </div>
             </div>
@@ -102,53 +90,36 @@ export const Guide = () => {
         </section>
 
         <section className="guide-section">
-          <h2>Safety Features</h2>
+          <h2>Profile Features</h2>
           <div className="guide-content">
             <div className="guide-item">
-              <span className="material-icons">share_location</span>
+              <span className="material-icons">analytics</span>
               <div>
-                <h3>Location Sharing</h3>
+                <h3>Statistics & Achievements</h3>
                 <ul>
-                  <li>Enable live tracking</li>
-                  <li>Share location with group</li>
-                  <li>Set tracking duration</li>
-                  <li>Monitor group members</li>
+                  <li>Total distance covered</li>
+                  <li>Elevation gained</li>
+                  <li>Hours spent hiking</li>
+                  <li>Completed trails count</li>
                 </ul>
               </div>
             </div>
             
             <div className="guide-item">
-              <span className="material-icons">warning</span>
+              <span className="material-icons">settings</span>
               <div>
-                <h3>Safety Reports</h3>
+                <h3>Settings & Data Management</h3>
                 <ul>
-                  <li>Report trail hazards</li>
-                  <li>Mark points of interest</li>
-                  <li>View community alerts</li>
-                  <li>Access emergency contacts</li>
+                  <li>Manage track history</li>
+                  <li>Clear local tracks</li>
+                  <li>Configure preferences</li>
+                  <li>Profile customization</li>
                 </ul>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="guide-section">
-          <h2>Profile Management</h2>
-          <div className="guide-content">
-            <div className="guide-item">
-              <span className="material-icons">person</span>
-              <div>
-                <h3>User Profile</h3>
-                <ul>
-                  <li>Update personal information</li>
-                  <li>View activity history</li>
-                  <li>Manage group memberships</li>
-                  <li>Set notification preferences</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
     </div>
   );
