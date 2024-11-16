@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 import { icon } from 'leaflet';
 
 interface TrackMapProps {

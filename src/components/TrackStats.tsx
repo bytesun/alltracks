@@ -1,7 +1,6 @@
 import React from 'react';
 import { calculateDistance } from '../utils/trackCalculations';
-import { TrackPoint } from '../utils/exportFormats';
-
+import { TrackPoint } from '../types/TrackPoint';
 interface TrackStatsProps {
   trackPoints: TrackPoint[];
   onShowPoints: () => void;

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 import { calculateAverageSpeed } from '../utils/trackCalculations';
 import { calculateTotalAscent, calculateTotalDistance } from '../utils/trackCalculations';
 import { getDuration } from '../utils/trackCalculations';

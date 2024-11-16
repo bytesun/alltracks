@@ -1,6 +1,5 @@
 import { openDB } from 'idb';
-import { TrackPoint } from './exportFormats';
-
+import { TrackPoint } from '../types/TrackPoint';
 const DB_NAME = 'tracks-db';
 const STORE_NAME = 'tracks';
 const DB_VERSION = 1;

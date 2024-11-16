@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from "../types/TrackPoint";
 
 export const useTrackSearch = (trackPoints: TrackPoint[]) => {
   const [searchQuery, setSearchQuery] = useState('');

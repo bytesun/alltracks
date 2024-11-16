@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 
 interface AutoRecordingSettings {
   minDistance: number;

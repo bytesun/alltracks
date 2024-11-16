@@ -1,5 +1,5 @@
 import React,{ useState } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMap } from 'react-leaflet';

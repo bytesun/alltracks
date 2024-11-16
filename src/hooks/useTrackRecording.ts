@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
 
 export const useTrackRecording = () => {
   const [isRecording, setIsRecording] = useState(false);

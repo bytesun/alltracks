@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Map } from '../components/Map';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from "../types/TrackPoint";
 import { getDoc, Doc } from "@junobuild/core";
 import { parseGPX, parseKML, parseCSV } from '../utils/importFormats';
 import "../styles/Track.css";

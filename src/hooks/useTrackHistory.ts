@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from "../types/TrackPoint";
 
 interface TrackHistoryEntry {
   points: TrackPoint[];

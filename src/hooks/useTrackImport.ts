@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 import { parseCSV, parseGPX, parseKML } from '../utils/importFormats';
 
 export const useTrackImport = (onPointsImported: (points: TrackPoint[]) => void) => {

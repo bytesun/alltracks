@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 
 interface TrackFilterProps {
   onFilter: (filteredPoints: TrackPoint[]) => void;

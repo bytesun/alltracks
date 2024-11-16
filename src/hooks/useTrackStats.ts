@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from "../types/TrackPoint";
 
 export const useTrackStats = (trackPoints: TrackPoint[]) => {
   const stats = useMemo(() => {

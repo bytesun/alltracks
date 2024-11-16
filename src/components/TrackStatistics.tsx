@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 import { formatDuration } from '../utils/trackCalculations';
 import { calculateMovingTime } from '../utils/trackCalculations';
 import { calculateTotalAscent } from '../utils/trackCalculations';

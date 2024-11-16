@@ -1,4 +1,4 @@
-import { TrackPoint } from './exportFormats.js';
+import { TrackPoint } from "../types/TrackPoint"
 
 export const parseCSV = (content: string): TrackPoint[] => {
   const lines = content.split('\n');

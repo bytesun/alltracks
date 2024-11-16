@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TrackPoint } from '../utils/exportFormats';
+import { TrackPoint } from '../types/TrackPoint';
 import { calculateGradientFactor } from '../utils/trackCalculations';
 
 interface DifficultyMetrics {
