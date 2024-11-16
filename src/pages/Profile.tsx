@@ -122,6 +122,15 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">terrain</span>
               Trails
             </div>
+            
+            <div
+              className={`sidebar-item ${activeTab === 'timeline' ? 'active' : ''}`}
+              onClick={() => window.open(`/user/${user.key}`, '_blank')}
+            >
+              <span className="material-icons">timeline</span>
+              Timeline
+            </div>
+
             <div
               className={`sidebar-item ${activeTab === 'settings' ? 'active' : ''}`}
               onClick={() => setActiveTab('settings')}
