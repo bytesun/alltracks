@@ -75,6 +75,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>Start Track</h2>
+        <div className='id-settings'>
         {existingTracks.length > 0 && <div className="form-group">
           <select
             value={selectedTrack}
@@ -102,7 +103,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
           </div>
         )}
         <div className="form-group">
-          <label>Group ID (optional)</label>
+          <label>Group ID</label>
           <input
             type="text"
             value={groupId}
@@ -111,7 +112,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             placeholder="Enter group ID if sharing track"
           />
         </div>
-
+        </div>
         <div className='controls'>
           <div className="recording-mode">
             <label>
@@ -142,7 +143,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             <div className="auto-settings">
               <div className="setting-field">
                 <label>
-                  Min Distance (m):
+                  Distance (m):
                   <input
                     type="number"
                     value={autoRecordingSettings.minDistance}
@@ -157,7 +158,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
               </div>
               <div className="setting-field">
                 <label>
-                  Min Time (s):
+                  Time (s):
                   <input
                     type="number"
                     value={autoRecordingSettings.minTime}
