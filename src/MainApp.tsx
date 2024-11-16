@@ -124,6 +124,13 @@ function MainApp() {
     }
   }, [notification]);
 
+  useEffect( ()=>{
+    const saveIndexdb = async () => {
+        await saveTrackPointsToIndexDB(trackId, trackPoints);
+    }
+    saveIndexdb();
+  }, [trackPoints])
+
 
   useEffect(() => {
     const loadUserSettings = async () => {
@@ -316,7 +323,7 @@ function MainApp() {
     return null;
   }
 
-  const recordPoint = () => {
+  const recordPoint = async () => {
     setShowNotice(false);
     // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
@@ -355,9 +362,7 @@ function MainApp() {
               ...prev,
               lastRecordedPosition: newPoint
             }));
-            //save to  IndexDB
-            const updatedPoints = [...trackPoints, newPoint];
-            saveTrackPointsToIndexDB(trackId, updatedPoints);
+
           },
           (error) => showNotification('Error getting location:', "error"),
           {
@@ -398,8 +403,8 @@ function MainApp() {
       //--save to local first
       setTrackPoints((prev) => [...prev, newPoint]);
       //save to  IndexDB
-      const updatedPoints = [...trackPoints, newPoint];
-      await saveTrackPointsToIndexDB(trackId, updatedPoints);
+      // const updatedPoints = [...trackPoints, newPoint];
+      // await saveTrackPointsToIndexDB(trackId, updatedPoints);
       setPendingPosition(null);
       // showNotification('Point recorded successfully', 'success');
       setAutoCenter(true);
