@@ -45,7 +45,7 @@ export const ClearTracksModal: React.FC<ClearTracksModalProps> = ({ onClose, onC
           )}
         </div>
         <div className="modal-buttons clear-modal-buttons">
-          <button onClick={onClear} className='clear-all-button'>Clear Current </button>
+          <button onClick={onClear} className='clear-all-button'>Clear Thhis </button>
           <button onClick={onClose} className='cancel-button'>Close</button>
         </div>
       </div>
