@@ -52,7 +52,11 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   const handleTrackSelection = (value: string) => { 
   
     setSelectedTrack(value);
-    setTrackId(value);
+    if(value === 'new') {
+      //do nothing
+    } else {
+      setTrackId(value);
+    }
     
   };
 
