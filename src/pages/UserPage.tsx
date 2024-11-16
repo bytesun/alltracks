@@ -78,7 +78,11 @@ export const UserPage: React.FC = () => {
                         }
                     }
 
-                }
+                },
+                order: {
+                    desc: true,
+                    field: "updated_at"
+                  },
             }
         });
         const points = result.items.map(doc => doc.data as TrackPoint);

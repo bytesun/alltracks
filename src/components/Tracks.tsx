@@ -28,14 +28,25 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
       const result = await listDocs<TrackData>({
         collection: "tracks",
         filter: {
-          owner: user.owner
+          owner: user.owner,
+          order: {
+            desc: true,
+            field: "updated_at"
+          },
         }
       });
       items = result.items;
     } else {
       const result = await listDocs<TrackData>({
         satellite: { satelliteId: settings.storageId },
-        collection: "tracks"        
+        collection: "tracks",
+        filter: {
+          order: {
+            desc: true,
+            field: "updated_at"
+          },
+        }
+
       });
       items = result.items;
     }
@@ -85,12 +96,12 @@ export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
             <div key={track.startime} className="track-item">
               <span className="material-icons">route</span>
               <div className="track-info">
-                <div className="track-title">{track.filename}</div>
+                <div className="track-title">[{track.startime}] {track.filename}</div>
                 <div className="track-meta">
-                  <span>{track.distance} km</span>
-                  <span>{track.duration} hr</span>
-                  <span>{track.elevationGain} m</span>
-                  <span>{track.startime}</span>
+                  <span>{track.distance.toFixed(2)} km</span>
+                  <span>{track.duration.toFixed(2)} hr</span>
+                  <span>{track.elevationGain.toFixed(2)} m</span>
+                  
                 </div>
               </div>
 
