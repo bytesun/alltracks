@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {Navigate, useNavigate } from 'react-router-dom';
-import './Navbar.css';
+import '../styles/Navbar.css';
 import { User } from "@junobuild/core";
 import { DropdownMenu } from './DropdownMenu';
 import { Link } from 'react-router-dom';
