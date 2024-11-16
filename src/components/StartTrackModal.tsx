@@ -67,7 +67,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             className="track-select"
           >
             <option>-- select saved tracks --</option>
-
+            <option value="new">Create New Track</option>
             {existingTracks.map(track => (
               <option key={track.id} value={track.id}>
                 {track.id} - {new Date(track.timestamp).toLocaleString()}
