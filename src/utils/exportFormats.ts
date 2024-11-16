@@ -1,3 +1,5 @@
+import { TrackPoint } from '../types/TrackPoint';
+
 export const generateGPX = (trackPoints: TrackPoint[]): string => {
   const header = `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="HikingTrack">
@@ -44,11 +46,4 @@ export const generateKML = (trackPoints: TrackPoint[]): string => {
   return header + points + footer;
 };
 
-export interface TrackPoint {
-  latitude: number;
-  longitude: number;
-  timestamp: number;
-  elevation?: number;
-  comment?: string;
-  photo?: string;
-}
+

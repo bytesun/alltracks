@@ -8,7 +8,8 @@ import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
 
-import { TrackPoint, generateGPX, generateKML } from "./utils/exportFormats";
+import {  generateGPX, generateKML } from "./utils/exportFormats";
+import { TrackPoint } from './types/TrackPoint';
 
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
 import { ExportModal } from './components/ExportModal';
