@@ -7,7 +7,15 @@ import 'leaflet/dist/leaflet.css';
 import '../styles/TimelineMapView.css';
 
 
-
+interface TimelineMapViewProps {
+    trackPoints: TrackPoint[];
+    isLoading: boolean;
+    startDate: string;
+    endDate: string;
+    onStartDateChange: (date: string) => void;
+    onEndDateChange: (date: string) => void;
+    onLoadPoints: () => void;
+}
 const defaultIcon = new Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
     iconSize: [25, 41],
@@ -33,15 +41,7 @@ const MapController: React.FC<{ selectedPoint: TrackPoint | null }> = ({ selecte
     return null;
 };
 
-interface TimelineMapViewProps {
-    trackPoints: TrackPoint[];
-    isLoading: boolean;
-    startDate: string;
-    endDate: string;
-    onStartDateChange: (date: string) => void;
-    onEndDateChange: (date: string) => void;
-    onLoadPoints: () => void;
-}
+
 
 export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
     trackPoints,

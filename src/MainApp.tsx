@@ -27,6 +27,7 @@ import { StartTrackModal } from './components/StartTrackModal';
 import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
+import { group } from 'console';
 
 
 interface ProfileSettings {
@@ -81,6 +82,7 @@ function MainApp() {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId, setTrackId] = useState<string | null>(null);
+  const [groupId, setGroupId] = useState<string>('0');
   const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
   const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -98,8 +100,12 @@ function MainApp() {
 
   useEffect(() => {
     const savedTrackId = Cookies.get('lastTrackId');
+    const savedGroupId = Cookies.get('lastGroupId');
     if (savedTrackId) {
       setTrackId(savedTrackId);
+    }
+    if (savedGroupId) {
+      setGroupId(savedGroupId);
     }
   }, []);
 
@@ -415,7 +421,7 @@ function MainApp() {
           const result = await setDoc({
             collection: "incidents",
             doc: {
-              key: `${trackId}_${pendingPosition.timestamp}`,
+              key: `${trackId}_${groupId}`,
               data: newPoint
             }
           });
@@ -425,7 +431,7 @@ function MainApp() {
             satellite: { satelliteId: userSettings?.storageId },
             collection: userSettings.trackPointCollection,
             doc: {
-              key: `${trackId}_${pendingPosition.timestamp}`,
+              key: `${trackId}_${groupId}`,
               data: newPoint
             }
           });
@@ -433,7 +439,7 @@ function MainApp() {
           const result = await setDoc({
             collection: "live_tracks",
             doc: {
-              key: `${trackId}_${pendingPosition.timestamp}`,
+              key: `${trackId}_${groupId}`,
               data: newPoint
             }
           });
@@ -499,7 +505,7 @@ function MainApp() {
           mimeType = 'text/csv';
       }
 
-      const expfilename = `${eventId}_${trackPoints[0].timestamp}.${format}`;
+      const expfilename = `${eventId}_${groupId}`;
 
       if (storage === 'local') {
         const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
@@ -548,13 +554,13 @@ function MainApp() {
             satellite: { satelliteId: userSettings.storageId },
             collection: userSettings.trackFileCollection,
             doc: {
-              key: eventId + "_" + new Date().getTime(),
+              key: eventId + "_" + groupId,
               data: docData
             }
           } : {
             collection: "tracks",
             doc: {
-              key: eventId + "_" + new Date().getTime(),
+              key: eventId + "_" + groupId,
               data: docData
             }
           };
@@ -633,6 +639,7 @@ function MainApp() {
   };
   const handleStartTrack = (trackSettings: {
     trackId: string;
+    groupId: string;
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
       minTime: number;
@@ -642,8 +649,10 @@ function MainApp() {
   }) => {
 
     Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
+    Cookies.set('lastGroupId', trackSettings.groupId, { expires: 7 });
     setTrackId(trackSettings.trackId);
-    console.log('recordingMode', trackSettings.recordingMode);
+    setGroupId(trackSettings.groupId);
+    
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);

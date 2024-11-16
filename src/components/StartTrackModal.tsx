@@ -2,11 +2,13 @@ import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { openDB } from 'idb';
 import "../styles/StartTrackModal.css";
+import Cookies from 'js-cookie';
 
 interface StartTrackModalProps {
   onClose: () => void;
   onStart: (trackSetting: {
     trackId: string;
+    groupId: string;
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
       minTime: number;
@@ -19,7 +21,9 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   onClose,
   onStart
 }) => {
-  const [trackId, setTrackId] = React.useState<string >(uuidv4());
+  const [trackId, setTrackId] = React.useState<string>(uuidv4());
+  const [groupId, setGroupId] = React.useState<string>(Cookies.get('groupId') || '0');
+
   const [recordingMode, setRecordingMode] = React.useState<'manual' | 'auto'>('manual');
   const [existingTracks, setExistingTracks] = React.useState<{ id: string, timestamp: number }[]>([]);
   const [selectedTrack, setSelectedTrack] = React.useState<string>('');
@@ -29,38 +33,44 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   });
 
   React.useEffect(() => {
+    if (groupId) {
+      Cookies.set('groupId', groupId);
+    }
+  }, [groupId]);
+
+  React.useEffect(() => {
     const loadTracks = async () => {
       try {
         const db = await openDB('tracks-db', 1);
         const tracks = await db.getAll('tracks');
-        
-          setExistingTracks(tracks.map(track => ({
-            id: track.id,
-            timestamp: track.timestamp
-          })));
-       
-        
+
+        setExistingTracks(tracks.map(track => ({
+          id: track.id,
+          timestamp: track.timestamp
+        })));
+
+
       } catch (error) {
         // console.error("Error loading tracks:", error);
-        
+
       };
     }
     loadTracks();
   }, []);
 
 
-  const handleTrackSelection = (value: string) => { 
-  
+  const handleTrackSelection = (value: string) => {
+
     setSelectedTrack(value);
-    if(value === 'new') {
+    if (value === 'new') {
       //do nothing
     } else {
       setTrackId(value);
     }
-    
+
   };
 
-  
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -80,17 +90,28 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             ))}
           </select>
         </div>}
-        {(selectedTrack === 'new'|| existingTracks.length === 0) && (
+        {(selectedTrack === 'new' || existingTracks.length === 0) && (
           <div className="form-group">
             <label>Track ID</label>
             <input
               type="text"
               value={trackId}
               onChange={(e) => setTrackId(e.target.value)}
-              className="track-id-input"
+              
             />
           </div>
         )}
+        <div className="form-group">
+          <label>Group ID (optional)</label>
+          <input
+            type="text"
+            value={groupId}
+            onChange={(e) => setGroupId(e.target.value)}
+            className="group-id-input"
+            placeholder="Enter group ID if sharing track"
+          />
+        </div>
+
         <div className='controls'>
           <div className="recording-mode">
             <label>
@@ -155,13 +176,14 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
 
         <div className="modal-buttons">
           <button
-           disabled={!trackId || !recordingMode || trackId ===''}
-           onClick={() => onStart({
-            trackId,
-            recordingMode,
-            autoRecordingSettings
+            disabled={!trackId || !recordingMode || trackId === ''}
+            onClick={() => onStart({
+              trackId,
+              groupId,  
+              recordingMode,
+              autoRecordingSettings
 
-          })}>Start</button>
+            })}>Start</button>
           <button onClick={onClose}>Cancel</button>
         </div>
       </div>

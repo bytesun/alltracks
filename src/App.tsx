@@ -10,6 +10,7 @@ import { Live } from './pages/Live';
 import { Status } from './pages/Status';
 import { Profile } from './pages/Profile';
 import { Guide } from './pages/Guide';
+import { GroupPage } from './pages/GroupPage';
 import { UserPage } from './pages/UserPage';
 import { authSubscribe, User } from "@junobuild/core";
 
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
           <Route path="/status" element={<Status />} />
           <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/guide" element={<Guide />} />
+          <Route path="/group/:groupId" element={<GroupPage />} />
           <Route path="/user/:userKey" element={<UserPage />} />
         </Routes>
       </StatsProvider>
