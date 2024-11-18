@@ -63,7 +63,7 @@ function MainApp() {
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
-  const [recordingMode, setRecordingMode] = useState<'' | 'manual' | 'auto'>('');
+  const [recordingMode, setRecordingMode] = useState<'' | 'manual' | 'auto'>('manual');
   const [recordingInterval, setRecordingInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
   const [isTracking, setIsTracking] = useState(false);

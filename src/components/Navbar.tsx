@@ -63,7 +63,7 @@ export const Navbar = () => {
           <Link to="/trails" className="nav-link">Trails</Link>
           <Link to="https://icevent.app" className="nav-link">Events</Link>
           <Link to="/status" className="nav-link">Status</Link>
-          <Link to="/profile" className="nav-link">Profile</Link>
+          {user && <Link to="/profile" className="nav-link">Profile</Link>}
           <button className="auth-button" onClick={handleAuth}>
             {user ? 'Sign Out' : 'Sign In'}
           </button>
