@@ -52,21 +52,28 @@ export const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate('/')}> 
-      <img 
-          src="/192x192.png" 
-          alt="AllTracks Logo" 
-          className="brand-logo"
-        />       
+        <img src="/192x192.png" alt="AllTracks Logo" className="brand-logo" />       
         <span className="brand-text">AllTracks</span>
       </div>
+      
       <div className="nav-items">
-        <Link to="/status" className="nav-link">
-          <span className="material-icons">track_changes</span>
-          Status
-        </Link>
-
+        
+        {/* Desktop menu items */}
+        <div className="desktop-menu">
+          <Link to="/trails" className="nav-link">Trails</Link>
+          <Link to="https://icevent.app" className="nav-link">Events</Link>
+          <Link to="/status" className="nav-link">Status</Link>
+          <Link to="/profile" className="nav-link">Profile</Link>
+          <button className="auth-button" onClick={handleAuth}>
+            {user ? 'Sign Out' : 'Sign In'}
+          </button>
         </div>
-      <DropdownMenu user={user} onAuth={handleAuth} />
+
+        {/* Mobile dropdown menu */}
+        <div className="mobile-menu">
+          <DropdownMenu user={user} onAuth={handleAuth} />
+        </div>
+      </div>
     </nav>
   );
 };

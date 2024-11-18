@@ -71,3 +71,13 @@
 .track-point:last-child {
   border-bottom: none;
 }
+.track-view {
+  height: calc(100vh - 200px);  /* Adjust based on header/nav height */
+  width: 100%;
+  position: relative;
+}
+
+.map-container {
+  height: 100%;
+  width: 100%;
+}

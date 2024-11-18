@@ -505,7 +505,7 @@ function MainApp() {
           mimeType = 'text/csv';
       }
 
-      const expfilename = `${eventId}_${groupId}`;
+      const expfilename = `${eventId}_${groupId}.${format}`;
 
       if (storage === 'local') {
         const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });

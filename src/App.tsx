@@ -4,7 +4,7 @@ import MainApp  from './MainApp';
 
 import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
-import { Track } from './pages/Track';
+import { TrackPage } from './pages/Track';
 
 import { Live } from './pages/Live';
 import { Status } from './pages/Status';
@@ -30,11 +30,11 @@ export const App: React.FC = () => {
   return (
     <NotificationProvider>
       <StatsProvider>
-        <Routes>
+        <Routes >
           <Route path="/" element={<MainApp/>} />
           <Route path="/trails" element={<Trails />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/track/:trackId" element={<Track />} />
+          <Route path="/track/:trackId" element={<TrackPage />} />
           <Route path="/event/:eventId" element={<EventPage />} />
           <Route path="/live/:liveId" element={<Live />} />
           <Route path="/status" element={<Status />} />
