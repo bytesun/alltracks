@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { TrackPoint } from '../types/TrackPoint';
-import { listDocs } from "@junobuild/core";
+import { listDocs,getDoc } from "@junobuild/core";
 import 'leaflet/dist/leaflet.css';
 import 'leaflet/dist/images/marker-shadow.png';
 
 import { Navbar } from '../components/Navbar';
 import { TimelineMapView } from '../components/TimelineMapView';
+import { TrackAchievements } from '../components/TrackAchievements';
+import { UserStats } from '../types/UserStats';
 
 export const UserPage: React.FC = () => {
     const { userKey } = useParams();
@@ -18,6 +20,33 @@ export const UserPage: React.FC = () => {
     const [endDate, setEndDate] = useState<string>(
         new Date().toISOString().split('T')[0]
     );
+    const [userStats, setUserStats] = useState<UserStats>({
+        totalDistance: 0,
+        totalHours: 0,
+        totalElevation: 0,
+        completedTrails: 0,
+        firstHikeDate: new Date().toDateString(),
+      });
+      
+    useEffect(() => {
+        const loadUserStats = async () => {
+          const statDoc = await getDoc<UserStats>({
+            collection: "stats",
+            key: userKey,
+          });
+          setUserStats(statDoc?.data || {
+            totalDistance: 0,
+            totalHours: 0,
+            totalElevation: 0,
+            completedTrails: 0,
+            firstHikeDate: new Date().toDateString(),
+          });
+        };
+    
+        if (userKey) {
+          loadUserStats();
+        }
+      }, [userKey]);
 
     const loadTrackPoints = async () => {
         setIsLoading(true);
@@ -53,6 +82,7 @@ export const UserPage: React.FC = () => {
     return (
         <div>
             <Navbar />
+            <TrackAchievements stats={userStats} />
             <TimelineMapView 
                 trackPoints={trackPoints}
                 isLoading={isLoading}

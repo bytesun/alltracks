@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { User } from "@junobuild/core"
-import './Profile.css';
+import '../styles/Profile.css';
 import { Navbar } from '../components/Navbar';
 import { Doc, setDoc, getDoc } from "@junobuild/core";
 import { Tracks } from '../components/Tracks';
@@ -25,8 +25,7 @@ import { UserStats } from '../types/UserStats';
 export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
 
   const [activeTab, setActiveTab] = useState('profile');
-  // Add this with other useState declarations
-  const [tracks, setTracks] = useState<Track[]>([]);
+
   const { showNotification } = useNotification();
   const [userStats, setUserStats] = useState<UserStats>({
     totalDistance: 0,
@@ -55,26 +54,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
       loadUserStats();
     }
   }, [user]);
-
-  // Add this with other useEffect hooks to load tracks
-  useEffect(() => {
-    const loadTracks = async () => {
-      if (user?.key) {
-        // Load tracks from your storage here
-        // For now using empty array
-        setTracks([]);
-      }
-    };
-
-    loadTracks();
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      console.log('user', user);
-    }
-  }, [user]);
-
+ 
 
   if (!user) {
     return <Navigate to="/" replace />;

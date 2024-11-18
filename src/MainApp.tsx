@@ -390,7 +390,7 @@ function MainApp() {
   }) => {
     let photoAsset;
     if (data.photo && data.cloudEnabled) {
-      const photoFile = new File([data.photo], `${trackId}_${Date.now()}.jpg`, { type: data.photo.type });
+      const photoFile = new File([data.photo], `${trackId}_${groupId}.jpg`, { type: data.photo.type });
       photoAsset = await uploadFile({
         collection: "photos",
         data: photoFile
