@@ -99,7 +99,7 @@ export const GroupPage: React.FC = () => {
                     createdAt: track.startime,
                     description: track.description
                 };
-            } );
+            });
             setTracks(tracks);
             setIsLoading(false);
         };
@@ -116,20 +116,21 @@ export const GroupPage: React.FC = () => {
                 ) : (
                     <>
                         <section className="group-header">
-                            <h1 className="group-name">{group?.name}</h1>
+                            <div className="group-title">
+                                <h1>{group?.name}</h1>
+                                <div className="group-meta">Created {new Date(group?.createdAt || '').toLocaleDateString()}</div>
+                            </div>
                             <p className="group-description">{group?.description}</p>
                             <div className="group-stats">
                                 <div className="stat-item">
                                     <span className="material-icons">group</span>
-                                    <span>Members: {group?.memberCount}</span>
-                                </div>
-                                <div className="stat-item">
-                                    <span className="material-icons">calendar_today</span>
-                                    <span>Created: {new Date(group?.createdAt || '').toLocaleDateString()}</span>
+                                    <span>{group?.memberCount | 3} Members</span>
                                 </div>
                                 <div className="stat-item">
                                     <span className="material-icons">person</span>
-                                    <span>Owner: {group?.owner}</span>
+                                    <Link to={`/user/${group?.owner}`} className="owner-link">
+                                        {group?.owner}Sun
+                                    </Link>
                                 </div>
                             </div>
                         </section>
@@ -148,42 +149,35 @@ export const GroupPage: React.FC = () => {
                             </button>
                         </div>
 
+                
                         {activeTab === 'tracks' && (
                             <section className="group-tracks">
-                                <div className="tracks-grid">
+                                <div className="tracks-list">
                                     {tracks.map(track => (
-                                        <div key={track.id} className="track-card">
-                                            <h3>{track.title}</h3>
-                                            
-                                            <div className="track-stats">
-                                                <span>Distance: {track.distance.toFixed(2)}km</span>
-                                                <span>Duration: {track.duration.toFixed(2)}h</span>
-                                                <span>Date: {new Date(track.createdAt).toLocaleDateString()}</span>
-                                            </div>
-                                            <Link to={`/track/${track.id}`} className="view-track-btn">
-                                                View Track
-                                            </Link>
+                                        <div key={track.id} className="track-list-item">
+                                        <div className="track-info">
+                                        <span className="track-date">{new Date(track.createdAt).toLocaleDateString()}</span>
+                                          <h3>{track.title}</h3>
+                                          <div className="track-details">                                            
+                                            <span className="track-stat">
+                                              <span className="material-icons">straighten</span>
+                                              {track.distance.toFixed(2)} km
+                                            </span>
+                                            <span className="track-stat">
+                                              <span className="material-icons">schedule</span>
+                                              {track.duration.toFixed(2)} hrs
+                                            </span>
+                                          </div>
                                         </div>
+                                        <Link to={`/track/${track.id}`} className="view-track-btn">
+                                          <span className="material-icons">chevron_right</span>
+                                        </Link>
+                                      </div>
                                     ))}
                                 </div>
                             </section>
                         )}
 
-                        {activeTab === 'timeline' && (
-                            <section className="group-timeline">
-                                <TimelineMapView
-
-                                    trackPoints={trackPoints}
-                                    isLoading={isLoading}
-                                    startDate={startDate}
-                                    endDate={endDate}
-                                    onStartDateChange={setStartDate}
-                                    onEndDateChange={setEndDate}
-                                    onLoadPoints={loadTrackPoints}
-                                />
-
-                            </section>
-                        )}
                     </>
                 )}
             </div>
