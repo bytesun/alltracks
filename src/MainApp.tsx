@@ -555,13 +555,15 @@ function MainApp() {
             collection: userSettings.trackFileCollection,
             doc: {
               key: eventId + "_" + groupId,
-              data: docData
+              data: docData,
+              description: description,
             }
           } : {
             collection: "tracks",
             doc: {
               key: eventId + "_" + groupId,
-              data: docData
+              data: docData,
+              description: description,
             }
           };
 
