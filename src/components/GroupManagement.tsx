@@ -37,7 +37,7 @@ export const GroupManagement = ({ user }: GroupManagementProps) => {
       const formattedGroups = items.map(item => ({
         ...item.data,
         key: item.key,
-        version: Number(item.version)
+        version: item.version
       }));
 
       setGroups(formattedGroups);
