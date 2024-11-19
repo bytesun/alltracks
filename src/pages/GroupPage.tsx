@@ -4,6 +4,7 @@ import { Doc, getDoc, listDocs } from "@junobuild/core";
 import { Navbar } from '../components/Navbar';
 import { TrackPoint } from '../types/TrackPoint';
 import { TimelineMapView } from '../components/TimelineMapView';
+import  { PhotosTab } from '../components/PhotosTab';
 import { Track } from '../types/Track';
 import '../styles/GroupPage.css';
 
@@ -30,7 +31,7 @@ export const GroupPage: React.FC = () => {
     const [group, setGroup] = useState<Group | null>(null);
     const [tracks, setTracks] = useState<TrackData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'tracks' | 'timeline'>('tracks');
+    const [activeTab, setActiveTab] = useState<'tracks' | 'timeline' | 'photos'>('tracks');
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
 
     const [startDate, setStartDate] = useState<string>(
@@ -40,33 +41,6 @@ export const GroupPage: React.FC = () => {
         new Date().toISOString().split('T')[0]
     );
 
-    const loadTrackPoints = async () => {
-        setIsLoading(true);
-        const start = BigInt(new Date(startDate).getTime() * 1000000);
-        const end = BigInt(new Date(endDate).getTime() * 1000000);
-
-        const result = await listDocs({
-            collection: "live_tracks",
-
-            filter: {
-                matcher: {
-                    key: ".*_" + groupId,
-                    createdAt: {
-                        matcher: "between",
-                        timestamps: { start, end }
-                    }
-                },
-                order: {
-                    desc: true,
-                    field: "updated_at"
-                }
-            }
-        });
-
-        const points = result.items.map(doc => doc.data as TrackPoint);
-        setTrackPoints(points);
-        setIsLoading(false);
-    };
 
     useEffect(() => {
         loadTrackPoints();
@@ -106,7 +80,33 @@ export const GroupPage: React.FC = () => {
 
         loadGroupData();
     }, [groupId]);
+    const loadTrackPoints = async () => {
+        setIsLoading(true);
+        const start = BigInt(new Date(startDate).getTime() * 1000000);
+        const end = BigInt(new Date(endDate).getTime() * 1000000);
 
+        const result = await listDocs({
+            collection: "live_tracks",
+
+            filter: {
+                matcher: {
+                    key: ".*_${groupId}_.*",
+                    createdAt: {
+                        matcher: "between",
+                        timestamps: { start, end }
+                    }
+                },
+                order: {
+                    desc: true,
+                    field: "updated_at"
+                }
+            }
+        });
+
+        const points = result.items.map(doc => doc.data as TrackPoint);
+        setTrackPoints(points);
+        setIsLoading(false);
+    };
     return (
         <div>
             <Navbar />
@@ -147,6 +147,12 @@ export const GroupPage: React.FC = () => {
                             >
                                 Activity Timeline
                             </button>
+                            <button
+                                className={`tab-button ${activeTab === 'photos' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('photos')}
+                            >
+                                Photos
+                            </button>
                         </div>
 
                 
@@ -175,6 +181,22 @@ export const GroupPage: React.FC = () => {
                                       </div>
                                     ))}
                                 </div>
+                            </section>
+                        )}
+                        {activeTab === 'timeline' && (
+                           <TimelineMapView
+                           trackPoints={trackPoints}
+                           isLoading={isLoading}
+                           startDate= {startDate}
+                           endDate={endDate}
+                           onStartDateChange={setStartDate}
+                           onEndDateChange={setEndDate}
+                           onLoadPoints={loadTrackPoints}
+                           />
+                        )}
+                        {activeTab === 'photos' && (
+                            <section className="group-photos">
+                                <PhotosTab groupId={groupId} />
                             </section>
                         )}
 

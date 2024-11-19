@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
+import { Group } from '../types/Group';
 
-interface GroupFormData {
-    name: string;
-    description: string;
-    calendarId: string;
-    groupBadge: string;
-}
-
-export const CreateGroupForm = ({ onSubmit }: { onSubmit: (data: GroupFormData) => void }) => {
-    const [formData, setFormData] = useState<GroupFormData>({
+export const CreateGroupForm = ({ onSubmit }: { onSubmit: (data: Group) => void }) => {
+    const [formData, setFormData] = useState<Group>({
         name: '',
         description: '',
         calendarId: '0',
+        members: [],
         groupBadge: ''
     });
 

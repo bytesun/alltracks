@@ -1,46 +1,34 @@
 import React from 'react';
 import "../styles/Group.css";
-
+import  { Group } from '../types/Group';
 const DEFAULT_BADGE = '/assets/default-group-badge.png';
 
-interface Group {
-  id: string;
-  name: string;
-  description: string;
-  calendarId: string;
-  memberCount: number;
-  groupBadge?: string;
+interface GroupListProps {
+  groups: Group[];
+  onEditGroup: (group: Group) => void;
 }
 
-export const GroupList = ({ groups }: { groups: Group[] }) => {
+export const GroupList: React.FC<GroupListProps> = ({ groups, onEditGroup }) => {
   return (
-    <div className="group-list">
-      {groups.map(group => (
-        <div key={group.id} className="group-card">
-          <div className="group-header">
-            <img 
-              src={group.groupBadge || DEFAULT_BADGE} 
-              alt={`${group.name} badge`}
-              className="group-badge"
-              onError={(e) => {
-                e.currentTarget.src = DEFAULT_BADGE;
-              }}
-            />
-            <h3 className="group-name">{group.name}</h3>
-            <div className="group-member-count">
-              <span className="material-icons">group</span>
-              {group.memberCount}
-            </div>
+    <div className="groups-list">
+      {groups.map((group) => (
+        <div key={group.calendarId} className="group-card">
+          <div className="group-info">
+            <h3>{group.name}</h3>
+            <p>{group.description}</p>
+    
           </div>
-          <p className="group-description">{group.description}</p>
-          <a 
-            href={`https://icevent.app/calendar/${group.calendarId}`}
-            className="group-calendar"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Calendar
-          </a>
+          <div className="group-actions">
+            <button 
+              className="edit-button"
+              onClick={() => onEditGroup(group)}
+            >
+              <span className="material-icons">edit</span>
+            </button>
+            <a href={`/group/${group.calendarId}`} className="view-button">
+              <span className="material-icons">visibility</span>
+            </a>
+          </div>
         </div>
       ))}
     </div>

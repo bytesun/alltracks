@@ -79,7 +79,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
             >
               <span className="material-icons">inbox</span>
               Inbox
-            </div>
+            </div> */}
 
             <div
               className={`sidebar-item ${activeTab === 'group' ? 'active' : ''}`}
@@ -87,7 +87,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
             >
               <span className="material-icons">group</span>
               Groups
-            </div> */}
+            </div>
             <div
               className={`sidebar-item ${activeTab === 'tracks' ? 'active' : ''}`}
               onClick={() => setActiveTab('tracks')}
