@@ -130,9 +130,9 @@ function MainApp() {
     }
   }, [notification]);
 
-  useEffect( ()=>{
+  useEffect(() => {
     const saveIndexdb = async () => {
-        await saveTrackPointsToIndexDB(trackId, trackPoints);
+      await saveTrackPointsToIndexDB(trackId, trackPoints);
     }
     saveIndexdb();
   }, [trackPoints])
@@ -389,13 +389,18 @@ function MainApp() {
     photo: File | undefined,
   }) => {
     let photoAsset;
-    if (data.photo && data.cloudEnabled) {
-      const photoFile = new File([data.photo], `${trackId}_${groupId}.jpg`, { type: data.photo.type });
-      photoAsset = await uploadFile({
-        collection: "photos",
-        data: photoFile
-      });
+    try {
+      if (data.photo && data.cloudEnabled) {
+        const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
+        photoAsset = await uploadFile({
+          collection: "photos",
+          data: photoFile
+        });
+      }
+    } catch (error) {
+      showNotification('Error uploading photo:', error);
     }
+
     if (pendingPosition) {
       const newPoint: TrackPoint = {
         latitude: pendingPosition.coords.latitude,
@@ -431,7 +436,7 @@ function MainApp() {
             satellite: { satelliteId: userSettings?.storageId },
             collection: userSettings.trackPointCollection,
             doc: {
-              key: `${trackId}_${groupId}`,
+              key: `${trackId}_${groupId}_${Date.now()}`,
               data: newPoint
             }
           });
@@ -439,7 +444,7 @@ function MainApp() {
           const result = await setDoc({
             collection: "live_tracks",
             doc: {
-              key: `${trackId}_${groupId}`,
+              key: `${trackId}_${groupId}_${Date.now()}`,
               data: newPoint
             }
           });
@@ -654,7 +659,7 @@ function MainApp() {
     Cookies.set('lastGroupId', trackSettings.groupId, { expires: 7 });
     setTrackId(trackSettings.trackId);
     setGroupId(trackSettings.groupId);
-    
+
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);
