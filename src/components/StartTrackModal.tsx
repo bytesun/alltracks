@@ -189,5 +189,3 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
         </div>
       </div>
     </div>
-  );
-};
