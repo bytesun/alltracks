@@ -7,15 +7,7 @@ import { TimelineMapView } from '../components/TimelineMapView';
 import  { PhotosTab } from '../components/PhotosTab';
 import { Track } from '../types/Track';
 import '../styles/GroupPage.css';
-
-
-interface Group {
-    name: string;
-    description: string;
-    createdAt: string;
-    memberCount: number;
-    owner: string;
-}
+import { Group } from '../types/Group';
 
 interface TrackData {
     id: string;
@@ -90,7 +82,7 @@ export const GroupPage: React.FC = () => {
 
             filter: {
                 matcher: {
-                    key: ".*_${groupId}_.*",
+                    key: `.*_${groupId}_.*`,
                     createdAt: {
                         matcher: "between",
                         timestamps: { start, end }
@@ -118,21 +110,10 @@ export const GroupPage: React.FC = () => {
                         <section className="group-header">
                             <div className="group-title">
                                 <h1>{group?.name}</h1>
-                                <div className="group-meta">Created {new Date(group?.createdAt || '').toLocaleDateString()}</div>
+                                
                             </div>
                             <p className="group-description">{group?.description}</p>
-                            <div className="group-stats">
-                                <div className="stat-item">
-                                    <span className="material-icons">group</span>
-                                    <span>{group?.memberCount | 3} Members</span>
-                                </div>
-                                <div className="stat-item">
-                                    <span className="material-icons">person</span>
-                                    <Link to={`/user/${group?.owner}`} className="owner-link">
-                                        {group?.owner}Sun
-                                    </Link>
-                                </div>
-                            </div>
+                            
                         </section>
                         <div className="tab-controls">
                             <button
