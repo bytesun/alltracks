@@ -445,6 +445,7 @@ function MainApp() {
 
             if (response.status === 200) {
               photoUrl = `https://arweave.net/${transaction.id}`;
+              showNotification('Photo uploaded to Arweave:', "success");
             }
           } catch (error) {
             showNotification('Error uploading to Arweave:', error);
@@ -717,6 +718,7 @@ function MainApp() {
   const handleStartTrack = (trackSettings: {
     trackId: string;
     groupId: string;
+    wallet: any;
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
       minTime: number;
@@ -727,9 +729,10 @@ function MainApp() {
 
     Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
     Cookies.set('lastGroupId', trackSettings.groupId, { expires: 7 });
+    
     setTrackId(trackSettings.trackId);
     setGroupId(trackSettings.groupId);
-
+    setWallet(trackSettings.wallet);
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);

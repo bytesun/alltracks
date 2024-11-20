@@ -9,6 +9,7 @@ interface StartTrackModalProps {
   onStart: (trackSetting: {
     trackId: string;
     groupId: string;
+    wallet: any;
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
       minTime: number;
@@ -23,6 +24,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
 }) => {
   const [trackId, setTrackId] = React.useState<string>(uuidv4());
   const [groupId, setGroupId] = React.useState<string>(Cookies.get('groupId') || '0');
+
 
   const [recordingMode, setRecordingMode] = React.useState<'manual' | 'auto'>('manual');
   const [existingTracks, setExistingTracks] = React.useState<{ id: string, timestamp: number }[]>([]);
@@ -216,6 +218,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             onClick={() => onStart({
               trackId,
               groupId,
+              wallet,
               recordingMode,
               autoRecordingSettings
 

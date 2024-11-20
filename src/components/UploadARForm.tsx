@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Cookies from 'js-cookie';
 
 interface UploadFormProps {
   onSubmit: (formData: UploadFormData, file: File) => void;
@@ -14,12 +15,20 @@ interface UploadFormData {
 
 export const UploadARForm: React.FC<UploadFormProps> = ({ onSubmit, isUploading }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [wallet, setWallet] = useState<any>(null);
   const [formData, setFormData] = useState<UploadFormData>({
     trackId: '',
     groupId: '',
     tags: '',
     filename: ''
   });
+
+  React.useEffect(() => {
+    const savedWallet = Cookies.get('arweave_wallet');
+    if (savedWallet) {
+      setWallet(JSON.parse(savedWallet));
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,9 +54,27 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onSubmit, isUploading 
       onSubmit(formData, file);
     }
   };
+  const handleWalletUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader();
+    fileReader.onloadend = async (e) => {
+      if (e.target?.result) {
+        const wallet = JSON.parse(e.target.result as string);
+        setWallet(wallet);
+        Cookies.set('arweave_wallet', JSON.stringify(wallet), { expires: 7 });
+      }
+    };
+    if (event.target.files?.[0]) {
+      fileReader.readAsText(event.target.files[0]);
+    }
+  };
 
+  const disconnectWallet = () => {
+    setWallet(null);
+    Cookies.remove('arweave_wallet');
+  };
   return (
     <form onSubmit={handleSubmit} className="upload-form">
+
       <div className="form-group">
         <label>Track ID</label>
         <input
@@ -94,20 +121,50 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onSubmit, isUploading 
 
       <div className="form-group">
         <label>File</label>
-        <input 
+        <input
           type="file"
           onChange={handleFileChange}
           className="file-input"
         />
       </div>
 
-      <button 
-        type="submit"
-        disabled={!file || isUploading}
-        className="upload-button"
-      >
-        {isUploading ? 'Uploading...' : 'Upload'}
-      </button>
+      <div className="wallet-section">
+        <input
+          type="file"
+          accept=".json"
+          onChange={handleWalletUpload}
+          style={{ display: 'none' }}
+          id="wallet-upload"
+        />
+        {wallet ? (
+          <button
+            type="button"
+            onClick={disconnectWallet}
+            className="wallet-button"
+          >
+            <span className="material-icons">account_balance_wallet</span>
+            Disconnect Wallet
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => document.getElementById('wallet-upload')?.click()}
+            className="wallet-button"
+          >
+            <span className="material-icons">account_balance_wallet</span>
+            Connect Wallet
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={!file || isUploading || !wallet}
+          className="upload-button"
+        >
+          {isUploading ? 'Uploading...' : 'Upload'}
+        </button>
+      </div>
+
+
     </form>
   );
 };

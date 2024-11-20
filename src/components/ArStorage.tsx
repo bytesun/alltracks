@@ -4,6 +4,7 @@ import { User, setDoc, listDocs } from '@junobuild/core';
 import { UploadARForm } from './UploadARForm';
 import '../styles/ArStorage.css'
 import { useNotification } from '../context/NotificationContext';
+import Cookies from 'js-cookie';
 
 interface ArStorageProps {
   user: User | null;
@@ -28,7 +29,16 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
+  const [wallet, setWallet] = useState<any>(null);
 
+
+  useEffect(() => {
+    const savedWallet = Cookies.get('arweave_wallet');
+    if (savedWallet) {
+      setWallet(JSON.parse(savedWallet));
+    }
+  }, []);
+  
   const arweave = Arweave.init({
     host: 'arweave.net',
     port: 443,
@@ -76,7 +86,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       transaction.addTag('Tags', formData.tags);
       transaction.addTag('File-Name', formData.filename);
 
-      await arweave.transactions.sign(transaction);
+      await arweave.transactions.sign(transaction,wallet);
       const response = await arweave.transactions.post(transaction);
 
       if (response.status === 200) {
