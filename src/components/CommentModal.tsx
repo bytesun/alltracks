@@ -60,7 +60,35 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
             placeholder="Enter your inscription  (optional)"
             rows={2}
           />
-
+          <div className="photo-capture">
+            <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
+              <span className="material-icons">photo_camera</span>
+              Attach A Photo
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotoCapture}
+                style={{ display: 'none' }}
+                disabled={!enableCloud}
+              />
+            </label>
+            {photoPreview && (
+              <div className="photo-preview">
+                <img src={photoPreview} alt="Captured" />
+                <button
+                  type="button"
+                  className="remove-photo"
+                  onClick={() => {
+                    setPhoto(null);
+                    setPhotoPreview('');
+                  }}
+                >
+                  <span className="material-icons">close</span>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="cloud-options-header" onClick={() => setShowCloudOptions(!showCloudOptions)}>
             <span className="material-icons">
               {showCloudOptions ? 'expand_less' : 'expand_more'}
@@ -103,37 +131,6 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
                 />
                 Private Point (storage configured required)
               </label>
-              {enableCloud &&
-                <div className="photo-capture">
-                  <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
-                    <span className="material-icons">photo_camera</span>
-                    Attach A Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handlePhotoCapture}
-                      style={{ display: 'none' }}
-                      disabled={!enableCloud}
-                    />
-                  </label>
-                  {photoPreview && (
-                    <div className="photo-preview">
-                      <img src={photoPreview} alt="Captured" />
-                      <button
-                        type="button"
-                        className="remove-photo"
-                        onClick={() => {
-                          setPhoto(null);
-                          setPhotoPreview('');
-                        }}
-                      >
-                        <span className="material-icons">close</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              }
 
             </div>
 

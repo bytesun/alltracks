@@ -3,6 +3,8 @@ import Arweave from 'arweave';
 import { User, setDoc, listDocs } from '@junobuild/core';
 import { UploadARForm } from './UploadARForm';
 import '../styles/ArStorage.css'
+import { useNotification } from '../context/NotificationContext';
+
 interface ArStorageProps {
   user: User | null;
 }
@@ -25,6 +27,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(false);
+  const { showNotification } = useNotification();
 
   const arweave = Arweave.init({
     host: 'arweave.net',
@@ -92,7 +95,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
         })
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      showNotification('Upload error:', error);
     } finally {
       setUploading(false);
     }

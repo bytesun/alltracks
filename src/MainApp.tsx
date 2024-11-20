@@ -390,12 +390,29 @@ function MainApp() {
   }) => {
     let photoAsset;
     try {
-      if (data.photo && data.cloudEnabled) {
-        const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
-        photoAsset = await uploadFile({
-          collection: "photos",
-          data: photoFile
-        });
+      if (data.photo) {
+        // if (data.cloudEnabled) {
+        //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
+        //   photoAsset = await uploadFile({
+        //     collection: "photos",
+        //     data: photoFile
+        //   });
+        // } else {
+          const lat = pendingPosition?.coords.latitude.toFixed(6);
+          const long = pendingPosition?.coords.longitude.toFixed(6);
+          const timestamp = Date.now();
+          const photoFileName = `${lat}_${long}_${trackId}_${groupId}.jpg`;
+          // Local storage
+          const photoFile = new File([data.photo], photoFileName, { type: data.photo.type });
+          const photoUrl = URL.createObjectURL(photoFile);
+          const link = document.createElement('a');
+          link.href = photoUrl;
+          link.download = photoFileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(photoUrl);
+        // }
       }
     } catch (error) {
       showNotification('Error uploading photo:', error);

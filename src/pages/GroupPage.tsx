@@ -4,7 +4,7 @@ import { Doc, getDoc, listDocs } from "@junobuild/core";
 import { Navbar } from '../components/Navbar';
 import { TrackPoint } from '../types/TrackPoint';
 import { TimelineMapView } from '../components/TimelineMapView';
-import  { PhotosTab } from '../components/PhotosTab';
+import { PhotosTab } from '../components/PhotosTab';
 import { Track } from '../types/Track';
 import '../styles/GroupPage.css';
 import { Group } from '../types/Group';
@@ -103,86 +103,82 @@ export const GroupPage: React.FC = () => {
         <div>
             <Navbar />
             <div className="group-container">
-                {isLoading ? (
-                    <div>Loading group data...</div>
-                ) : (
-                    <>
-                        <section className="group-header">
-                            <div className="group-title">
-                                <h1>{group?.name}</h1>
-                                
-                            </div>
-                            <p className="group-description">{group?.description}</p>
-                            
-                        </section>
-                        <div className="tab-controls">
-                            <button
-                                className={`tab-button ${activeTab === 'tracks' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('tracks')}
-                            >
-                                Recent Tracks
-                            </button>
-                            <button
-                                className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('timeline')}
-                            >
-                                Activity Timeline
-                            </button>
-                            <button
-                                className={`tab-button ${activeTab === 'photos' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('photos')}
-                            >
-                                Photos
-                            </button>
-                        </div>
 
-                
-                        {activeTab === 'tracks' && (
-                            <section className="group-tracks">
-                                <div className="tracks-list">
-                                    {tracks.map(track => (
-                                        <div key={track.id} className="track-list-item">
-                                        <div className="track-info">
+                <section className="group-header">
+                    <div className="group-title">
+                        <h1>{group?.name}</h1>
+
+                    </div>
+                    <p className="group-description">{group?.description}</p>
+
+                </section>
+                <div className="tab-controls">
+                    <button
+                        className={`tab-button ${activeTab === 'tracks' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('tracks')}
+                    >
+                        Recent Tracks
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('timeline')}
+                    >
+                        Activity Timeline
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'photos' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('photos')}
+                    >
+                        Photos
+                    </button>
+                </div>
+
+
+                {activeTab === 'tracks' && (
+                    <section className="group-tracks">
+                        <div className="tracks-list">
+                            {tracks.map(track => (
+                                <div key={track.id} className="track-list-item">
+                                    <div className="track-info">
                                         <span className="track-date">{new Date(track.createdAt).toLocaleDateString()}</span>
-                                          <h3>{track.title}</h3>
-                                          <div className="track-details">                                            
+                                        <h3>{track.title}</h3>
+                                        <div className="track-details">
                                             <span className="track-stat">
-                                              <span className="material-icons">straighten</span>
-                                              {track.distance.toFixed(2)} km
+                                                <span className="material-icons">straighten</span>
+                                                {track.distance.toFixed(2)} km
                                             </span>
                                             <span className="track-stat">
-                                              <span className="material-icons">schedule</span>
-                                              {track.duration.toFixed(2)} hrs
+                                                <span className="material-icons">schedule</span>
+                                                {track.duration.toFixed(2)} hrs
                                             </span>
-                                          </div>
                                         </div>
-                                        <Link to={`/track/${track.id}`} className="view-track-btn">
-                                          <span className="material-icons">chevron_right</span>
-                                        </Link>
-                                      </div>
-                                    ))}
+                                    </div>
+                                    <Link to={`/track/${track.id}`} className="view-track-btn">
+                                        <span className="material-icons">chevron_right</span>
+                                    </Link>
                                 </div>
-                            </section>
-                        )}
-                        {activeTab === 'timeline' && (
-                           <TimelineMapView
-                           trackPoints={trackPoints}
-                           isLoading={isLoading}
-                           startDate= {startDate}
-                           endDate={endDate}
-                           onStartDateChange={setStartDate}
-                           onEndDateChange={setEndDate}
-                           onLoadPoints={loadTrackPoints}
-                           />
-                        )}
-                        {activeTab === 'photos' && (
-                            <section className="group-photos">
-                                <PhotosTab groupId={groupId} />
-                            </section>
-                        )}
-
-                    </>
+                            ))}
+                        </div>
+                    </section>
                 )}
+                {activeTab === 'timeline' && (
+                    <TimelineMapView
+                        trackPoints={trackPoints}
+                        isLoading={isLoading}
+                        startDate={startDate}
+                        endDate={endDate}
+                        onStartDateChange={setStartDate}
+                        onEndDateChange={setEndDate}
+                        onLoadPoints={loadTrackPoints}
+                    />
+                )}
+                {activeTab === 'photos' && (
+                    <section className="group-photos">
+                        <PhotosTab groupId={groupId} />
+                    </section>
+                )}
+
+
             </div>
         </div>
     );
