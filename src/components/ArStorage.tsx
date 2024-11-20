@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import Arweave from 'arweave';
-import { User, setDoc, listDocs } from '@junobuild/core'; 
+import { User, setDoc, listDocs } from '@junobuild/core';
 import { UploadARForm } from './UploadARForm';
-
+import '../styles/ArStorage.css'
 interface ArStorageProps {
   user: User | null;
 }
 
 interface UploadFormData {
-    trackId: string;
-    groupId: string;
-    tags: string;
-    filename: string;
-  }
-  interface Photo {
-    txId: string;
-    trackId: string;
-    groupId: string;
-    tags: string[];
-    filename: string;
-    timestamp: number;
-  }
+  trackId: string;
+  groupId: string;
+  tags: string;
+  filename: string;
+}
+
+interface Photo {
+  artxid: string;
+  filename: string;
+  contentype: string;
+
+}
 export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -44,7 +43,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     const result = await listDocs<Photo>({
       collection: "photos",
       filter: {
-        owner: user.key,       
+        owner: user.key,
         order: {
           desc: true,
           field: "updated_at"
@@ -80,13 +79,13 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       if (response.status === 200) {
         setTransactionId(transaction.id);
         await setDoc({
-          collection:"photos",
-          doc:{
+          collection: "photos",
+          doc: {
             key: `${formData.trackId}_${formData.groupId}_${Date.now()}`,
             data: {
-              artxid: transaction.id, 
+              artxid: transaction.id,
               filename: formData.filename,
-              contentype: file.type             
+              contentype: file.type
             },
             description: formData.tags
           }
@@ -102,7 +101,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   return (
     <div className="ar-storage">
       <UploadARForm onSubmit={handleUpload} isUploading={uploading} />
-      
+
       <div className="photos-list">
         <h3>My Photos</h3>
         {loading ? (
@@ -110,19 +109,17 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
         ) : (
           <div className="photo-grid">
             {photos.map(photo => (
-              <div key={photo.txId} className="photo-item">
-                <img 
-                  src={`https://arweave.net/${photo.txId}`}
+              <div key={photo.artxid} className="photo-item">
+                <img
+                  src={`https://arweave.net/${photo.artxid}`}
                   alt={photo.filename}
                 />
                 <div className="photo-info">
                   <p>{photo.filename}</p>
-                  <p>Track: {photo.trackId}</p>
-                  <p>Group: {photo.groupId}</p>
                   <div className="tags">
-                    {photo.tags.map(tag => (
+                    {/* {photo.tags.map(tag => (
                       <span key={tag} className="tag">{tag}</span>
-                    ))}
+                    ))} */}
                   </div>
                 </div>
               </div>
