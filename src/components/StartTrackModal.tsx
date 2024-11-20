@@ -27,6 +27,8 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   const [recordingMode, setRecordingMode] = React.useState<'manual' | 'auto'>('manual');
   const [existingTracks, setExistingTracks] = React.useState<{ id: string, timestamp: number }[]>([]);
   const [selectedTrack, setSelectedTrack] = React.useState<string>('');
+  const [wallet, setWallet] = React.useState<any>(null);
+
   const [autoRecordingSettings, setAutoRecordingSettings] = React.useState({
     minTime: 10,
     minDistance: 10,
@@ -37,6 +39,13 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
       Cookies.set('groupId', groupId);
     }
   }, [groupId]);
+
+  React.useEffect(() => {
+    const savedWallet = Cookies.get('arweave_wallet');
+    if (savedWallet) {
+      setWallet(JSON.parse(savedWallet));
+    }
+  }, []);
 
   React.useEffect(() => {
     const loadTracks = async () => {
@@ -69,49 +78,75 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
     }
 
   };
-
-
+  const handleWalletUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader();
+    fileReader.onloadend = async (e) => {
+      if (e.target?.result) {
+        const wallet = JSON.parse(e.target.result as string);
+        setWallet(wallet);
+        Cookies.set('arweave_wallet', JSON.stringify(wallet), { expires: 7 });
+      }
+    };
+    if (event.target.files?.[0]) {
+      fileReader.readAsText(event.target.files[0]);
+    }
+  };
+  const disconnectWallet = () => {
+    setWallet(null);
+    Cookies.remove('arweave_wallet');
+  };
   return (
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>Start Track</h2>
         <div className='id-settings'>
-        {existingTracks.length > 0 && <div className="form-group">
-          <select
-            value={selectedTrack}
-            onChange={(e) => handleTrackSelection(e.target.value)}
-            className="track-select"
-          >
-            <option>-- select saved tracks --</option>
-            <option value="new">Create New Track</option>
-            {existingTracks.map(track => (
-              <option key={track.id} value={track.id}>
-                {track.id} - {new Date(track.timestamp).toLocaleString()}
-              </option>
-            ))}
-          </select>
-        </div>}
-        {(selectedTrack === 'new' || existingTracks.length === 0) && (
+          {existingTracks.length > 0 && <div className="form-group">
+            <select
+              value={selectedTrack}
+              onChange={(e) => handleTrackSelection(e.target.value)}
+              className="track-select"
+            >
+              <option>-- select saved tracks --</option>
+              <option value="new">Create New Track</option>
+              {existingTracks.map(track => (
+                <option key={track.id} value={track.id}>
+                  {track.id} - {new Date(track.timestamp).toLocaleString()}
+                </option>
+              ))}
+            </select>
+          </div>}
+          {(selectedTrack === 'new' || existingTracks.length === 0) && (
+            <div className="form-group">
+              <label>Track ID</label>
+              <input
+                type="text"
+                value={trackId}
+                onChange={(e) => setTrackId(e.target.value)}
+
+              />
+            </div>
+          )}
           <div className="form-group">
-            <label>Track ID</label>
+            <label>Group ID</label>
             <input
               type="text"
-              value={trackId}
-              onChange={(e) => setTrackId(e.target.value)}
-              
+              value={groupId}
+              onChange={(e) => setGroupId(e.target.value)}
+              className="group-id-input"
+              placeholder="Enter group ID if sharing track"
             />
           </div>
-        )}
-        <div className="form-group">
-          <label>Group ID</label>
           <input
-            type="text"
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
-            className="group-id-input"
-            placeholder="Enter group ID if sharing track"
+            type="file"
+            accept=".json"
+            onChange={handleWalletUpload}
+            style={{ display: 'none' }}
+            id="wallet-upload"
           />
-        </div>
+          {!wallet &&<button onClick={() => document.getElementById('wallet-upload')?.click()}>
+            Connect Arweave Wallet
+          </button>}
+          {wallet && <button onClick={disconnectWallet}>Disconnect Wallet</button>}
         </div>
         <div className='controls'>
           <div className="recording-mode">
@@ -180,7 +215,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             disabled={!trackId || !recordingMode || trackId === ''}
             onClick={() => onStart({
               trackId,
-              groupId,  
+              groupId,
               recordingMode,
               autoRecordingSettings
 

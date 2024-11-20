@@ -27,7 +27,7 @@ import { StartTrackModal } from './components/StartTrackModal';
 import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
-import { group } from 'console';
+import Arweave from 'arweave';
 
 
 interface ProfileSettings {
@@ -50,6 +50,7 @@ const currentLocationIcon = icon({
   iconSize: [25, 41],
   iconAnchor: [12, 41]
 });
+
 
 
 function MainApp() {
@@ -94,8 +95,24 @@ function MainApp() {
 
   const { showNotification } = useNotification();
 
+  const [wallet, setWallet] = useState<any>(null);
+
+  const arweave = Arweave.init({
+    host: 'arweave.net',
+    port: 443,
+    protocol: 'https'
+  });
+
+
   useEffect(() => {
     setupIndexedDB();
+  }, []);
+
+  useEffect(() => {
+    const savedWallet = Cookies.get('arweave_wallet');
+    if (savedWallet) {
+      setWallet(JSON.parse(savedWallet));
+    }
   }, []);
 
   useEffect(() => {
@@ -388,7 +405,7 @@ function MainApp() {
     isPrivate: boolean,
     photo: File | undefined,
   }) => {
-    let photoAsset;
+    let photoUrl: string | undefined;
     try {
       if (data.photo) {
         // if (data.cloudEnabled) {
@@ -398,6 +415,41 @@ function MainApp() {
         //     data: photoFile
         //   });
         // } else {
+        if (wallet) { //save to Arweave blockchain
+          const lat = pendingPosition?.coords.latitude.toFixed(6);
+          const long = pendingPosition?.coords.longitude.toFixed(6);
+          const timestamp = Date.now();
+          const photoFileName = `${lat}_${long}_${trackId}_${groupId}_${timestamp}.jpg`;
+
+          try {
+            // Create Arweave transaction
+            const fileReader = new FileReader();
+            const photoBuffer = await data.photo.arrayBuffer();
+
+            const transaction = await arweave.createTransaction({
+              data: photoBuffer
+            }, wallet);
+
+            // Add tags
+            transaction.addTag('Content-Type', data.photo.type);
+            transaction.addTag('App-Name', 'AllTracks');
+            transaction.addTag('File-Name', photoFileName);
+            transaction.addTag('Track-ID', trackId || '');
+            transaction.addTag('Group-ID', groupId);
+            transaction.addTag('Latitude', lat || '');
+            transaction.addTag('Longitude', long || '');
+
+            // Sign and post transaction
+            await arweave.transactions.sign(transaction, wallet);
+            const response = await arweave.transactions.post(transaction);
+
+            if (response.status === 200) {
+              photoUrl = `https://arweave.net/${transaction.id}`;
+            }
+          } catch (error) {
+            showNotification('Error uploading to Arweave:', error);
+          }
+        } else { //save local
           const lat = pendingPosition?.coords.latitude.toFixed(6);
           const long = pendingPosition?.coords.longitude.toFixed(6);
           const timestamp = Date.now();
@@ -412,6 +464,7 @@ function MainApp() {
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(photoUrl);
+        }
         // }
       }
     } catch (error) {
@@ -425,14 +478,14 @@ function MainApp() {
         timestamp: pendingPosition.timestamp,
         elevation: pendingPosition.coords.altitude || undefined,
         comment: data.comment.trim() || undefined,
-        photo: photoAsset ? photoAsset.downloadUrl : undefined
+        photo: photoUrl
       };
 
       //--save to local first
       setTrackPoints((prev) => [...prev, newPoint]);
       //save to  IndexDB
-      // const updatedPoints = [...trackPoints, newPoint];
-      // await saveTrackPointsToIndexDB(trackId, updatedPoints);
+      const updatedPoints = [...trackPoints, newPoint];
+      await saveTrackPointsToIndexDB(trackId, updatedPoints);
       setPendingPosition(null);
       // showNotification('Point recorded successfully', 'success');
       setAutoCenter(true);
