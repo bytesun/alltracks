@@ -12,13 +12,7 @@ import { Inbox } from '../components/Inbox';
 import { Settings } from '../components/Settings';
 import { useNotification } from '../context/NotificationContext';
 import { TrackAchievements } from '../components/TrackAchievements';
-
-interface Track {
-  id: string;
-  name: string;
-  distance: number;
-  date: string;
-}
+import { ArStorage } from '../components/ArStorage';
 
 import { UserStats } from '../types/UserStats';
 
@@ -54,7 +48,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
       loadUserStats();
     }
   }, [user]);
- 
+
 
   if (!user) {
     return <Navigate to="/" replace />;
@@ -102,7 +96,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">terrain</span>
               Trails
             </div>
-            
+
             <div
               className={`sidebar-item ${activeTab === 'timeline' ? 'active' : ''}`}
               onClick={() => window.open(`/user/${user.key}`, '_blank')}
@@ -110,7 +104,13 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">timeline</span>
               Timeline
             </div>
-
+            <div
+              className={`sidebar-item ${activeTab === 'arstorage' ? 'active' : ''}`}
+              onClick={() => setActiveTab('arstorage')}
+            >
+              <span className="material-icons">cloud_upload</span>
+              ArStorage
+            </div>
             <div
               className={`sidebar-item ${activeTab === 'settings' ? 'active' : ''}`}
               onClick={() => setActiveTab('settings')}
@@ -144,6 +144,11 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <Settings
                 user={user}
                 showNotification={showNotification}
+              />
+            )}
+            {activeTab === 'arstorage' && (
+              <ArStorage
+                user={user}
               />
             )}
           </div>

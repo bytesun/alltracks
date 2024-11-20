@@ -16,6 +16,8 @@
     "@types/leaflet": "^1.9.14",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "arweave": "^1.15.5",
+    "arweave-bundles": "^1.0.3",
     "csv-stringify": "^6.5.1",
     "file-saver": "^2.0.5",
     "idb": "^8.0.0",
