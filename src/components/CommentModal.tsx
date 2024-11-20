@@ -60,6 +60,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
             placeholder="Enter your inscription  (optional)"
             rows={2}
           />
+
           <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
               <span className="material-icons">photo_camera</span>
@@ -70,7 +71,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
                 capture="environment"
                 onChange={handlePhotoCapture}
                 style={{ display: 'none' }}
-                disabled={!enableCloud}
+                // disabled={!enableCloud}
               />
             </label>
             {photoPreview && (
@@ -89,6 +90,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
               </div>
             )}
           </div>
+
           <div className="cloud-options-header" onClick={() => setShowCloudOptions(!showCloudOptions)}>
             <span className="material-icons">
               {showCloudOptions ? 'expand_less' : 'expand_more'}
