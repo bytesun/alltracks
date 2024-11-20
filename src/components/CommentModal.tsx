@@ -64,7 +64,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
           <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
               <span className="material-icons">photo_camera</span>
-              Attach A Photo
+              Take A Photo
               <input
                 type="file"
                 accept="image/*"

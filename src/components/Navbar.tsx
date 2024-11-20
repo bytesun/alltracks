@@ -60,10 +60,10 @@ export const Navbar = () => {
         
         {/* Desktop menu items */}
         <div className="desktop-menu">
-          <Link to="/trails" className="nav-link">Trails</Link>
-          <Link to="https://icevent.app" className="nav-link">Events</Link>
-          <Link to="/status" className="nav-link">Status</Link>
-          {user && <Link to="/profile" className="nav-link">Profile</Link>}
+          <Link to="/trails" className="nav-link"><span className="material-icons">terrain</span>Trails</Link>
+          <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
+          <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
+          {user && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
           <button className="auth-button" onClick={handleAuth}>
             {user ? 'Sign Out' : 'Sign In'}
           </button>
