@@ -57,3 +57,21 @@
       color: #6c757d;
   }
   
+  .filter-options {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+  }
+  
+  .difficulty-select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ced4da;
+      background: white;
+      cursor: pointer;
+  }
+  
+  .difficulty-select:hover {
+      border-color: #adb5bd;
+  }
+  

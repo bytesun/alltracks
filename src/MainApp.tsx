@@ -772,9 +772,7 @@ function MainApp() {
       } else {
         points = parseCSV(content);
       }
-
       setImportPoints(points);
-
     }
 
     setShowTrailList(false);

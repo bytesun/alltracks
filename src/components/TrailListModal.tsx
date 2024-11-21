@@ -13,18 +13,21 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredTrails, setFilteredTrails] = useState<Trail[]>([]);
+    const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
 
     useEffect(() => {
         loadTrails();
     }, []);
 
     useEffect(() => {
-        const filtered = trails.filter(trail => 
-            trail.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            trail.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const filtered = trails.filter(trail => {
+            const matchesSearch = trail.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                trail.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesDifficulty = selectedDifficulty === 'all' || trail.difficulty === selectedDifficulty;
+            return matchesSearch && matchesDifficulty;
+        });
         setFilteredTrails(filtered);
-    }, [searchTerm, trails]);
+    }, [searchTerm, trails, selectedDifficulty]);
 
     const loadTrails = async () => {
         const result = await listDocs<Trail>({
@@ -46,7 +49,6 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
     return (
         <div className="modal-overlay">
             <div className="modal-content">
-                
                 <div className="search-container">
                     <div className="search-input">
                         <span className="material-icons">search</span>
@@ -56,6 +58,18 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                    </div>
+                    <div className="filter-options">
+                        <select 
+                            value={selectedDifficulty}
+                            onChange={(e) => setSelectedDifficulty(e.target.value)}
+                            className="difficulty-select"
+                        >
+                            <option value="all">All Difficulties</option>
+                            <option value="easy">Easy</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="hard">Hard</option>
+                        </select>
                     </div>
                 </div>
                 <div className="modal-body">
