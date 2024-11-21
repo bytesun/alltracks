@@ -947,14 +947,14 @@ function MainApp() {
                   setShowImportOptions(false);
                 }}>
                   <span className="material-icons">folder</span>
-                  Import from Local
+                  Local
                 </button>
                 <button onClick={() => {
                   setShowTrailList(true)
                   setShowImportOptions(false);
                 }}>
                   <span className="material-icons">cloud_download</span>
-                  Import from Storage
+                  Cloud
                 </button>
               </div>
             )}

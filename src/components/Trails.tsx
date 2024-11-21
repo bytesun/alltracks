@@ -46,7 +46,8 @@ export const Trails: React.FC<{ user: User | null }> = ({ user }) => {
                 collection: "trails",
                 doc: {
                     key: id,
-                    data: trailDoc
+                    data: trailDoc,
+                    description:`${trailData.name} ${trailData.description} ${trailData.tags}`
                 }
             });
 
