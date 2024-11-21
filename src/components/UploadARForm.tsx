@@ -49,15 +49,10 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (file) {
-      onSubmit(formData, file);
-      setFile(null);
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
-      }
+       onSubmit(formData, file);     
     }
   };
   const handleWalletUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

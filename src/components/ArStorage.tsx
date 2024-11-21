@@ -105,6 +105,8 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
           }
         })
       }
+      loadPhotos(); 
+      setShowUploadForm(false)
     } catch (error) {
       showNotification('Upload error:', error);
     } finally {
@@ -121,7 +123,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
           onClick={() => setShowUploadForm(true)}
         >
           <span className="material-icons">cloud_upload</span>
-          Upload New Photo
+          Upload
         </button>
       </div>
 
