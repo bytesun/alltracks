@@ -2,7 +2,7 @@
     position: relative;
     display: inline-block;
   }
-  .dropdown-menu {
+  .import-dropdown-menu {
     position: absolute;
     bottom: 100%;
     left: 0;
@@ -15,7 +15,7 @@
     margin-bottom: 8px;
   }
   
-  .dropdown-menu button {
+  .import-dropdown-menu button {
     width: 100%;
     padding: 12px;
     display: flex;
@@ -27,11 +27,23 @@
     color: #ffffff;
   }
   
-  .dropdown-menu button:hover {
+  .import-dropdown-menu button:hover {
     background: #898e92;
   }
   
-  .dropdown-menu .material-icons {
+  .import-dropdown-menu .material-icons {
     color: #adb5bd;
   }
   
+  .modal-content {
+    max-width: 90%;
+    width: 350px;
+    margin: 0 auto;
+  }
+  
+  @media screen and (max-width: 480px) {
+    .modal-content {
+      width: 85%;
+      padding: 15px;
+    }
+  }

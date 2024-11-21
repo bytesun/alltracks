@@ -937,14 +937,14 @@ function MainApp() {
           />
           <div className="import-dropdown" ref={dropdownRef}>
             <button
-              className="dropdown-trigger"
+              className="import-dropdown-trigger"
               onClick={() => setShowImportOptions(!showImportOptions)}
             >
               <span className="material-icons">file_upload</span>
               Import
             </button>
             {showImportOptions && (
-              <div className="dropdown-menu">
+              <div className="import-dropdown-menu">
                 <button onClick={() => {
                   document.getElementById('file-upload')?.click();
                   setShowImportOptions(false);

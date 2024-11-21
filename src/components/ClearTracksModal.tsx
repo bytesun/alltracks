@@ -32,7 +32,7 @@ export const ClearTracksModal: React.FC<ClearTracksModalProps> = ({ onClose, onC
           {tracks.length > 0 ? (
             tracks.map((track) => (
               <div key={track.id} className="track-item">
-                <span>{new Date(track.points[0].timestamp).toLocaleString()}</span>
+                <span>{new Date(track.points[0]?.timestamp).toLocaleString()}</span>
                 <span>{track.points.length} points</span>
                 <button onClick={() => handleClearTrack(track.id)}>x</button>
               </div>

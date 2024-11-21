@@ -327,15 +327,4 @@ button:disabled {
   align-items: center;
 }
 
-.modal-content {
-  max-width: 90%;
-  width: 350px;
-  margin: 0 auto;
-}
 
-@media screen and (max-width: 480px) {
-  .modal-content {
-    width: 85%;
-    padding: 15px;
-  }
-}

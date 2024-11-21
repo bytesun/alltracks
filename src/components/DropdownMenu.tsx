@@ -26,12 +26,12 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
   }, []);
 
   return (
-    <div className="dropdown-container" ref={dropdownRef}>
-      <button className="menu-button" onClick={() => setIsOpen(!isOpen)}>
+    <div className="nav-dropdown-container" ref={dropdownRef}>
+      <button className="nav-menu-button" onClick={() => setIsOpen(!isOpen)}>
         ☰
       </button>
       {isOpen && (
-        <div className="dropdown-menu">
+        <div className="nav-dropdown-menu">
         <ul>
           <li>
             <a href='https://icevent.app' target='_blank' rel='noopener noreferrer'>
