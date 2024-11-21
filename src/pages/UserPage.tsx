@@ -18,7 +18,7 @@ export const UserPage: React.FC = () => {
         new Date(Date.now() - 30*24 * 60 * 60 * 1000).toISOString().split('T')[0]
     );
     const [endDate, setEndDate] = useState<string>(
-        new Date().toISOString().split('T')[0]
+        new Date(Date.now()).toISOString().split('T')[0]
     );
     const [userStats, setUserStats] = useState<UserStats>({
         totalDistance: 0,
