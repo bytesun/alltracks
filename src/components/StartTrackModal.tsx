@@ -240,7 +240,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                 onClick={() => document.getElementById('wallet-upload')?.click()}
               >
                 <span className="material-icons">account_balance_wallet</span>
-                Import Wallet
+                Arweave Wallet
               </button>
             ) : (
               <button
