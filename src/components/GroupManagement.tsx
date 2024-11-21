@@ -6,6 +6,7 @@ import '../styles/Group.css';
 import { User } from "@junobuild/core";
 import { EditGroupModal } from './EditGroupModal';
 import { Group } from '../types/Group';
+import { useNotification } from '../context/NotificationContext';
 
 interface GroupManagementProps {
   user: User;
@@ -19,7 +20,7 @@ export const GroupManagement = ({ user }: GroupManagementProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [groups, setGroups] = useState<BeEditGroup[]>([]);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
-
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     fetchGroups();
@@ -46,19 +47,25 @@ export const GroupManagement = ({ user }: GroupManagementProps) => {
     }
   };
   const handleCreateGroup = async (groupData: Group) => {
-    await setDoc({
-      collection: "groups",
-      doc: {
-        key: groupData.calendarId,
-        data: {
-          ...groupData,
-          members: [user.key],
-        }
-      }
-    });
 
-    await fetchGroups();
-    setIsModalOpen(false);
+    try {
+      await setDoc({
+        collection: "groups",
+        doc: {
+          key: groupData.calendarId,
+          data: {
+            ...groupData,
+            members: [user.key],
+          }
+        }
+      });
+      await fetchGroups();
+      setIsModalOpen(false);
+    } catch (error) {
+      showNotification(`Error creating group ${error} `, 'error');
+    }
+
+
   };
   const handleUpdateGroup = async (updatedData: BeEditGroup) => {
     await setDoc({

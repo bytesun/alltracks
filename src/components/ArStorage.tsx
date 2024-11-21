@@ -30,6 +30,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
   const [wallet, setWallet] = useState<any>(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
 
   useEffect(() => {
@@ -113,7 +114,30 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
   return (
     <div className="ar-storage">
-      <UploadARForm onSubmit={handleUpload} isUploading={uploading} />
+      <div className="ar-storage-header">
+        <h2>Photo Gallery</h2>
+        <button 
+          className="upload-trigger-button"
+          onClick={() => setShowUploadForm(true)}
+        >
+          <span className="material-icons">cloud_upload</span>
+          Upload New Photo
+        </button>
+      </div>
+
+      {showUploadForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-body">
+              <UploadARForm 
+                onSubmit={handleUpload} 
+                isUploading={uploading} 
+                onClose={() => setShowUploadForm(false)} 
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="photos-list">
         <h3>My Photos</h3>

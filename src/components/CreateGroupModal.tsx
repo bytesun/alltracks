@@ -20,16 +20,11 @@ export const CreateGroupModal = ({ isOpen, onClose, onSubmit }: ModalProps) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <div className="modal-header">
-          <h2>Create New Group</h2>
-          <button className="close-button" onClick={onClose}>
-            <span className="material-icons">close</span>
-          </button>
-        </div>
+        
         <CreateGroupForm onSubmit={(data) => {
-          onSubmit(data);
-          onClose();
-        }} />
+          onSubmit(data);          
+        }} 
+        onClose={onClose} />
       </div>
     </div>
   );

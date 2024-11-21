@@ -1,0 +1,103 @@
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  color: #444;
+}
+
+.setting-control {
+  flex: 1;
+}
+
+.setting-control input[type="text"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.file-input {
+  padding: 12px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.file-input:hover {
+  border-color: #007bff;
+  background: #f0f7ff;
+}
+.wallet-section {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.wallet-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.upload-button {
+  background: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.actions-row {
+  display: flex;
+  gap: 12px;
+}
+
+.wallet-button, .upload-button {
+  flex: 1;
+  min-width: 180px;
+}
+.upload-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.setting-control .cancel-button {
+  background: #6c757d;
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.setting-control .cancel-button:hover {
+  background: #5a6268;
+}

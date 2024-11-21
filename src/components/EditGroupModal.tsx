@@ -34,61 +34,96 @@ export const EditGroupModal: React.FC<EditGroupModalProps> = ({
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Edit Group</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Group Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
+
+        <form onSubmit={handleSubmit} className="edit-form">
+        <div className="setting-row">
+            <div className="setting-label">
+              <span className="material-icons">calendar_today</span>
+              <span> ID</span>
+            </div>
+            <div className="setting-control">
+              <input
+                type="text"
+                name="calendarId"
+                value={formData.calendarId}
+                disabled
+              />
+            </div>
+          </div>
+          <div className="setting-row">
+            <div className="setting-label">
+              <span className="material-icons">group</span>
+              <span>Group Name</span>
+            </div>
+            <div className="setting-control">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows={4}
-            />
+          <div className="setting-row">
+            <div className="setting-label">
+              <span className="material-icons">description</span>
+              <span>Description</span>
+            </div>
+            <div className="setting-control">
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={4}
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Calendar ID</label>
-            <input
-              type="text"
-              name="calendarId"
-              value={formData.calendarId}
-              onChange={handleInputChange}
-              required
-              disabled
-            />
+
+
+          <div className="setting-row">
+            <div className="setting-label">
+              <span className="material-icons">image</span>
+              <span>Badge URL</span>
+            </div>
+            <div className="setting-control">
+              <input
+                type="text"
+                name="groupBadge"
+                value={formData.groupBadge}
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Group Badge</label>
-            <input
-              type="text"
-              name="groupBadge"
-              value={formData.groupBadge}
-              onChange={handleInputChange}
-            />
-          </div>
+          <div className="setting-row">
+            <div className="setting-control actions-row">
 
-          <div className="modal-buttons">
-            <button 
-              type="submit" 
-              disabled={isUpdating}
-            >
-              {isUpdating ? (
-                <span className="material-icons spinning">refresh</span>
-              ) : 'Update Group'}
-            </button>
-            <button type="button" onClick={onClose}>Cancel</button>
+              <button 
+                type="submit" 
+                className="submit-button"
+                disabled={isUpdating}
+              >
+
+                {isUpdating ? 'Saving...' : 'Save'}
+              </button>
+
+              <button 
+                type="button" 
+                onClick={onClose}
+                className="cancel-button"
+                style={{
+                  background: '#e9ecef',
+                  border: '1px solid #ced4da',
+                  color: '#495057'
+                }}
+              >
+
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>

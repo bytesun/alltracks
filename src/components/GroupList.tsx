@@ -16,17 +16,18 @@ export const GroupList: React.FC<GroupListProps> = ({ groups, onEditGroup }) => 
           <div className="group-info">
             <h3>{group.name}</h3>
             <p>{group.description}</p>
-    
           </div>
           <div className="group-actions">
             <button 
-              className="edit-button"
+              className="action-button"
               onClick={() => onEditGroup(group)}
             >
               <span className="material-icons">edit</span>
+              Edit
             </button>
-            <a href={`/group/${group.calendarId}`} className="view-button">
+            <a href={`/group/${group.calendarId}`} className="action-button">
               <span className="material-icons">visibility</span>
+              View
             </a>
           </div>
         </div>

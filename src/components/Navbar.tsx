@@ -43,7 +43,7 @@ export const Navbar = () => {
       await signOut();
     } else {
       await signIn({
-        derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app", 
+        // derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app", 
         maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
       });
       //navigate('/profile');

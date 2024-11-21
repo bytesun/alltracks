@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 
 interface UploadFormProps {
   onSubmit: (formData: UploadFormData, file: File) => void;
+  onClose: () => void;
   isUploading: boolean;
 }
 
@@ -13,7 +14,7 @@ interface UploadFormData {
   filename: string;
 }
 
-export const UploadARForm: React.FC<UploadFormProps> = ({ onSubmit, isUploading }) => {
+export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isUploading }) => {
   const [file, setFile] = useState<File | null>(null);
   const [wallet, setWallet] = useState<any>(null);
   const [formData, setFormData] = useState<UploadFormData>({
@@ -79,60 +80,6 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onSubmit, isUploading 
   };
   return (
     <form onSubmit={handleSubmit} className="upload-form">
-
-      <div className="form-group">
-        <label>Track ID</label>
-        <input
-          type="text"
-          name="trackId"
-          value={formData.trackId}
-          onChange={handleInputChange}
-          placeholder="Enter track ID"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Group ID</label>
-        <input
-          type="text"
-          name="groupId"
-          value={formData.groupId}
-          onChange={handleInputChange}
-          placeholder="Enter group ID"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Tags</label>
-        <input
-          type="text"
-          name="tags"
-          value={formData.tags}
-          onChange={handleInputChange}
-          placeholder="Enter tags (comma separated)"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>File Name</label>
-        <input
-          type="text"
-          name="filename"
-          value={formData.filename}
-          onChange={handleInputChange}
-          placeholder="Enter file name"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>File</label>
-        <input
-          type="file"
-          onChange={handleFileChange}
-          className="file-input"
-        />
-      </div>
-
       <div className="wallet-section">
         <input
           type="file"
@@ -157,19 +104,101 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onSubmit, isUploading 
             className="wallet-button"
           >
             <span className="material-icons">account_balance_wallet</span>
-            Connect Wallet
+            Import Arweavea Wallet
           </button>
         )}
+
+      </div>
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">fingerprint</span>
+          <span>Track ID</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="text"
+            name="trackId"
+            value={formData.trackId}
+            onChange={handleInputChange}
+            placeholder="Enter track ID"
+            disabled={!wallet}
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">group</span>
+          <span>Group ID</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="text"
+            name="groupId"
+            value={formData.groupId}
+            onChange={handleInputChange}
+            placeholder="Enter group ID"
+            disabled={!wallet}
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">label</span>
+          <span>Tags</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="text"
+            name="tags"
+            value={formData.tags}
+            onChange={handleInputChange}
+            placeholder="Enter tags (comma separated)"
+            disabled={!wallet}
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">upload_file</span>
+          <span>Photo</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="file-input"
+            accept="image/*"
+            disabled={!wallet}
+          />
+        </div>
+      </div>
+      <div className="setting-control actions-row">
+
         <button
           type="submit"
           disabled={!file || isUploading || !wallet}
           className="upload-button"
         >
+
           {isUploading ? 'Uploading...' : 'Upload'}
         </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="cancel-button"
+          style={{
+            background: '#e9ecef',
+            border: '1px solid #ced4da',
+            color: '#495057'
+          }}
+        >
+
+          Cancel
+        </button>
       </div>
-
-
     </form>
   );
 };

@@ -1,22 +1,38 @@
 import React, { useState } from 'react';
 import { Group } from '../types/Group';
+interface CreateGroupFormProps {
+  onSubmit: (data: Group) => void;
+  onClose: () => void;
+}
 
-export const CreateGroupForm = ({ onSubmit }: { onSubmit: (data: Group) => void }) => {
+export const CreateGroupForm = ({ onSubmit, onClose }: CreateGroupFormProps) => {
     const [formData, setFormData] = useState<Group>({
         name: '',
         description: '',
-        calendarId: '0',
+        calendarId: '',
         members: [],
         groupBadge: ''
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        setIsSubmitting(true);
+        await onSubmit(formData);
+        setIsSubmitting(false);
     };
 
     return (
-        <form className="group-form" onSubmit={handleSubmit}>
+        <form className="edit-form" onSubmit={handleSubmit}>
+            <div className="form-field">
+                <label>Group ID</label>
+                <input
+                    type="text"
+                    value={formData.calendarId}
+                    onChange={e => setFormData({ ...formData, calendarId: e.target.value })}
+                    required
+                />
+            </div>
             <div className="form-field">
                 <label>Group Name</label>
                 <input
@@ -34,15 +50,7 @@ export const CreateGroupForm = ({ onSubmit }: { onSubmit: (data: Group) => void 
                     required
                 />
             </div>
-            <div className="form-field">
-                <label>ICEvent Calendar ID</label>
-                <input
-                    type="text"
-                    value={formData.calendarId}
-                    onChange={e => setFormData({ ...formData, calendarId: e.target.value })}
-                    required
-                />
-            </div>
+
             <div className="form-field">
                 <label>Group Badge URL</label>
                 <input
@@ -53,11 +61,34 @@ export const CreateGroupForm = ({ onSubmit }: { onSubmit: (data: Group) => void 
                 />
             </div>
 
-            <div className="group-actions">
-                <button type="submit" className="create-group-btn">
-                    <span className="material-icons">add</span>
-                    Create Group
-                </button>
+            <div className="setting-row">
+                <div className="setting-control actions-row">
+                    <button 
+                        type="button" 
+                        onClick={onClose}
+                        className="cancel-button"
+                        style={{
+                            background: '#e9ecef',
+                            border: '1px solid #ced4da',
+                            color: '#495057'
+                        }}
+                    >
+                        <span className="material-icons">close</span>
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        className="submit-button"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <span className="material-icons spinning">refresh</span>
+                        ) : (
+                            <span className="material-icons">add</span>
+                        )}
+                        {isSubmitting ? 'Creating...' : 'Create Group'}
+                    </button>
+                </div>
             </div>
         </form>
     );
