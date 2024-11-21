@@ -892,8 +892,11 @@ function MainApp() {
               />
               <Polyline
                 positions={getPolylineImportPoints() as [number, number][]}
-                color="green"
+                color="#FF4081"  // Bright pink
+                weight={4}       // Thicker line
+                opacity={0.8}    // Slight transparency
               />
+
             </MapContainer>
 
           </div>
