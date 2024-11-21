@@ -1,0 +1,37 @@
+.import-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .dropdown-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #9ea5ac;
+    border: 1px solid #495057;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(193, 187, 187, 0.2);
+    min-width: 200px;
+    z-index: 1000;
+    margin-bottom: 8px;
+  }
+  
+  .dropdown-menu button {
+    width: 100%;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: #a8b1ba;
+    cursor: pointer;
+    color: #ffffff;
+  }
+  
+  .dropdown-menu button:hover {
+    background: #898e92;
+  }
+  
+  .dropdown-menu .material-icons {
+    color: #adb5bd;
+  }
+  

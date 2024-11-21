@@ -3,27 +3,8 @@ import { User, authSubscribe, listDocs } from "@junobuild/core";
 import { Navbar } from '../components/Navbar';
 import { Spinner } from '../components/Spinner';
 import './Trails.css';
+import { Trail } from '../types/Trail'
 
-
-interface Trail {
-  id: string;
-  name: string;
-  length: number;
-  elevationGain: number;
-  difficulty: 'easy' | 'moderate' | 'hard';
-  description: string;
-  imageUrl: string;
-  fileRef: string;
-}
-
-interface TrailData {
-  name: string;
-  distance: number;
-  elevation: number;
-  difficulty: 'easy' | 'moderate' | 'hard';
-  description: string;
-  imageUrl: string;
-}
 
 
 export const Trails = () => {

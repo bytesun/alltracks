@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { saveAs } from 'file-saver';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import './App.css';
+import './styles/MainApp.css';
+
 import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import { CommentModal } from './components/CommentModal';
@@ -28,6 +30,8 @@ import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, cl
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
 import Arweave from 'arweave';
+import { Trail } from './types/Trail';
+import { TrailListModal } from './components/TrailListModal';
 
 
 interface ProfileSettings {
@@ -91,8 +95,19 @@ function MainApp() {
   const [showStartModal, setShowStartModal] = useState(false);
   const [hasCloudPoints, setHasCloudPoints] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showImportOptions, setShowImportOptions] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowImportOptions(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const { showNotification } = useNotification();
 
   const [wallet, setWallet] = useState<any>(null);
@@ -103,6 +118,7 @@ function MainApp() {
     protocol: 'https'
   });
 
+  const [showTrailList, setShowTrailList] = useState(false);
 
   useEffect(() => {
     setupIndexedDB();
@@ -729,7 +745,7 @@ function MainApp() {
 
     Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
     Cookies.set('lastGroupId', trackSettings.groupId, { expires: 7 });
-    
+
     setTrackId(trackSettings.trackId);
     setGroupId(trackSettings.groupId);
     setWallet(trackSettings.wallet);
@@ -741,6 +757,28 @@ function MainApp() {
     }
   };
 
+
+  const handleTrailSelect = async (trail: Trail) => {
+
+    if (trail) {
+      const response = await fetch(trail.fileRef);
+      const content = await response.text();
+
+      let points: TrackPoint[] = [];
+      if (trail.fileRef.endsWith('.gpx')) {
+        points = parseGPX(content);
+      } else if (trail.fileRef.endsWith('.kml')) {
+        points = parseKML(content);
+      } else {
+        points = parseCSV(content);
+      }
+
+      setImportPoints(points);
+
+    }
+
+    setShowTrailList(false);
+  };
   return (
     <div className="App">
       <Navbar />
@@ -896,9 +934,34 @@ function MainApp() {
             style={{ display: 'none' }}
             id="file-upload"
           />
-          <button onClick={() => document.getElementById('file-upload')?.click()}>
-            Import
-          </button>
+          <div className="import-dropdown" ref={dropdownRef}>
+            <button
+              className="dropdown-trigger"
+              onClick={() => setShowImportOptions(!showImportOptions)}
+            >
+              <span className="material-icons">file_upload</span>
+              Import
+            </button>
+            {showImportOptions && (
+              <div className="dropdown-menu">
+                <button onClick={() => {
+                  document.getElementById('file-upload')?.click();
+                  setShowImportOptions(false);
+                }}>
+                  <span className="material-icons">folder</span>
+                  Import from Local
+                </button>
+                <button onClick={() => {
+                  setShowTrailList(true)
+                  setShowImportOptions(false);
+                }}>
+                  <span className="material-icons">cloud_download</span>
+                  Import from Storage
+                </button>
+              </div>
+            )}
+          </div>
+
           <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length < 2 || isExporting}>
             Export
           </button>
@@ -1007,6 +1070,11 @@ function MainApp() {
           }}
         />
       )}
+      {showTrailList &&
+        <TrailListModal
+          onSelect={handleTrailSelect}
+          onClose={() => setShowTrailList(false)}
+        />}
     </div>
   );
 }

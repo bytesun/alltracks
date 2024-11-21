@@ -1,0 +1,59 @@
+.trail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .trail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .trail-item:hover {
+    background: #e9ecef;
+  }
+  
+  .trail-info {
+    flex: 1;
+  }
+  
+  .trail-stats {
+    display: flex;
+    gap: 16px;
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-top: 4px;
+  }
+  
+  .search-container {
+      padding: 16px;
+      border-bottom: 1px solid #eee;
+  }
+  
+  .search-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8f9fa;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+  }
+  
+  .search-input input {
+      border: none;
+      background: none;
+      width: 100%;
+      padding: 8px;
+      outline: none;
+  }
+  
+  .search-input .material-icons {
+      color: #6c757d;
+  }
+  
