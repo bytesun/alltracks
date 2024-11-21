@@ -73,25 +73,32 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
                     </div>
                 </div>
                 <div className="modal-body">
-                    <div className="trail-list">
-                        {filteredTrails.map(trail => (
-                            <div
-                                key={trail.id}
-                                className="trail-item"
-                                onClick={() => onSelect(trail)}
-                            >
-                                <div className="trail-info">
-                                    <h3>{trail.name}</h3>
-                                    <div className="trail-stats">
-                                        <span>{trail.elevationGain} m</span>
-                                        <span>{trail.length} km</span>
-                                        <span>{trail.difficulty} </span>
+                    {loading ? (
+                        <div className="loading-container">
+                            <span className="material-icons spinning">refresh</span>
+                            <span>Loading trails...</span>
+                        </div>
+                    ) : (
+                        <div className="trail-list">
+                            {filteredTrails.map(trail => (
+                                <div
+                                    key={trail.id}
+                                    className="trail-item"
+                                    onClick={() => onSelect(trail)}
+                                >
+                                    <div className="trail-info">
+                                        <h3>{trail.name}</h3>
+                                        <div className="trail-stats">
+                                            <span>{trail.elevationGain} m</span>
+                                            <span>{trail.length} km</span>
+                                            <span>{trail.difficulty} </span>
+                                        </div>
                                     </div>
+                                    <span className="material-icons">chevron_right</span>
                                 </div>
-                                <span className="material-icons">chevron_right</span>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

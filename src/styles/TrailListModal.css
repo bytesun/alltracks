@@ -75,3 +75,21 @@
       border-color: #adb5bd;
   }
   
+  .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 32px;
+      color: #6c757d;
+  }
+  
+  .spinning {
+      animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+  }
+  
