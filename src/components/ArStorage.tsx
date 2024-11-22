@@ -105,8 +105,14 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
         }
       }
     });
+    setPhotos(result.items.map(item => {
+          return {
+            artxid: item.data.artxid,
+            description: item.description,
+            key: item.key
+          }
+        }));
 
-    setPhotos(result.items.map(item => item.data));
     setLoading(false);
   };
 
