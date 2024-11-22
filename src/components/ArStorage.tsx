@@ -109,17 +109,20 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     setLoading(false);
   };
   const extractIds = (key: string) => {
+    if (!key) return { trackId: '', groupId: '' };
     const parts = key.split('_');
     return {
-      trackId: parts[0],
-      groupId: parts[1]
+      trackId: parts[0] || '',
+      groupId: parts[1] || ''
     };
-  };
+  };  
+  
   const filteredPhotos = photos.filter(photo => {
     if (!selectedGroupId) return true;
     const { groupId } = extractIds(photo.key);
     return groupId === selectedGroupId;
   });
+  
   const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
 
   const handleUpload = async (formData: UploadFormData, file: File) => {
