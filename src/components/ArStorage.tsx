@@ -20,6 +20,7 @@ interface UploadFormData {
 interface Photo {
   artxid: string;
   description: string;
+  key: string;
 }
 export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [transactionId, setTransactionId] = useState<string | null>(null);
@@ -64,10 +65,10 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     });
 
     setPhotos(result.items.map(item => {
-      const ids = extractIds(item.key);
       return {
         artxid: item.data.artxid,
-        description: item.description
+        description: item.description,
+        key: item.key
       }
     }));
     setLoading(false);
@@ -158,7 +159,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
         ) : (
           <div className="photo-grid">
             {photos.map(photo => {
-              const { trackId, groupId } = extractIds(photo.artxid);
+              const { trackId, groupId } = extractIds(photo.key);
               return (
                 <div key={photo.artxid} className="photo-item">
                   <img
