@@ -50,7 +50,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
   useEffect(() => {
     loadPhotos();
-  }, [user, currentYear, selectedGroupId]);
+  }, [user, currentYear]);
 
   // const loadPhotos = async () => {
   //   if (!user) return;
