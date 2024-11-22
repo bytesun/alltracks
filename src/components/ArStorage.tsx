@@ -19,9 +19,7 @@ interface UploadFormData {
 
 interface Photo {
   artxid: string;
-  filename: string;
-  contentype: string;
-
+  description: string;
 }
 export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [transactionId, setTransactionId] = useState<string | null>(null);
@@ -39,7 +37,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       setWallet(JSON.parse(savedWallet));
     }
   }, []);
-  
+
   const arweave = Arweave.init({
     host: 'arweave.net',
     port: 443,
@@ -65,10 +63,22 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       }
     });
 
-    setPhotos(result.items.map(item => item.data));
+    setPhotos(result.items.map(item => {
+      const ids = extractIds(item.key);
+      return {
+        artxid: item.data.artxid,
+        description: item.description
+      }
+    }));
     setLoading(false);
   };
-
+  const extractIds = (key: string) => {
+    const parts = key.split('_');
+    return {
+      trackId: parts[0],
+      groupId: parts[1]
+    };
+  };
   const handleUpload = async (formData: UploadFormData, file: File) => {
     if (!user) return;
     setUploading(true);
@@ -87,7 +97,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       transaction.addTag('Tags', formData.tags);
       // transaction.addTag('File-Name', formData.filename);
 
-      await arweave.transactions.sign(transaction,wallet);
+      await arweave.transactions.sign(transaction, wallet);
       const response = await arweave.transactions.post(transaction);
 
       if (response.status === 200) {
@@ -105,7 +115,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
           }
         })
       }
-      loadPhotos(); 
+      loadPhotos();
       setShowUploadForm(false)
     } catch (error) {
       showNotification('Upload error:', error);
@@ -118,7 +128,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     <div className="ar-storage">
       <div className="ar-storage-header">
         <h2>Photo Gallery</h2>
-        <button 
+        <button
           className="upload-trigger-button"
           onClick={() => setShowUploadForm(true)}
         >
@@ -131,10 +141,10 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-body">
-              <UploadARForm 
-                onSubmit={handleUpload} 
-                isUploading={uploading} 
-                onClose={() => setShowUploadForm(false)} 
+              <UploadARForm
+                onSubmit={handleUpload}
+                isUploading={uploading}
+                onClose={() => setShowUploadForm(false)}
               />
             </div>
           </div>
@@ -147,22 +157,24 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
           <div>Loading photos...</div>
         ) : (
           <div className="photo-grid">
-            {photos.map(photo => (
-              <div key={photo.artxid} className="photo-item">
-                <img
-                  src={`https://arweave.net/${photo.artxid}`}
-                  alt={photo.filename}
-                />
-                <div className="photo-info">
-                  <p>{photo.filename}</p>
-                  <div className="tags">
-                    {/* {photo.tags.map(tag => (
-                      <span key={tag} className="tag">{tag}</span>
-                    ))} */}
+            {photos.map(photo => {
+              const { trackId, groupId } = extractIds(photo.artxid);
+              return (
+                <div key={photo.artxid} className="photo-item">
+                  <img
+                    src={`https://arweave.net/${photo.artxid}`}
+                    alt={photo.description}
+                  />
+                  <div className="photo-info">
+                    <h4>{photo.description}</h4>
+                    <div className="photo-meta">
+                      <span>Track: {trackId}</span>
+                      <span>Group: {groupId}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
