@@ -449,11 +449,12 @@ function MainApp() {
             // Add tags
             transaction.addTag('Content-Type', data.photo.type);
             transaction.addTag('App-Name', 'AllTracks');
-            transaction.addTag('File-Name', photoFileName);
+            // transaction.addTag('File-Name', photoFileName);
             transaction.addTag('Track-ID', trackId || '');
             transaction.addTag('Group-ID', groupId);
-            transaction.addTag('Latitude', lat || '');
-            transaction.addTag('Longitude', long || '');
+            transaction.addTag('Note', data.comment)
+            // transaction.addTag('Latitude', lat || '');
+            // transaction.addTag('Longitude', long || '');
 
             // Sign and post transaction
             await arweave.transactions.sign(transaction, wallet);

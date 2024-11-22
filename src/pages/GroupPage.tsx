@@ -23,7 +23,7 @@ export const GroupPage: React.FC = () => {
     const [group, setGroup] = useState<Group | null>(null);
     const [tracks, setTracks] = useState<TrackData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'tracks' | 'timeline' | 'photos'>('tracks');
+    const [activeTab, setActiveTab] = useState<'tracks' | 'timeline' | 'photos'>('photos');
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
 
     const [startDate, setStartDate] = useState<string>(
@@ -114,11 +114,12 @@ export const GroupPage: React.FC = () => {
                 </section>
                 <div className="tab-controls">
                     <button
-                        className={`tab-button ${activeTab === 'tracks' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('tracks')}
+                        className={`tab-button ${activeTab === 'photos' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('photos')}
                     >
-                        Recent Tracks
+                        Photos
                     </button>
+
                     <button
                         className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
                         onClick={() => setActiveTab('timeline')}
@@ -126,10 +127,10 @@ export const GroupPage: React.FC = () => {
                         Activity Timeline
                     </button>
                     <button
-                        className={`tab-button ${activeTab === 'photos' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('photos')}
+                        className={`tab-button ${activeTab === 'tracks' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('tracks')}
                     >
-                        Photos
+                        Recent Tracks
                     </button>
                 </div>
 

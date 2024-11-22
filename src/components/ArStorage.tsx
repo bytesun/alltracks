@@ -81,11 +81,11 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
       transaction.addTag('Content-Type', file.type);
       transaction.addTag('App-Name', 'AllTracks');
-      transaction.addTag('User-Key', user.key);
+      // transaction.addTag('User-Key', user.key);
       transaction.addTag('Track-ID', formData.trackId);
       transaction.addTag('Group-ID', formData.groupId);
       transaction.addTag('Tags', formData.tags);
-      transaction.addTag('File-Name', formData.filename);
+      // transaction.addTag('File-Name', formData.filename);
 
       await arweave.transactions.sign(transaction,wallet);
       const response = await arweave.transactions.post(transaction);
