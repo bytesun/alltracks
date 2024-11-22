@@ -105,12 +105,12 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       }
     });
     setPhotos(result.items.map(item => {
-          return {
-            artxid: item.data.artxid,
-            description: item.description,
-            key: item.key
-          }
-        }));
+      return {
+        artxid: item.data.artxid,
+        description: item.description,
+        key: item.key
+      }
+    }));
 
     setLoading(false);
   };
@@ -122,8 +122,8 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       trackId: parts[0] || '',
       groupId: parts[1] || ''
     };
-  };  
-  
+  };
+
   const filteredPhotos = photos.filter(photo => {
     if (!selectedGroupId) return true;
     const { groupId } = extractIds(photo.key);
@@ -206,7 +206,26 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
       <div className="photos-list">
         <h3>My Photos</h3>
-        <div className="filter-section">
+        <div className="filters-row">
+          <div className="year-navigation">
+            <button
+              onClick={() => setCurrentYear(prev => prev - 1)}
+              className="year-nav-button"
+            >
+              <span className="material-icons">chevron_left</span>
+              {currentYear - 1}
+            </button>
+            <span className="current-year">{currentYear}</span>
+            <button
+              onClick={() => setCurrentYear(prev => prev + 1)}
+              className="year-nav-button"
+              disabled={currentYear === new Date().getFullYear()}
+            >
+              {currentYear + 1}
+              <span className="material-icons">chevron_right</span>
+            </button>
+          </div>
+
           <select
             value={selectedGroupId}
             onChange={(e) => setSelectedGroupId(e.target.value)}
@@ -218,24 +237,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
             ))}
           </select>
         </div>
-        <div className="year-navigation">
-          <button
-            onClick={() => setCurrentYear(prev => prev - 1)}
-            className="year-nav-button"
-          >
-            <span className="material-icons">chevron_left</span>
-            {currentYear - 1}
-          </button>
-          <span className="current-year">{currentYear}</span>
-          <button
-            onClick={() => setCurrentYear(prev => prev + 1)}
-            className="year-nav-button"
-            disabled={currentYear === new Date().getFullYear()}
-          >
-            {currentYear + 1}
-            <span className="material-icons">chevron_right</span>
-          </button>
-        </div>
+
         {loading ? (
           <div>Loading photos...</div>
         ) : (

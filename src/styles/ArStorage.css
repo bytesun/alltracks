@@ -107,9 +107,18 @@
   display: inline-flex;
   align-items: center;
 }
-
 .filter-section {
   margin: 20px 0;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 20px 0;
+  padding: 0 20px;
 }
 
 .group-filter {
@@ -118,6 +127,8 @@
   border: 1px solid #ddd;
   font-size: 14px;
   background: white;
+  min-width: 150px;
+  height: 40px;
 }
 
 .group-filter:focus {
@@ -128,11 +139,20 @@
 .year-navigation {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin: 20px 0;
+  gap: 15px;
 }
 
+@media (max-width: 768px) {
+  .filters-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .year-navigation, 
+  .group-filter {
+    width: 100%;
+  }
+}
 .year-nav-button {
   display: flex;
   align-items: center;
