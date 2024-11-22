@@ -33,6 +33,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [yearList, setYearList] = useState<number[]>([]);
+  const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
 
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
   useEffect(() => {
     loadPhotos();
-  }, [user]);
+  }, [user, currentYear, selectedGroupId]);
 
   // const loadPhotos = async () => {
   //   if (!user) return;
@@ -108,6 +109,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     setPhotos(result.items.map(item => item.data));
     setLoading(false);
   };
+
   const extractIds = (key: string) => {
     if (!key) return { trackId: '', groupId: '' };
     const parts = key.split('_');
@@ -122,8 +124,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     const { groupId } = extractIds(photo.key);
     return groupId === selectedGroupId;
   });
-  
-  const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
+
 
   const handleUpload = async (formData: UploadFormData, file: File) => {
     if (!user) return;
