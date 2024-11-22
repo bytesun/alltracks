@@ -7,6 +7,7 @@ import { parseGPX, parseKML, parseCSV } from '../utils/importFormats';
 import { Track } from '../types/Track';
 import "../styles/Track.css";
 import { Navbar } from '../components/Navbar';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 
 export const TrackPage: React.FC = () => {
@@ -16,7 +17,7 @@ export const TrackPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   useEffect(() => {
-    
+
     const fetchTrack = async () => {
       const trackDoc = await getDoc<Track>({
         collection: "tracks",
@@ -25,7 +26,7 @@ export const TrackPage: React.FC = () => {
 
       if (trackDoc) {
         setTrack(trackDoc);
-        
+
 
       }
     };
@@ -130,7 +131,9 @@ export const TrackPage: React.FC = () => {
             </div>
           </>
         ) : (
-          <div>Loading track data...</div>
+          <div className="loading-container">
+            <LoadingSpinner />
+          </div>
         )}
       </div>
     </>
