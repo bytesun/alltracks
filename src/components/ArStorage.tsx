@@ -30,6 +30,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const { showNotification } = useNotification();
   const [wallet, setWallet] = useState<any>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
 
 
   useEffect(() => {
@@ -80,6 +81,13 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       groupId: parts[1]
     };
   };
+  const filteredPhotos = photos.filter(photo => {
+    if (!selectedGroupId) return true;
+    const { groupId } = extractIds(photo.key);
+    return groupId === selectedGroupId;
+  });
+  const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
+
   const handleUpload = async (formData: UploadFormData, file: File) => {
     if (!user) return;
     setUploading(true);
@@ -154,11 +162,23 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
       <div className="photos-list">
         <h3>My Photos</h3>
+        <div className="filter-section">
+          <select
+            value={selectedGroupId}
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            className="group-filter"
+          >
+            <option value="">All Groups</option>
+            {uniqueGroupIds.map(groupId => (
+              <option key={groupId} value={groupId}>Group {groupId}</option>
+            ))}
+          </select>
+        </div>
         {loading ? (
           <div>Loading photos...</div>
         ) : (
           <div className="photo-grid">
-            {photos.map(photo => {
+            {filteredPhotos.map(photo => {
               const { trackId, groupId } = extractIds(photo.key);
               return (
                 <div key={photo.artxid} className="photo-item">
@@ -169,7 +189,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
                   <div className="photo-info">
                     <h4>{photo.description}</h4>
                     <div className="photo-meta">
-                      <span>Track: {trackId}</span>
+                      <span>Track: {trackId}</span>,
                       <span>Group: {groupId}</span>
                     </div>
                   </div>

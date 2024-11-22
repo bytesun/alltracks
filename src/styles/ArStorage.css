@@ -107,3 +107,20 @@
   display: inline-flex;
   align-items: center;
 }
+
+.filter-section {
+  margin: 20px 0;
+}
+
+.group-filter {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background: white;
+}
+
+.group-filter:focus {
+  outline: none;
+  border-color: #007bff;
+}
