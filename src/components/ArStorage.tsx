@@ -33,7 +33,6 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [yearList, setYearList] = useState<number[]>([]);
-  const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
 
 
   useEffect(() => {
@@ -176,6 +175,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       setUploading(false);
     }
   };
+  const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
 
   return (
     <div className="ar-storage">
