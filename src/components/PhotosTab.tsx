@@ -143,6 +143,11 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
             <img src={`https://arweave.net/${photo.artxid}`} alt={`Photo ${index + 1}`} />
           </div>
         ))}
+        {photos.map((photo, index) => (
+          <div key={index} className="photo-item" >
+            <img src={photo} alt={`Photo ${index + 1}`} />
+          </div>
+        ))}
       </div>
       {selectedPhoto && (
         <div className="modal-overlay" onClick={() => setSelectedPhoto(null)}>
