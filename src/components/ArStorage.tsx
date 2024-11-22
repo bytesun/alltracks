@@ -31,6 +31,8 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   const [wallet, setWallet] = useState<any>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [yearList, setYearList] = useState<number[]>([]);
 
 
   useEffect(() => {
@@ -50,14 +52,52 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
     loadPhotos();
   }, [user]);
 
+  // const loadPhotos = async () => {
+  //   if (!user) return;
+  //   setLoading(true);
+
+  //   const result = await listDocs<Photo>({
+  //     collection: "photos",
+  //     filter: {
+  //       owner: user.key,
+  //       order: {
+  //         desc: true,
+  //         field: "updated_at"
+  //       }
+  //     }
+  //   });
+
+
+  //   setPhotos(result.items.map(item => {
+  //     return {
+  //       artxid: item.data.artxid,
+  //       description: item.description,
+  //       key: item.key
+  //     }
+  //   }));
+  //   setLoading(false);
+  // };
+
   const loadPhotos = async () => {
     if (!user) return;
     setLoading(true);
+
+    const startOfYear = new Date(currentYear, 0, 1).getTime() * 1000000;
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000;
 
     const result = await listDocs<Photo>({
       collection: "photos",
       filter: {
         owner: user.key,
+        matcher: {
+          createdAt: {
+            matcher: "between",
+            timestamps: {
+              start: BigInt(startOfYear),
+              end: BigInt(endOfYear)
+            }
+          }
+        },
         order: {
           desc: true,
           field: "updated_at"
@@ -65,13 +105,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
       }
     });
 
-    setPhotos(result.items.map(item => {
-      return {
-        artxid: item.data.artxid,
-        description: item.description,
-        key: item.key
-      }
-    }));
+    setPhotos(result.items.map(item => item.data));
     setLoading(false);
   };
   const extractIds = (key: string) => {
@@ -173,6 +207,24 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
               <option key={groupId} value={groupId}>Group {groupId}</option>
             ))}
           </select>
+        </div>
+        <div className="year-navigation">
+          <button
+            onClick={() => setCurrentYear(prev => prev - 1)}
+            className="year-nav-button"
+          >
+            <span className="material-icons">chevron_left</span>
+            {currentYear - 1}
+          </button>
+          <span className="current-year">{currentYear}</span>
+          <button
+            onClick={() => setCurrentYear(prev => prev + 1)}
+            className="year-nav-button"
+            disabled={currentYear === new Date().getFullYear()}
+          >
+            {currentYear + 1}
+            <span className="material-icons">chevron_right</span>
+          </button>
         </div>
         {loading ? (
           <div>Loading photos...</div>
