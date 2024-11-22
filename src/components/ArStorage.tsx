@@ -213,7 +213,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
               className="year-nav-button"
             >
               <span className="material-icons">chevron_left</span>
-              {currentYear - 1}
+              
             </button>
             <span className="current-year">{currentYear}</span>
             <button
@@ -221,7 +221,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
               className="year-nav-button"
               disabled={currentYear === new Date().getFullYear()}
             >
-              {currentYear + 1}
+              
               <span className="material-icons">chevron_right</span>
             </button>
           </div>
