@@ -51,7 +51,7 @@ export const UserPage: React.FC = () => {
     const loadTrackPoints = async () => {
         setIsLoading(true);
         const start = BigInt(new Date(startDate).getTime() * 1000000);
-        const end = BigInt(new Date(endDate).getTime() * 1000000);
+        const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() * 1000000);
 
         const result = await listDocs({
             collection: "live_tracks",
