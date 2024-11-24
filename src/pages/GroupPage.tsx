@@ -51,8 +51,14 @@ export const GroupPage: React.FC = () => {
                 filter: {
                     matcher: {
                         key: ".*_" + groupId
-                    }
-                }
+                    },
+                    order: {
+                        desc: true,
+                        field: "updated_at"
+                      },
+
+                },
+
             });
             console.log(tracksResult.items);
             const tracks = tracksResult.items.map(item => {

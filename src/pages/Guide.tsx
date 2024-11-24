@@ -119,6 +119,36 @@ export const Guide = () => {
             </div>
           </div>
         </section>
+        <section className="guide-section">
+  <h2>Cloud Storage & Sharing</h2>
+  <div className="guide-content">
+    <div className="guide-item">
+      <span className="material-icons">cloud_upload</span>
+      <div>
+        <h3>Arweave Integration</h3>
+        <ul>
+          <li>Connect your Arweave wallet</li>
+          <li>Permanent storage of tracks</li>
+          <li>Share tracks publicly or privately</li>
+          <li>Access tracks across devices</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div className="guide-item">
+      <span className="material-icons">import_export</span>
+      <div>
+        <h3>Track Export Options</h3>
+        <ul>
+          <li>Export to GPX, KML, CSV formats</li>
+          <li>Choose cloud or local storage</li>
+          <li>Add track descriptions</li>
+          <li>Link tracks to events</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
       </div>
     </div>
