@@ -1,0 +1,74 @@
+type UserStats = 
+ record {
+   completedTrails: nat;
+   firstHikeDate: Time;
+   hikerId: principal;
+   totalDistance: float64;
+   totalElevation: float64;
+   totalHours: float64;
+ };
+type Time = int;
+type Result = 
+ variant {
+   err: text;
+   ok: nat;
+ };
+type NewGroup = 
+ record {
+   admin: principal;
+   description: text;
+   id: text;
+   members: vec principal;
+   name: text;
+ };
+type NewCheckPoint = 
+ record {
+   elevation: float64;
+   groupId: opt text;
+   isPublic: bool;
+   latitude: float64;
+   longitude: float64;
+   note: opt text;
+   photo: opt text;
+   timestamp: Time;
+   trackId: text;
+ };
+type Group = 
+ record {
+   admin: principal;
+   createdAt: Time;
+   createdBy: principal;
+   description: text;
+   id: text;
+   members: vec principal;
+   name: text;
+ };
+type CheckpointFilter = 
+ variant {
+   groupId: text;
+   trackId: text;
+   user: principal;
+ };
+type CheckPoint = 
+ record {
+   createdBy: principal;
+   elevation: float64;
+   groupId: opt text;
+   isPublic: bool;
+   latitude: float64;
+   longitude: float64;
+   note: opt text;
+   photo: opt text;
+   timestamp: Time;
+   trackId: text;
+ };
+service : {
+  createCheckpoint: (NewCheckPoint) -> (CheckPoint);
+  createGroup: (NewGroup) -> (Result);
+  getCheckpoints: (CheckpointFilter) -> (vec CheckPoint) query;
+  getGroup: (text) -> (opt Group) query;
+  getMyGroups: () -> (vec Group) query;
+  getUserstats: (principal) -> (opt UserStats) query;
+  updateGroup: (text, NewGroup) -> (Result);
+  updateUserStats: (float64, float64, float64) -> (UserStats);
+}

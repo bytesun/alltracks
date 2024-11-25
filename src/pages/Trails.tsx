@@ -28,28 +28,84 @@ export const Trails = () => {
     return () => unsubscribe();
   }, []);
 
+  // const fetchTrails = async () => {
+  //   setIsLoading(true);
+  //   const { items } = await listDocs<Trail>({
+  //     collection: "trails"
+  //   });
+
+  //   const formattedTrails = items.map(doc => ({
+  //     id: doc.key,
+  //     name: doc.data.name,
+  //     length: doc.data.length,
+  //     elevationGain: doc.data.elevationGain,
+  //     difficulty: doc.data.difficulty,
+  //     description: doc.data.description,
+  //     imageUrl: doc.data.imageUrl || DEFAULT_TRAIL_IMAGE,
+  //     fileRef: doc.data.fileRef
+
+  //   }));
+
+  //   setTrails(formattedTrails);
+  //   setIsLoading(false);
+  // };
   const fetchTrails = async () => {
     setIsLoading(true);
-    const { items } = await listDocs<Trail>({
-      collection: "trails"
+    
+    const query = `{
+      transactions(
+        tags: [
+          { name: "App-Name", values: ["AllTracks"] },
+          { name: "File-Type", values: ["trail"] },
+        ]
+        first: 100
+      ) {
+        edges {
+          node {
+            id
+            tags {
+              name
+              value
+            }
+            block {
+              timestamp
+            }
+          }
+        }
+      }
+    }`;
+  
+    const response = await fetch('https://arweave.net/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query })
     });
-
-    const formattedTrails = items.map(doc => ({
-      id: doc.key,
-      name: doc.data.name,
-      length: doc.data.length,
-      elevationGain: doc.data.elevationGain,
-      difficulty: doc.data.difficulty,
-      description: doc.data.description,
-      imageUrl: doc.data.imageUrl || DEFAULT_TRAIL_IMAGE,
-      fileRef: doc.data.fileRef
-
-    }));
-
+  
+    const result = await response.json();
+    const formattedTrails = result.data.transactions.edges.map((edge: any) => {
+      const tags = edge.node.tags.reduce((acc: any, tag: any) => {
+        acc[tag.name] = tag.value;
+        return acc;
+      }, {});
+  
+      return {
+        id: edge.node.id,
+        name: tags['Trail-Name'] || 'Unnamed Trail',
+        length: Number(tags['Length']) || 0,
+        elevationGain: Number(tags['Elevation']) || 0,
+        difficulty: tags['Difficulty'] || 'moderate',
+        description: tags['Description'] || '',
+        imageUrl: DEFAULT_TRAIL_IMAGE,
+        fileRef: `https://arweave.net/${edge.node.id}`
+      };
+    });
+  
     setTrails(formattedTrails);
     setIsLoading(false);
   };
-
+  
   return (
     <div>
       <Navbar />

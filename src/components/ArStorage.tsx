@@ -5,10 +5,8 @@ import { UploadARForm } from './UploadARForm';
 import '../styles/ArStorage.css'
 import { useNotification } from '../context/NotificationContext';
 import Cookies from 'js-cookie';
+import { useGlobalContext } from './Store';
 
-interface ArStorageProps {
-  user: User | null;
-}
 
 interface UploadFormData {
   trackId: string;
@@ -22,7 +20,10 @@ interface Photo {
   description: string;
   key: string;
 }
-export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
+export const ArStorage: React.FC = () => {
+  const { state:{
+    isAuthed, principal
+  }} = useGlobalContext();
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -36,6 +37,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
 
   useEffect(() => {
+   
     const savedWallet = Cookies.get('arweave_wallet');
     if (savedWallet) {
       setWallet(JSON.parse(savedWallet));
@@ -50,7 +52,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
   useEffect(() => {
     loadPhotos();
-  }, [user, currentYear]);
+  }, [isAuthed, currentYear]);
 
   // const loadPhotos = async () => {
   //   if (!user) return;
@@ -79,38 +81,38 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   // };
 
   const loadPhotos = async () => {
-    if (!user) return;
+    if (!isAuthed) return;
     setLoading(true);
 
     const startOfYear = new Date(currentYear, 0, 1).getTime() * 1000000;
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000;
 
-    const result = await listDocs<Photo>({
-      collection: "photos",
-      filter: {
-        owner: user.key,
-        matcher: {
-          createdAt: {
-            matcher: "between",
-            timestamps: {
-              start: BigInt(startOfYear),
-              end: BigInt(endOfYear)
-            }
-          }
-        },
-        order: {
-          desc: true,
-          field: "updated_at"
-        }
-      }
-    });
-    setPhotos(result.items.map(item => {
-      return {
-        artxid: item.data.artxid,
-        description: item.description,
-        key: item.key
-      }
-    }));
+    // const result = await listDocs<Photo>({
+    //   collection: "photos",
+    //   filter: {
+    //     owner: user.key,
+    //     matcher: {
+    //       createdAt: {
+    //         matcher: "between",
+    //         timestamps: {
+    //           start: BigInt(startOfYear),
+    //           end: BigInt(endOfYear)
+    //         }
+    //       }
+    //     },
+    //     order: {
+    //       desc: true,
+    //       field: "updated_at"
+    //     }
+    //   }
+    // });
+    // setPhotos(result.items.map(item => {
+    //   return {
+    //     artxid: item.data.artxid,
+    //     description: item.description,
+    //     key: item.key
+    //   }
+    // }));
 
     setLoading(false);
   };
@@ -132,7 +134,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
 
   const handleUpload = async (formData: UploadFormData, file: File) => {
-    if (!user) return;
+    if (!isAuthed) return;
     setUploading(true);
 
     try {
@@ -143,11 +145,11 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
 
       transaction.addTag('Content-Type', file.type);
       transaction.addTag('App-Name', 'AllTracks');
-      // transaction.addTag('User-Key', user.key);
+      transaction.addTag('User-Key', principal.toText());
       transaction.addTag('Track-ID', formData.trackId);
       transaction.addTag('Group-ID', formData.groupId);
       transaction.addTag('Tags', formData.tags);
-      // transaction.addTag('File-Name', formData.filename);
+      transaction.addTag('File-Type', 'photo');
 
       await arweave.transactions.sign(transaction, wallet);
       const response = await arweave.transactions.post(transaction);
@@ -177,6 +179,7 @@ export const ArStorage: React.FC<ArStorageProps> = ({ user }) => {
   };
   const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
 
+  
   return (
     <div className="ar-storage">
       <div className="ar-storage-header">

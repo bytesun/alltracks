@@ -13,19 +13,10 @@ import { Guide } from './pages/Guide';
 import { GroupPage } from './pages/GroupPage';
 import { UserPage } from './pages/UserPage';
 import { EventPage } from './pages/EventPage';
-import { authSubscribe, User } from "@junobuild/core";
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
 export const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = authSubscribe((user: User | null) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
 
   return (
     <NotificationProvider>
@@ -38,7 +29,7 @@ export const App: React.FC = () => {
           <Route path="/event/:eventId" element={<EventPage />} />
           <Route path="/live/:liveId" element={<Live />} />
           <Route path="/status" element={<Status />} />
-          <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/guide" element={<Guide />} />
           <Route path="/group/:groupId" element={<GroupPage />} />
           <Route path="/user/:userKey" element={<UserPage />} />

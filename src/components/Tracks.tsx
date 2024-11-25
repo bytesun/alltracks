@@ -2,6 +2,9 @@ import React from 'react';
 import { User, listDocs } from "@junobuild/core";
 import './Tracks.css';
 import { useStats } from '../context/StatsContext'; 
+import { useGlobalContext } from './Store';
+
+
 interface TrackData {
   filename: string;
   distance: number;
@@ -10,45 +13,46 @@ interface TrackData {
   startime: number;
 }
 
-export const Tracks: React.FC<{ user: User | null }> = ({ user }) => {
+export const Tracks: React.FC = () => {
+  const { state: { isAuthed } } = useGlobalContext();
   const [tracks, setTracks] = React.useState<TrackData[]>([]);
   const [trackVisibility, setTrackVisibility] = React.useState<'public' | 'private'>('public');
   const { settings } = useStats();
 
   React.useEffect(() => {
-    if (user) {
+    if (isAuthed) {
       fetchTracks();
     }
-  }, [user, trackVisibility]);
+  }, [isAuthed, trackVisibility]);
 
 
   const fetchTracks = async () => {
     let items = [];
     if (trackVisibility === 'public') {
-      const result = await listDocs<TrackData>({
-        collection: "tracks",
-        filter: {
-          owner: user.owner,
-          order: {
-            desc: true,
-            field: "updated_at"
-          },
-        }
-      });
-      items = result.items;
+      // const result = await listDocs<TrackData>({
+      //   collection: "tracks",
+      //   filter: {
+      //     owner: user.owner,
+      //     order: {
+      //       desc: true,
+      //       field: "updated_at"
+      //     },
+      //   }
+      // });
+      // items = result.items;
     } else {
-      const result = await listDocs<TrackData>({
-        satellite: { satelliteId: settings.storageId },
-        collection: "tracks",
-        filter: {
-          order: {
-            desc: true,
-            field: "updated_at"
-          },
-        }
+      // const result = await listDocs<TrackData>({
+      //   satellite: { satelliteId: settings.storageId },
+      //   collection: "tracks",
+      //   filter: {
+      //     order: {
+      //       desc: true,
+      //       field: "updated_at"
+      //     },
+      //   }
 
-      });
-      items = result.items;
+      // });
+      // items = result.items;
     }
     const formattedTracks = items.map(doc => ({
 

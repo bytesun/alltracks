@@ -15,10 +15,12 @@ import { TrackAchievements } from '../components/TrackAchievements';
 import { ArStorage } from '../components/ArStorage';
 
 import { UserStats } from '../types/UserStats';
+import { useGlobalContext } from '../components/Store';
 
-export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
+export const Profile: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('profile');
+  const { state: { isAuthed, principal } } = useGlobalContext();
 
   const { showNotification } = useNotification();
   const [userStats, setUserStats] = useState<UserStats>({
@@ -29,28 +31,28 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
     firstHikeDate: new Date().toDateString(),
   });
 
-  useEffect(() => {
-    const loadUserStats = async () => {
-      const statDoc = await getDoc<UserStats>({
-        collection: "stats",
-        key: user?.key,
-      });
-      setUserStats(statDoc?.data || {
-        totalDistance: 0,
-        totalHours: 0,
-        totalElevation: 0,
-        completedTrails: 0,
-        firstHikeDate: new Date().toDateString(),
-      });
-    };
+  // useEffect(() => {
+  //   const loadUserStats = async () => {
+  //     const statDoc = await getDoc<UserStats>({
+  //       collection: "stats",
+  //       key: user?.key,
+  //     });
+  //     setUserStats(statDoc?.data || {
+  //       totalDistance: 0,
+  //       totalHours: 0,
+  //       totalElevation: 0,
+  //       completedTrails: 0,
+  //       firstHikeDate: new Date().toDateString(),
+  //     });
+  //   };
 
-    if (user) {
-      loadUserStats();
-    }
-  }, [user]);
+  //   if (user) {
+  //     loadUserStats();
+  //   }
+  // }, [user]);
 
 
-  if (!user) {
+  if (!isAuthed) {
     return <Navigate to="/" replace />;
   }
 
@@ -67,13 +69,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">person</span>
               POH
             </div>
-            {/* <div
-              className={`sidebar-item ${activeTab === 'inbox' ? 'active' : ''}`}
-              onClick={() => setActiveTab('inbox')}
-            >
-              <span className="material-icons">inbox</span>
-              Inbox
-            </div> */}
+ 
 
             <div
               className={`sidebar-item ${activeTab === 'group' ? 'active' : ''}`}
@@ -99,7 +95,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
 
             <div
               className={`sidebar-item ${activeTab === 'timeline' ? 'active' : ''}`}
-              onClick={() => window.open(`/user/${user.key}`, '_blank')}
+              onClick={() => window.open(`/user/${principal}`, '_blank')}
             >
               <span className="material-icons">timeline</span>
               Timeline
@@ -111,13 +107,7 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
               <span className="material-icons">cloud_upload</span>
               ArStorage
             </div>
-            <div
-              className={`sidebar-item ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              <span className="material-icons">settings</span>
-              Settings
-            </div>
+
           </div>
           <div className="profile-content">
             {activeTab === 'profile' && (
@@ -135,20 +125,13 @@ export const Profile: React.FC<{ user: User | null }> = ({ user }) => {
 
 
             {activeTab === 'group' && (
-              <GroupManagement user={user} />
+              <GroupManagement />
             )}
-            {activeTab === 'tracks' && <Tracks user={user} />}
-            {activeTab === 'trails' && <Trails user={user} />}
-            {activeTab === 'inbox' && <Inbox user={user} />}
-            {activeTab === 'settings' && (
-              <Settings
-                user={user}
-                showNotification={showNotification}
-              />
-            )}
+            {activeTab === 'tracks' && <Tracks />}
+            {activeTab === 'trails' && <Trails />}
+  
             {activeTab === 'arstorage' && (
               <ArStorage
-                user={user}
               />
             )}
           </div>

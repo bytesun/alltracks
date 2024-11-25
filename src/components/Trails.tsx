@@ -4,6 +4,10 @@ import { CreateTrail } from './CreateTrail';
 import './Trails.css';
 import { TrailForm } from './CreateTrail';
 import { v4 as uuidv4 } from 'uuid';
+import Cookies from 'js-cookie';
+import Arweave from 'arweave';
+import { useNotification } from '../context/NotificationContext';
+import { useGlobalContext } from './Store';
 
 interface Trail {
     id: string;
@@ -20,36 +24,94 @@ interface Trail {
     imageUrl: string;
 }
 
-export const Trails: React.FC<{ user: User | null }> = ({ user }) => {
+export const Trails: React.FC = () => {
+    const { state:{
+        isAuthed, principal
+    }} = useGlobalContext();
+    
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [wallet, setWallet] = useState<any>(null);
+    const { showNotification } = useNotification();
+
+
+    const arweave = Arweave.init({
+        host: 'arweave.net',
+        port: 443,
+        protocol: 'https'
+    });
+
     useEffect(() => {
         loadTrails();
     }, []);
+
+    useEffect(() => {
+        const savedWallet = Cookies.get('arweave_wallet');
+        if (savedWallet) {
+            setWallet(JSON.parse(savedWallet));
+        }
+    }, []);
+
     const handleTrailSubmit = async (trailData: TrailForm, file: File) => {
         setIsLoading(true);
         try {
+            if (wallet) {
+                // Create Arweave transaction for trail file
+                const fileBuffer = await file.arrayBuffer();
+                const transaction = await arweave.createTransaction({
+                    data: fileBuffer
+                }, wallet);
 
-            const fileUpload = await uploadFile({
-                collection: "trails",
-                data: file,
-            });
-            const id = uuidv4();
-            const trailDoc: Trail = {
-                ...trailData,
-                id,
-                userId: user?.key || '',
-                fileRef: fileUpload.downloadUrl
-            };
-            await setDoc({
-                collection: "trails",
-                doc: {
-                    key: id,
-                    data: trailDoc,
-                    description:`${trailData.name} ${trailData.description} ${trailData.tags}`
+                // Add metadata tags
+                transaction.addTag('Content-Type', file.type);
+                transaction.addTag('App-Name', 'AllTracks');
+                transaction.addTag('Trail-Name', trailData.name);
+                transaction.addTag('Description', trailData.description);
+                transaction.addTag('Trail-Type', trailData.routeType);
+                transaction.addTag('Difficulty', trailData.difficulty);
+                transaction.addTag('Length', trailData.length.toString());
+                transaction.addTag('Elevation', trailData.elevationGain.toString());
+                transaction.addTag('Rating', trailData.rating.toString());
+                transaction.addTag('Tags', trailData.tags.join(','));
+                transaction.addTag('User-Key', principal.toText());
+                transaction.addTag('File-Type', 'trail');                
+                
+
+                // Sign and post transaction
+                await arweave.transactions.sign(transaction, wallet);
+                const response = await arweave.transactions.post(transaction);
+
+                if (response.status === 200) {
+                    const fileUrl = `https://arweave.net/${transaction.id}`;
+
+                    showNotification('Trail uploaded successfully', 'success');
                 }
-            });
+            } else {
+                showNotification('Please connect your wallet', 'error');
+            }
+
+
+
+            // const fileUpload = await uploadFile({
+            //     collection: "trails",
+            //     data: file,
+            // });
+            // const id = uuidv4();
+            // const trailDoc: Trail = {
+            //     ...trailData,
+            //     id,
+            //     userId: user?.key || '',
+            //     fileRef: fileUpload.downloadUrl
+            // };
+            // await setDoc({
+            //     collection: "trails",
+            //     doc: {
+            //         key: id,
+            //         data: trailDoc,
+            //         description:`${trailData.name} ${trailData.description} ${trailData.tags}`
+            //     }
+            // });
 
             loadTrails(); // Refresh the list
             setShowCreateModal(false);
@@ -60,24 +122,86 @@ export const Trails: React.FC<{ user: User | null }> = ({ user }) => {
         }
     };
 
+    // const loadTrails = async () => {
+    //     setIsLoading(true);
+    //     try {
+    //         // Add your trail loading logic here
+    //         const response = await listDocs({
+    //             collection: "trails",
+    //             filter: {
+    //                 owner: user?.key
+    //             }
+    //         });
+    //         setTrails(response.items.map(item => item.data as Trail));
+    //     } catch (error) {
+    //         console.error('Error loading trails:', error);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
+
     const loadTrails = async () => {
         setIsLoading(true);
-        try {
-            // Add your trail loading logic here
-            const response = await listDocs({
-                collection: "trails",
-                filter: {
-                    owner: user?.key
+        
+        const query = `{
+          transactions(
+            tags: [
+              { name: "App-Name", values: ["AllTracks"] },
+              { name: "File-Type", values: ["trail"] },
+              { name: "User-Key", values: ["${principal.toText()}"] }
+            ]
+            first: 100
+          ) {
+            edges {
+              node {
+                id
+                owner {
+                  address
                 }
-            });
-            setTrails(response.items.map(item => item.data as Trail));
-        } catch (error) {
-            console.error('Error loading trails:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+                tags {
+                  name
+                  value
+                }
+                block {
+                  timestamp
+                }
+              }
+            }
+          }
+        }`;
+      
+        const response = await fetch('https://arweave.net/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query })
+        });
+      
+        const result = await response.json();
+        const trails = result.data.transactions.edges.map((edge: any) => {
+          const tags = edge.node.tags.reduce((acc: any, tag: any) => {
+            acc[tag.name] = tag.value;
+            return acc;
+          }, {});
+      
+          return {
+            id: edge.node.id,
+            name: tags['Trail-Name'],
+            description: tags['Description'],
+            length: Number(tags['Length']),
+            elevationGain: Number(tags['Elevation']),
+            routeType: tags['Trail-Type'],
+            difficulty: tags['Difficulty'],
+            fileRef: `https://arweave.net/${edge.node.id}`,
+            timestamp: edge.node.block?.timestamp
+          };
+        });
+      
+        setTrails(trails);
+        setIsLoading(false);
+      };
+      
     return (
         <div className="trails-section">
             {isLoading && (

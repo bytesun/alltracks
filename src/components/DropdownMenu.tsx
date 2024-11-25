@@ -5,11 +5,11 @@ import { User } from "@junobuild/core";
 
 
 interface DropdownMenuProps {
-  user: User | null;
+  isAuthed: Boolean;
   onAuth: () => Promise<void>;
 }
 
-export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
+export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -53,7 +53,7 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
             <span className="material-icons">info</span>
             Status
           </li>
-          {user && (
+          {isAuthed && (
             <li onClick={() => {
               navigate('/profile');
               setIsOpen(false);
@@ -62,15 +62,25 @@ export const DropdownMenu = ({ user, onAuth }: DropdownMenuProps) => {
               Profile
             </li>
           )}
-          <li onClick={() => {
+          {isAuthed && <li onClick={() => {
             setIsOpen(false);
             onAuth();
           }}>
             <span className="material-icons">
-              {user ? 'logout' : 'login'}
+               logout
             </span>
-            {user ? 'Sign Out' : 'Sign In'}
-          </li>
+             Sign Out
+          </li>}
+
+          {!isAuthed && <li onClick={() => {
+            setIsOpen(false);
+            onAuth();
+          }}>
+            <span className="material-icons">
+              login
+            </span>
+            Sign In
+          </li>}
         </ul>
       </div>
       

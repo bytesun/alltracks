@@ -7,16 +7,15 @@ import { User } from "@junobuild/core";
 import { EditGroupModal } from './EditGroupModal';
 import { Group } from '../types/Group';
 import { useNotification } from '../context/NotificationContext';
+import { useGlobalContext } from './Store';
 
-interface GroupManagementProps {
-  user: User;
-}
 interface BeEditGroup extends Group {
   key: string;
   version: bigint;
 }
 
-export const GroupManagement = ({ user }: GroupManagementProps) => {
+export const GroupManagement = () => {
+  const { state: { isAuthed } } = useGlobalContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [groups, setGroups] = useState<BeEditGroup[]>([]);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
@@ -28,20 +27,20 @@ export const GroupManagement = ({ user }: GroupManagementProps) => {
 
   const fetchGroups = async () => {
     try {
-      const { items } = await listDocs<Group>({
-        collection: "groups",
-        filter: {
-          owner: user.key
-        }
-      });
+      // const { items } = await listDocs<Group>({
+      //   collection: "groups",
+      //   filter: {
+      //     owner: user.key
+      //   }
+      // });
 
-      const formattedGroups = items.map(item => ({
-        ...item.data,
-        key: item.key,
-        version: item.version
-      }));
+      // const formattedGroups = items.map(item => ({
+      //   ...item.data,
+      //   key: item.key,
+      //   version: item.version
+      // }));
 
-      setGroups(formattedGroups);
+      // setGroups(formattedGroups);
     } catch (error) {
       console.error('Error fetching groups:', error);
     }
@@ -49,17 +48,17 @@ export const GroupManagement = ({ user }: GroupManagementProps) => {
   const handleCreateGroup = async (groupData: Group) => {
 
     try {
-      await setDoc({
-        collection: "groups",
-        doc: {
-          key: groupData.calendarId,
-          data: {
-            ...groupData,
-            members: [user.key],
-          }
-        }
-      });
-      await fetchGroups();
+      // await setDoc({
+      //   collection: "groups",
+      //   doc: {
+      //     key: groupData.calendarId,
+      //     data: {
+      //       ...groupData,
+      //       members: [user.key],
+      //     }
+      //   }
+      // });
+      // await fetchGroups();
       setIsModalOpen(false);
     } catch (error) {
       showNotification(`Error creating group ${error} `, 'error');
@@ -68,16 +67,16 @@ export const GroupManagement = ({ user }: GroupManagementProps) => {
 
   };
   const handleUpdateGroup = async (updatedData: BeEditGroup) => {
-    await setDoc({
-      collection: "groups",
-      doc: {
-        key: updatedData.calendarId,
-        version: updatedData.version,
-        data: updatedData
-      }
-    });
+    // await setDoc({
+    //   collection: "groups",
+    //   doc: {
+    //     key: updatedData.calendarId,
+    //     version: updatedData.version,
+    //     data: updatedData
+    //   }
+    // });
 
-    await fetchGroups();
+    // await fetchGroups();
     setEditingGroup(null);
   };
   return (

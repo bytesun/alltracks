@@ -1,7 +1,9 @@
 import React,{useEffect,useState} from 'react';
 import {Navigate, useNavigate } from 'react-router-dom';
+import { HttpAgent } from "@dfinity/agent";
+import { AuthClient } from "@dfinity/auth-client";
 import '../styles/Navbar.css';
-import { User } from "@junobuild/core";
+
 import { DropdownMenu } from './DropdownMenu';
 import { Link } from 'react-router-dom';
 import { authSubscribe, signIn, signOut } from '@junobuild/core';
@@ -9,45 +11,116 @@ import { useStats } from '../context/StatsContext';
 import { getDoc } from '@junobuild/core';
 import { UserStats } from '../types/UserStats';
 import { ProfileSettings } from '../types/profileSettings';
+import { useGlobalContext, useLoginModal, useSetAgent } from "./Store";
+
+import { HOST, IDENTITY_PROVIDER, derivationOrigin } from "../lib/canisters";
+import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
+
 export const Navbar = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+  
   const { settings, updateSettings } = useStats();
 
+  const {
+    state: { isAuthed },
+  } = useGlobalContext();
+  const setAgent = useSetAgent();
+  const [authClient, setAuthClient] = useState<AuthClient>(null);
+
+
+  // Auth on refresh
   useEffect(() => {
-    const unsubscribe = authSubscribe((user: User | null) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
+    (async () => {
+      const authClient = await AuthClient.create(
+        {
+          idleOptions: {
+            disableIdle: true,
+            disableDefaultIdleCallback: true
+          }
+        }
+      );
+      setAuthClient(authClient);     
+        if (await authClient.isAuthenticated()) {
+          handleAuthenticated(authClient);
+        }
+
+    })();
   }, []);
 
-  useEffect(() => {
-    const loadUserSettings = async () => {
-      if (user?.key) {
-        const statDoc = await getDoc<ProfileSettings>({
-          collection: "profiles",
-          key: user.key,
-        });
-        
-        if (statDoc?.data) {
-          updateSettings(statDoc.data);
-        }
-      }
-    };
+  const handleAuthenticated = async (authClient) => {
+    // auth.signin(authClient,()=>{});
+    const identity = authClient.getIdentity();
+    setAgent({
+      agent: new HttpAgent({
+        identity,
+        host: HOST,
+      }),
+      isAuthed: true,
 
-    loadUserSettings();
-  }, [user]);
+    });
+
+  };
+
+
+  const handleIILogin = async () => {
+    console.log("login II with " + derivationOrigin)
+    authClient.login({
+      // derivationOrigin: DERIVATION_ORIGION,
+      identityProvider: IDENTITY_PROVIDER,
+      maxTimeToLive: ONE_WEEK_NS,
+      onSuccess: () => {
+        const identity = authClient.getIdentity();
+        setAgent({
+          agent: new HttpAgent({
+            identity,
+            host: HOST,
+          }),
+          isAuthed: true,
+        });
+      },
+    });
+  };
+
+  const handleIILogout = async () => {
+    await authClient.logout();
+    setAgent({ agent: null });
+  };
+
+ 
+
+  // useEffect(() => {
+  //   const loadUserSettings = async () => {
+  //     if (user?.key) {
+  //       const statDoc = await getDoc<ProfileSettings>({
+  //         collection: "profiles",
+  //         key: user.key,
+  //       });
+        
+  //       if (statDoc?.data) {
+  //         updateSettings(statDoc.data);
+  //       }
+  //     }
+  //   };
+
+  //   loadUserSettings();
+  // }, [user]);
 
   const handleAuth = async () => {
-    if (user) {
-      await signOut();
+    if(isAuthed) {
+      handleIILogout();
     } else {
-      await signIn({
-        derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app", 
-        maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
-      });
-      //navigate('/profile');
+      handleIILogin();
     }
+
+    // if (user) {
+    //   await signOut();
+    // } else {
+    //   await signIn({
+    //     derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app", 
+    //     maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
+    //   });
+    //   //navigate('/profile');
+    // }
   };
   return (
     <nav className="navbar">
@@ -63,15 +136,18 @@ export const Navbar = () => {
           <Link to="/trails" className="nav-link"><span className="material-icons">terrain</span>Trails</Link>
           <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
-          {user && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
-          <button className="auth-button" onClick={handleAuth}>
-            {user ? 'Sign Out' : 'Sign In'}
-          </button>
+          {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
+          {isAuthed && <button className="auth-button" onClick={handleIILogout}>
+             Sign Out
+          </button>}
+          {!isAuthed && <button className="auth-button" onClick={handleIILogin}>
+             Sign In
+          </button>}
         </div>
 
         {/* Mobile dropdown menu */}
         <div className="mobile-menu">
-          <DropdownMenu user={user} onAuth={handleAuth} />
+          <DropdownMenu isAuthed={isAuthed} onAuth={handleAuth} />
         </div>
       </div>
     </nav>

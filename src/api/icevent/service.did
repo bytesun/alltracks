@@ -1,0 +1,937 @@
+type AccessKey = record {
+  key : text;
+  keycomponent : KeyComponent;
+  componentid : text;
+  expiredtime : int;
+};
+type Achievement = record {
+  userid : text;
+  badges : vec text;
+  credit : nat;
+  roles : vec Role;
+};
+type Activity = record {
+  attendeelimit : nat;
+  formfields : vec Formfield;
+  price : Cost;
+  registerat : variant { createon; starton };
+};
+type ActivitySet = record { currency : Currency };
+type Address = record {
+  postcode : text;
+  country : text;
+  province : text;
+  city : text;
+  address : text;
+};
+type Address__1 = record {
+  postcode : text;
+  country : text;
+  province : text;
+  aptno : text;
+  city : text;
+  address : text;
+};
+type Address__2 = record {
+  postcode : text;
+  country : text;
+  province : text;
+  city : text;
+  address : text;
+};
+type Admission = record {
+  pchild : float64;
+  contact : Contact;
+  paynumber : text;
+  count : nat;
+  cadult : nat;
+  amount : float64;
+  cchild : nat;
+  padult : float64;
+  paytype : nat;
+};
+type Admission__1 = record { contact : ContactInfo__1; code : text };
+type Appointment = record { cost : Cost; guest : ContactInfo };
+type Authority = variant { admin; edit; read };
+type BookingSet = record {
+  tz : text;
+  bookend : text;
+  slotlength : variant { hours : nat8; minutes : nat8 };
+  bookstart : text;
+};
+type Calendar = record {
+  id : nat;
+  url : text;
+  status : Status__2;
+  owner : text;
+  name : text;
+  color : text;
+  tags : vec text;
+  ctype : Ctype;
+  description : text;
+  ispublic : bool;
+  solution : Solution;
+  isverified : bool;
+  organization : opt Organization;
+};
+type Category = record {
+  id : nat;
+  owner : text;
+  hook : nat;
+  name : text;
+  parent : nat;
+};
+type Category__1 = record {
+  id : nat;
+  owner : text;
+  hook : nat;
+  name : text;
+  parent : nat;
+};
+type Checklist = record {
+  id : nat;
+  owner : text;
+  list : vec text;
+  name : text;
+  description : text;
+  calendar : nat;
+  ispublic : bool;
+};
+type Checklist__1 = record {
+  id : nat;
+  owner : text;
+  list : vec text;
+  name : text;
+  description : text;
+  calendar : nat;
+  ispublic : bool;
+};
+type Component = variant { contact; note; todo; event; calendar; wallet };
+type Contact = record {
+  fax : text;
+  postcode : text;
+  country : text;
+  province : text;
+  city : text;
+  code : text;
+  name : text;
+  address : text;
+  phone : text;
+};
+type ContactInfo = record {
+  fax : text;
+  contact : text;
+  name : text;
+  email : text;
+  address : text;
+  phone : text;
+};
+type ContactInfo__1 = record {
+  fax : opt text;
+  postcode : text;
+  contact : opt text;
+  country : text;
+  province : text;
+  city : text;
+  name : text;
+  email : text;
+  website : opt text;
+  address : text;
+  wallet : opt record { network : text; address : text };
+  phone : text;
+};
+type Contact__1 = record {
+  id : nat;
+  fax : text;
+  contact : text;
+  owner : text;
+  code : text;
+  name : text;
+  note : text;
+  tags : vec text;
+  ctype : nat;
+  email : text;
+  calendar : nat;
+  address : Address;
+  disable : bool;
+  contactid : text;
+  phone : text;
+  attachments : vec text;
+};
+type Contact__2 = record {
+  fax : opt text;
+  url : opt text;
+  contact : opt text;
+  name : text;
+  email : text;
+  address : Address__2;
+  wallet : opt Wallet;
+  phone : text;
+};
+type Contract = record {
+  jon : ContactInfo;
+  sam : ContactInfo;
+  signature : opt variant {
+    jon : opt record { sign : text; stime : int };
+    sam : opt record { sign : text; stime : int };
+  };
+  cost : Cost;
+  plan : nat;
+  paymenterm : text;
+  chargetype : variant { one; mult : text };
+};
+type Cost = record { currency : text; amount : float64 };
+type Ctype = variant { appointment; schedule; common; activity; itinerary };
+type Currency = text;
+type Currency__1 = text;
+type Etype = variant {
+  appointment;
+  contract;
+  schedule;
+  common;
+  activity;
+  itinerary;
+};
+type Event = record {
+  id : nat;
+  tz : text;
+  end : nat;
+  status : Status;
+  title : text;
+  repeatdata : opt RepeatData;
+  isrepeat : bool;
+  owner : text;
+  allday : bool;
+  cost : float64;
+  tags : vec text;
+  description : text;
+  etype : Etype;
+  calendar : nat;
+  start : nat;
+  ispublic : bool;
+  solution : Solution__1;
+  location : Location;
+  attachments : vec text;
+  parent : nat;
+};
+type ExternalCalendar = record { link : text; name : text };
+type Formfield = record { name : text; isrequired : bool; description : text };
+type Group = record { supervisor : text; members : vec text };
+type Group__1 = record { supervisor : text; members : vec text };
+type Hotel = record {
+  pquadruple : float64;
+  contact : Contact;
+  paynumber : text;
+  cdouble : nat;
+  cquadruple : nat;
+  ctriple : nat;
+  pdouble : float64;
+  ptriple : float64;
+  csingle : nat;
+  amount : float64;
+  psingle : float64;
+  paytype : nat;
+};
+type Hotel__1 = record { contact : ContactInfo__1; code : text };
+type Iday = record {
+  to : text;
+  via : text;
+  admissions : vec Admission__1;
+  hotel : opt Hotel__1;
+  itineraries : vec text;
+  from : text;
+  breakfast : opt Restaurant__1;
+  lunch : opt Restaurant__1;
+  dinner : opt Restaurant__1;
+};
+type Interested = record { event : nat; interester : principal };
+type Invitee = record {
+  status : InviteeStatus;
+  eventid : nat;
+  role : variant { admin; moderator; viewer };
+  inviteeid : text;
+  inviteename : text;
+};
+type InviteeStatus = variant { invited; rejected; accepted };
+type Invoice = record {
+  id : text;
+  to : Contact__2;
+  tax : Tax;
+  status : Status__3;
+  paymentterms : vec PaymentTerm;
+  owner : text;
+  cost : float64;
+  from : Contact__2;
+  note : text;
+  createtime : int;
+  event : nat;
+  duetime : nat;
+  calendar : nat;
+  currency : text;
+  adjust : float64;
+  discount : float64;
+  idate : nat;
+  items : vec Item;
+  amount : float64;
+  receiver : opt text;
+};
+type Item = record {
+  desc : text;
+  quantity : nat32;
+  itype : variant { cost; income };
+  price : float64;
+};
+type Itinerary = record {
+  id : nat;
+  to : text;
+  day : nat;
+  via : text;
+  memos : vec text;
+  admissions : vec Admission;
+  hotel : Hotel;
+  from : text;
+  breakfast : Restaurant;
+  lunch : Restaurant;
+  dinner : Restaurant;
+};
+type ItinerarySet = record {};
+type ItineraryTemplate = record {
+  itineraries : vec record {
+    to : text;
+    via : text;
+    memos : vec text;
+    from : text;
+  };
+  code : text;
+  name : text;
+  description : text;
+  calendar : nat;
+};
+type Itinerary__1 = record {
+  cost : Cost;
+  operater : text;
+  idays : vec Iday;
+  driver : record { name : text; phone : text };
+};
+type KeyComponent = variant {
+  log;
+  contact;
+  expense;
+  order;
+  invoice;
+  note;
+  todo;
+  event;
+  calendar;
+  comment;
+  message;
+  checklist;
+  profile;
+};
+type Location = variant { geo : text; url : text; address : text };
+type NewCalendar = record {
+  url : text;
+  name : text;
+  color : text;
+  tags : vec text;
+  ctype : Ctype;
+  description : text;
+  ispublic : bool;
+  solution : Solution;
+  organization : opt Organization;
+};
+type NewCategory = record { hook : nat; name : text; parent : nat };
+type NewChecklist = record {
+  list : vec text;
+  name : text;
+  description : text;
+  calendar : nat;
+  ispublic : bool;
+};
+type NewContact = record {
+  fax : text;
+  contact : text;
+  code : text;
+  name : text;
+  note : text;
+  tags : vec text;
+  ctype : nat;
+  email : text;
+  calendar : nat;
+  address : Address;
+  contactid : text;
+  phone : text;
+  attachments : vec text;
+};
+type NewEvent = record {
+  tz : text;
+  end : nat;
+  title : text;
+  repeatdata : opt RepeatData;
+  isrepeat : bool;
+  allday : bool;
+  cost : float64;
+  tags : vec text;
+  description : text;
+  etype : Etype;
+  calendar : nat;
+  start : nat;
+  ispublic : bool;
+  solution : Solution__1;
+  location : Location;
+  attachments : vec text;
+  parent : nat;
+};
+type NewInvitee = record {
+  eventid : nat;
+  role : variant { admin; moderator; viewer };
+  inviteeid : text;
+  inviteename : text;
+};
+type NewNote = record {
+  title : text;
+  content : text;
+  tags : vec text;
+  calendar : nat;
+  ispublic : bool;
+  category : nat;
+  attachments : vec text;
+};
+type NewNoteReq = record {
+  title : text;
+  content : text;
+  tags : vec text;
+  calendar : nat;
+  ispublic : bool;
+  category : nat;
+  attachments : vec text;
+};
+type NewRegister = record { data : vec RegData; name : text };
+type NewTodo = record {
+  assignee : text;
+  ttype : TodoType;
+  tags : vec text;
+  todo : text;
+  description : text;
+  bounty : float64;
+  duedate : nat;
+  calendar : nat;
+  ispublic : bool;
+  priority : Priority;
+  attachments : vec text;
+  parent : nat;
+};
+type Note = record {
+  id : nat;
+  title : text;
+  content : text;
+  owner : text;
+  tags : vec text;
+  createtime : int;
+  calendar : nat;
+  ispublic : bool;
+  category : nat;
+  attachments : vec text;
+};
+type Note__1 = record {
+  id : nat;
+  title : text;
+  content : text;
+  owner : text;
+  tags : vec text;
+  createtime : int;
+  calendar : nat;
+  ispublic : bool;
+  category : nat;
+  attachments : vec text;
+};
+type Organization = record {
+  bn : text;
+  tn : text;
+  fax : text;
+  contact : text;
+  logo : text;
+  name : text;
+  email : text;
+  currency : text;
+  address : Address__1;
+  wallet : text;
+  phone : text;
+};
+type Participant = record {
+  pid : text;
+  name : text;
+  role : Partrole;
+  calendar : nat;
+};
+type Partrole = variant { admin; editor; viewer };
+type PaymentTerm = record { name : text; address : text };
+type Permission = record { component : Component; authority : Authority };
+type Permission__1 = variant { no; edit; read };
+type Priority = variant { low; high; medium };
+type Profile = record {
+  bio : text;
+  status : nat;
+  username : text;
+  lastlogin : int;
+  userid : text;
+  name : text;
+  role : nat;
+  email : text;
+  createtime : int;
+  avatar : text;
+};
+type Profile__1 = record {
+  tz : opt text;
+  fax : opt text;
+  tax : opt text;
+  url : opt text;
+  contact : opt text;
+  logo : opt text;
+  name : text;
+  description : text;
+  email : opt text;
+  servetime : opt record {
+    end : text;
+    excludes : vec nat8;
+    weekend : bool;
+    start : text;
+    slotlength : opt variant { hours : nat8; minutes : nat8 };
+    sevenx24 : bool;
+    holiday : bool;
+  };
+  calendar : nat;
+  address : opt text;
+  wallet : opt record { network : text; address : text };
+  showcase : vec text;
+  phone : opt text;
+  license : opt text;
+};
+type RegData = record { value : text; name : text };
+type RegStatus = variant { regjected; request; paid; approved; confirmed };
+type Register = record {
+  status : RegStatus;
+  eventid : nat;
+  ticket : opt text;
+  data : vec RegData;
+  name : text;
+  regtime : int;
+  register : text;
+};
+type RepeatData = record {
+  adjusts : vec nat;
+  excludes : vec nat;
+  days : vec nat;
+  frequency : nat;
+  rtype : RepeatType;
+};
+type RepeatType = variant { weekday; weekend; monthly; yearly; daily; weekly };
+type Restaurant = record {
+  pchild : float64;
+  contact : Contact;
+  paynumber : text;
+  count : nat;
+  cadult : nat;
+  amount : float64;
+  cchild : nat;
+  padult : float64;
+  paytype : nat;
+};
+type Restaurant__1 = record { contact : ContactInfo__1; code : text };
+type Result = variant { ok : nat; err : text };
+type Result_1 = variant { ok : Profile; err : text };
+type Result_2 = variant { ok : text; err : text };
+type Result_3 = variant { ok : Todo; err : text };
+type Result_4 = variant { ok : Calendar; err : text };
+type Result_5 = variant { ok : opt Profile; err : text };
+type Result_6 = variant { ok : int; err : text };
+type Role = record { privileges : vec Permission; name : text };
+type Schedule = record { groups : vec Group__1 };
+type ScheduleSet = record { groups : vec Group };
+type Solution = variant {
+  appointment : BookingSet;
+  schedule : ScheduleSet;
+  common;
+  activity : ActivitySet;
+  itinerary : ItinerarySet;
+};
+type Solution__1 = variant {
+  appointment : Appointment;
+  contract : Contract;
+  schedule : Schedule;
+  common;
+  activity : Activity;
+  itinerary : Itinerary__1;
+};
+type Status = variant { new; canceled; finished; confirmed };
+type Status__1 = variant { new; done; progress };
+type Status__2 = variant { live; offline };
+type Status__3 = variant { new; canceled; paid; confirmed };
+type Subscription = record {
+  calendar : nat;
+  stype : nat;
+  subscriber : principal;
+};
+type Tax = record {
+  name : text;
+  rate : float64;
+  number : text;
+  amount : float64;
+};
+type Todo = record {
+  id : nat;
+  status : Status__1;
+  assignee : text;
+  ttype : TodoType;
+  owner : text;
+  tags : vec text;
+  todo : text;
+  description : text;
+  bounty : float64;
+  duedate : nat;
+  calendar : nat;
+  ispublic : bool;
+  priority : Priority;
+  donetime : int;
+  attachments : vec text;
+  parent : nat;
+};
+type TodoType = variant { ticket; idea; task; bounty; proposal; issue };
+type Tour = record {
+  id : nat;
+  op : text;
+  adult : nat;
+  days : nat;
+  child : nat;
+  infant : nat;
+  guide : record { name : text; phone : opt text };
+  driver : record { name : text; phone : opt text };
+};
+type UpdateCalendar = record {
+  url : text;
+  name : text;
+  color : text;
+  tags : vec text;
+  ctype : Ctype;
+  description : text;
+  ispublic : bool;
+  solution : Solution;
+  organization : opt Organization;
+};
+type UpdateContact = record {
+  fax : text;
+  contact : text;
+  code : text;
+  name : text;
+  note : text;
+  tags : vec text;
+  ctype : nat;
+  email : text;
+  address : Address;
+  disable : bool;
+  contactid : text;
+  phone : text;
+  attachments : vec text;
+};
+type UpdateEvent = record {
+  tz : text;
+  end : nat;
+  title : text;
+  repeatdata : opt RepeatData;
+  allday : bool;
+  cost : float64;
+  tags : vec text;
+  description : text;
+  start : nat;
+  ispublic : bool;
+  solution : Solution__1;
+  location : Location;
+  attachments : vec text;
+};
+type UpdateTodo = record {
+  assignee : text;
+  ttype : TodoType;
+  tags : vec text;
+  todo : text;
+  description : text;
+  bounty : float64;
+  duedate : nat;
+  ispublic : bool;
+  priority : Priority;
+  attachments : vec text;
+};
+type Vansday = service {
+  addAdmin : (text) -> (Result);
+  addBadge : (text, text) -> (Result);
+  addCalendar : (NewCalendar) -> (Result);
+  addCategory : (NewCategory) -> (Result);
+  addChecklist : (NewChecklist) -> (Result);
+  addContact : (NewContact) -> (Result);
+  addExternalCalendar : (nat, ExternalCalendar) -> (Result);
+  addInvitee : (NewInvitee) -> (Result);
+  addItinerary : (Itinerary) -> (Result);
+  addItineraryTemplate : (ItineraryTemplate) -> (Result);
+  addMutiItineraries : (vec Itinerary) -> (Result);
+  addNote : (NewNote) -> (Result);
+  addParticipant : (Participant) -> (Result);
+  addServiceRequest : (nat, text, text, nat) -> (Result);
+  addSystemTodo : (
+      record {
+        desc : text;
+        duedate : nat;
+        itodo : text;
+        attachments : vec text;
+      },
+    ) -> (Result);
+  addTodo : (NewTodo) -> (Result);
+  addTodoWithSubs : (NewTodo, vec text) -> (Result);
+  approveRegister : (Register) -> (Result);
+  assignTask : (nat, text) -> (Result);
+  availableCycles : () -> (nat) query;
+  cancelEvent : (nat, opt record { op : text; adate : nat }) -> (Result);
+  changeCalendarStatus : (nat, Status__2) -> (Result);
+  changeEventStatus : (nat, Status) -> (Result);
+  changeTodoStatus : (nat, Status__1) -> (Result);
+  checkIn : () -> (Result_6);
+  checkPermission : (nat, text) -> (Permission__1);
+  checkRegistration : (nat) -> (bool);
+  checkUsername : (text) -> (bool) query;
+  cloneEvent : (nat) -> (Result);
+  createEvent : (NewEvent) -> (Result);
+  createEvents : (vec NewEvent) -> (Result);
+  createProfile : (
+      record {
+        bio : text;
+        username : text;
+        name : text;
+        email : text;
+        avatar : text;
+      },
+    ) -> (Result_5);
+  createTour : (
+      nat,
+      record {
+        op : text;
+        tz : text;
+        adult : nat;
+        code : text;
+        days : nat;
+        child : nat;
+        description : text;
+        infant : nat;
+        guide : record { name : text; phone : opt text };
+        arrive : nat;
+        departure : nat;
+        driver : record { name : text; phone : opt text };
+        location : text;
+      },
+    ) -> (Result);
+  deleteCalendarEvents : (nat) -> (Result);
+  deleteCategory : (nat) -> (Result);
+  deleteContact : (nat) -> (Result);
+  deleteInvitee : (nat, text) -> (Result);
+  deleteItinerary : (nat, nat) -> (Result);
+  deleteItineraryTemplate : (nat, text) -> (Result);
+  deleteNote : (nat) -> (Result);
+  deleteParticipant : (nat, text) -> (Result);
+  deleteTodo : (nat) -> (Result);
+  editEvent : (nat, UpdateEvent) -> (Result);
+  editTour : (
+      record {
+        id : nat;
+        op : text;
+        tz : text;
+        adult : nat;
+        code : text;
+        days : nat;
+        child : nat;
+        description : text;
+        infant : nat;
+        guide : record { name : text; phone : opt text };
+        arrive : nat;
+        departure : nat;
+        driver : record { name : text; phone : opt text };
+        location : text;
+      },
+    ) -> (Result);
+  exportAchievements : () -> (vec record { text; Achievement });
+  exportCalendars : () -> (vec record { nat; Calendar });
+  exportCategories : () -> (vec record { nat; Category__1 });
+  exportChecklists : () -> (vec record { nat; Checklist__1 });
+  exportContacts : () -> (vec record { nat; Contact__1 });
+  exportCurrentIds : () -> (vec record { id : nat; name : text });
+  exportEvents : () -> (vec record { nat; Event });
+  exportInterests : () -> (vec Interested);
+  exportInvitees : () -> (vec Invitee);
+  exportItineraries : () -> (vec Itinerary);
+  exportNotes : () -> (vec record { nat; Note__1 });
+  exportParticipants : () -> (vec Participant);
+  exportProfiles : () -> (vec record { text; Profile });
+  exportRegisters : () -> (vec Register);
+  exportSubscriptions : () -> (vec Subscription);
+  exportTemplates : () -> (vec ItineraryTemplate);
+  exportTodos : () -> (vec record { nat; Todo });
+  exportTours : () -> (vec record { nat; Tour });
+  getAchievement : (text) -> (opt Achievement) query;
+  getAchievements : () -> (vec Achievement) query;
+  getAdmins : () -> (vec text);
+  getAppointmentSlots : (nat, nat, nat) -> (
+      vec record { id : nat; end : nat; start : nat },
+    ) query;
+  getBannerMessage : () -> (text) query;
+  getCalendar : (nat) -> (Result_4) query;
+  getCalendarAllEvents : (nat, nat) -> (vec Event) query;
+  getCalendarChecklists : (nat, nat) -> (vec Checklist) query;
+  getCalendarContacts : (nat, opt nat, nat) -> (vec Contact__1) query;
+  getCalendarEvents : (nat, nat, nat, nat) -> (vec Event) query;
+  getCalendarNotes : (nat) -> (vec Note) query;
+  getCalendarProfile : (nat) -> (
+      variant { nofound; calendar : Calendar; profile : Profile__1 },
+    ) query;
+  getCalendarProfileBookingSchedules : (nat, int, int) -> (
+      vec record { tz : text; end : nat; start : nat },
+    ) query;
+  getCalendarTodos : (nat, opt TodoType, Status__1, nat) -> (vec Todo) query;
+  getCalendars : (opt text, bool, nat) -> (vec Calendar) query;
+  getCanceledEvents : (record { end : int; start : int }, opt nat) -> (
+      vec Event,
+    ) query;
+  getChecklists : (nat) -> (vec Checklist) query;
+  getContractWithKey : (nat, text) -> (
+      opt record {
+        schedules : vec Event;
+        contract : Event;
+        invoices : vec Invoice;
+      },
+    );
+  getContracts : (nat, bool) -> (vec Event) query;
+  getDataState : () -> (vec record { text; nat }) query;
+  getEvent : (nat) -> (opt Event) query;
+  getEventAccessKey : (nat) -> (opt AccessKey);
+  getEventWithKey : (nat, text) -> (opt Event);
+  getEvents : (nat, nat, opt text, nat) -> (vec Event) query;
+  getExternalCalendars : (nat) -> (vec ExternalCalendar) query;
+  getInterestedEvents : (nat, nat, nat) -> (vec Event) query;
+  getInterestes : (nat) -> (vec Interested) query;
+  getInvitedEvents : (nat, nat, nat) -> (vec Event) query;
+  getInvitees : (nat) -> (vec Invitee) query;
+  getItineraryTemplates : (nat) -> (vec ItineraryTemplate);
+  getItineries : (nat) -> (vec Itinerary) query;
+  getMyCalendarRole : (nat) -> (opt Partrole) query;
+  getMyCalendars : (nat) -> (vec Calendar) query;
+  getMyCategories : (nat, nat) -> (vec Category) query;
+  getMyChecklists : (nat) -> (vec Checklist) query;
+  getMyContacts : (opt nat, nat) -> (vec Contact__1) query;
+  getMyEvents : (nat, nat, nat) -> (vec Event) query;
+  getMyNotes : (nat, nat) -> (vec Note) query;
+  getMyParticipants : () -> (vec Participant) query;
+  getMyTodos : (opt TodoType, Status__1, nat) -> (vec Todo) query;
+  getNote : (nat) -> (opt Note) query;
+  getNoteAccessKey : (nat) -> (opt AccessKey);
+  getNoteWithKey : (nat, text) -> (opt Note);
+  getNotes : (nat) -> (vec Note) query;
+  getPartCalendars : (nat) -> (vec Calendar) query;
+  getParticipants : (nat) -> (vec Participant) query;
+  getParticipatedEvents : (nat, nat, nat) -> (vec Event) query;
+  getPublicTodos : (Status__1, bool, nat) -> (vec Todo) query;
+  getRegisters : (nat) -> (vec Register) query;
+  getSubEvents : (nat) -> (vec Event) query;
+  getSubTodos : (nat) -> (vec Todo) query;
+  getSubscribedCalendars : (nat) -> (vec Calendar) query;
+  getSubscribedEvents : (nat, nat, nat) -> (vec Event) query;
+  getSubscribers : (nat) -> (nat) query;
+  getSubscriptions : (nat) -> (vec Subscription) query;
+  getSystemCalendar : () -> (nat) query;
+  getSystemData : () -> (
+      record { memory : nat; heap : nat; cycles : nat },
+    ) query;
+  getSystemSupport : () -> (text) query;
+  getTodo : (nat) -> (Result_3) query;
+  getTodoAccessKey : (nat) -> (opt AccessKey);
+  getTodoWithKey : (nat, text) -> (opt Todo);
+  getTour : (nat) -> (
+      opt record {
+        id : nat;
+        op : text;
+        tz : text;
+        status : Status;
+        adult : nat;
+        code : text;
+        days : nat;
+        child : nat;
+        description : text;
+        calendar : nat;
+        infant : nat;
+        guide : record { name : text; phone : opt text };
+        arrive : nat;
+        departure : nat;
+        driver : record { name : text; phone : opt text };
+        location : Location;
+      },
+    ) query;
+  getTourWithKey : (nat, text) -> (
+      opt record {
+        id : nat;
+        op : text;
+        tz : text;
+        status : Status;
+        adult : nat;
+        itineraries : vec Itinerary;
+        code : text;
+        days : nat;
+        child : nat;
+        description : text;
+        calendar : nat;
+        infant : nat;
+        guide : record { name : text; phone : opt text };
+        arrive : nat;
+        departure : nat;
+        driver : record { name : text; phone : opt text };
+        location : Location;
+      },
+    );
+  getTypeTodos : (TodoType, bool, nat) -> (vec Todo) query;
+  getUserEvents : (text, nat) -> (vec Event) query;
+  getVerifiedEvents : (nat, nat) -> (vec Event) query;
+  interested : (nat) -> (Result);
+  leaveParticipants : (nat) -> (Result);
+  listUsers : (nat) -> (vec Profile) query;
+  lookupUser : (text) -> (opt Profile) query;
+  registerActivity : (nat, NewRegister) -> (Result);
+  removeAdmin : (text) -> (Result);
+  removeCalendarProfile : (nat) -> (Result);
+  removeEvent : (nat) -> (Result);
+  removeExternalCalendar : (nat, text) -> (Result);
+  searchContacts : (text, variant { my; calendar : nat }, opt nat, nat) -> (
+      vec Contact__1,
+    ) query;
+  searchEvents : (opt text, variant { my; calendar : nat }, nat) -> (
+      vec Event,
+    ) query;
+  searchNotes : (text, variant { my; calendar : nat }) -> (vec Note) query;
+  setBannerMessage : (text) -> ();
+  setDefaultPageSize : (nat) -> ();
+  setEventAccessKey : (nat, opt text, int) -> (Result_2);
+  setNoteAccessKey : (nat, opt text, int) -> (Result_2);
+  setSystemCalendar : (nat) -> (Result);
+  setSystemSupport : (text) -> (Result);
+  setTodoAccessKey : (nat, opt text, int) -> (Result_2);
+  subscribe : (nat) -> (Result);
+  transferCalendar : (nat, principal) -> (Result);
+  uninterested : (nat) -> (Result);
+  unsubscribe : (nat) -> (Result);
+  updateCalendar : (nat, UpdateCalendar) -> (Result);
+  updateCalendarOrganization : (nat, Organization) -> (Result);
+  updateCalendarProfile : (nat, Profile__1) -> (Result);
+  updateCategory : (nat, text) -> (Result);
+  updateChecklist : (nat, NewChecklist) -> (Result);
+  updateContact : (nat, UpdateContact) -> (Result);
+  updateItinerary : (Itinerary) -> (Result);
+  updateNote : (nat, NewNoteReq) -> (Result);
+  updateProfile : (text, text, text, text, text) -> (Result_1);
+  updateTodo : (nat, UpdateTodo) -> (Result);
+  userCount : () -> (nat) query;
+  verifyCalendar : (nat) -> (Result);
+};
+type Wallet = record { currency : Currency__1; address : text };
+service : Vansday

@@ -32,6 +32,7 @@ import { ClearTracksModal } from './components/ClearTracksModal';
 import Arweave from 'arweave';
 import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
+import { useAlltracks } from './components/Store';
 
 
 interface ProfileSettings {
@@ -64,6 +65,7 @@ function MainApp() {
   } | null>(null);
 
   const [showNotice, setShowNotice] = useState(true);
+  const  alltracks  = useAlltracks();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
@@ -529,13 +531,14 @@ function MainApp() {
             }
           });
         } else {
-          const result = await setDoc({
-            collection: "live_tracks",
-            doc: {
-              key: `${trackId}_${groupId}_${Date.now()}`,
-              data: newPoint
-            }
-          });
+          // const result = await setDoc({
+          //   collection: "live_tracks",
+          //   doc: {
+          //     key: `${trackId}_${groupId}_${Date.now()}`,
+          //     data: newPoint
+          //   }
+          // });
+          await alltracks.addTrackPoint(newPoint);
           setHasCloudPoints(true);
         }
       }
@@ -606,111 +609,146 @@ function MainApp() {
         showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
 
       } else {
-
-        const blob = new Blob([content], { type: mimeType });
-        const file = new File([blob], expfilename, { type: mimeType });
-
-        // Use private storage if selected and available
-        const uploadOptions = isPrivateStorage && userSettings?.storageId ? {
-          satellite: { satelliteId: userSettings.storageId },
-          collection: userSettings.trackFileCollection,
-          data: file
-        } : {
-          collection: "tracks",
-          data: file
-        };
-
-        const savedAsset = await uploadFile(uploadOptions);
-        showNotification(`Uploaded track file`, 'success');
-
         const totalDistance = getTotalDistance();
         const duration = getDuration();
         const elevationGain = getElevationGain();
         const speedKmh = totalDistance / duration;
+        //upload file to arweave
 
-        if (savedAsset) {
-          const fileRef = savedAsset.downloadUrl;
-          const docData = {
-            eventId,
-            filename: filename,
-            description: description,
-            startime: new Date(trackPoints[0].timestamp).toLocaleString(),
-            endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
-            trackfile: fileRef,
-            distance: totalDistance,
-            duration: duration,
-            elevationGain: elevationGain
-          };
-
-          // Save metadata to private or public collection
-          const docOptions = isPrivateStorage && userSettings?.storageId ? {
-            satellite: { satelliteId: userSettings.storageId },
-            collection: userSettings.trackFileCollection,
-            doc: {
-              key: eventId + "_" + groupId,
-              data: docData,
-              description: description,
+        if (wallet) {
+          // Create Arweave transaction
+          const transaction = await arweave.createTransaction({
+            data: content
+          }, wallet);
+    
+          // Add tags
+          transaction.addTag('Content-Type', mimeType);
+          transaction.addTag('App-Name', 'AllTracks');
+          transaction.addTag('Track-ID', eventId);
+          transaction.addTag('Group-ID', groupId);
+          transaction.addTag('Description', description);
+          transaction.addTag('Distance', totalDistance.toString());
+          transaction.addTag('Duration', duration.toString());
+          transaction.addTag('Elevation-Gain', elevationGain.toString());
+          transaction.addTag('Start-Time', new Date(trackPoints[0].timestamp).toLocaleString());
+          transaction.addTag('File-Type', 'track');
+          transaction.addTag('Owner', user.key);
+    
+          // Sign and post transaction
+          await arweave.transactions.sign(transaction, wallet);
+          const response = await arweave.transactions.post(transaction);
+    
+          if (response.status === 200) {
+            showNotification(`Track uploaded to Arweave ${transaction.id}`, 'success');
+            if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
+              const userStats = await loadUserStats();
+              if (userStats) {
+                const updatedStats = {
+                  totalDistance: userStats.data.totalDistance + totalDistance,
+                  totalHours: userStats.data.totalHours + duration,
+                  totalElevation: userStats.data.totalElevation + elevationGain,
+                  completedTrails: userStats.data.completedTrails + 1,
+                  firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleDateString(),
+                };
+                await setDoc({
+                  collection: "stats",
+                  doc: {
+                    ...userStats,
+                    data: updatedStats
+                  }
+                });
+                showNotification('updated user stats', 'success');
+              } else {
+                await setDoc({
+                  collection: "stats",
+                  doc: {
+                    key: user.key,
+                    data: {
+                      totalDistance: totalDistance,
+                      totalHours: duration,
+                      totalElevation: elevationGain,
+                      completedTrails: 1,
+                      firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleDateString(),
+                    }
+                  }
+                });
+                showNotification('created user stats', 'success');
+              }
+            } else {
+              showNotification('it is not valid hiking track', 'error');
             }
-          } : {
-            collection: "tracks",
-            doc: {
-              key: eventId + "_" + groupId,
-              data: docData,
-              description: description,
-            }
-          };
+  
+            showNotification('Track uploaded to cloud storage', 'success');
+  
+            clearTrackFromIndexDB(trackId);
+            clearPoints();
+  
+          }
 
-          await setDoc(docOptions);
-          showNotification('created track record', 'success');
+        }else{
+          showNotification(`Please connect your wallet to upload tracks to Arweave`, 'error');
+        }
+
+        // Upload file to juno
+        // const blob = new Blob([content], { type: mimeType });
+        // const file = new File([blob], expfilename, { type: mimeType });
+
+        // // Use private storage if selected and available
+        // const uploadOptions = isPrivateStorage && userSettings?.storageId ? {
+        //   satellite: { satelliteId: userSettings.storageId },
+        //   collection: userSettings.trackFileCollection,
+        //   data: file
+        // } : {
+        //   collection: "tracks",
+        //   data: file
+        // };
+
+        // const savedAsset = await uploadFile(uploadOptions);
+        // showNotification(`Uploaded track file`, 'success');
+
+
+
+        // if (savedAsset) {
+          // const fileRef = savedAsset.downloadUrl;
+          // const docData = {
+          //   eventId,
+          //   filename: filename,
+          //   description: description,
+          //   startime: new Date(trackPoints[0].timestamp).toLocaleString(),
+          //   endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
+          //   trackfile: fileRef,
+          //   distance: totalDistance,
+          //   duration: duration,
+          //   elevationGain: elevationGain
+          // };
+
+          // // Save metadata to private or public collection
+          // const docOptions = isPrivateStorage && userSettings?.storageId ? {
+          //   satellite: { satelliteId: userSettings.storageId },
+          //   collection: userSettings.trackFileCollection,
+          //   doc: {
+          //     key: eventId + "_" + groupId,
+          //     data: docData,
+          //     description: description,
+          //   }
+          // } : {
+          //   collection: "tracks",
+          //   doc: {
+          //     key: eventId + "_" + groupId,
+          //     data: docData,
+          //     description: description,
+          //   }
+          // };
+
+          // await setDoc(docOptions);
+          // showNotification('created track record', 'success');
 
 
           //update userstate when it's public and long enough
-          if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
-            const userStats = await loadUserStats();
-            if (userStats) {
-              const updatedStats = {
-                totalDistance: userStats.data.totalDistance + totalDistance,
-                totalHours: userStats.data.totalHours + duration,
-                totalElevation: userStats.data.totalElevation + elevationGain,
-                completedTrails: userStats.data.completedTrails + 1,
-                firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleDateString(),
-              };
-              await setDoc({
-                collection: "stats",
-                doc: {
-                  ...userStats,
-                  data: updatedStats
-                }
-              });
-              showNotification('updated user stats', 'success');
-            } else {
-              await setDoc({
-                collection: "stats",
-                doc: {
-                  key: user.key,
-                  data: {
-                    totalDistance: totalDistance,
-                    totalHours: duration,
-                    totalElevation: elevationGain,
-                    completedTrails: 1,
-                    firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleDateString(),
-                  }
-                }
-              });
-              showNotification('created user stats', 'success');
-            }
-          } else {
-            showNotification('it is not valid hiking track', 'error');
-          }
-
-          showNotification('Track uploaded to cloud storage', 'success');
-
-          clearTrackFromIndexDB(trackId);
-          clearPoints();
-
-        } else {
-          showNotification('Failed to upload track file', 'error');
-        }
+          
+        // } else {
+        //   showNotification('Failed to upload track file', 'error');
+        // }
 
       }//cloud storage
     } catch (error) {
