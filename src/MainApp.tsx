@@ -33,6 +33,7 @@ import Arweave from 'arweave';
 import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
+import { CheckPoint } from './types/CheckPoint';
 
 
 interface ProfileSettings {
@@ -492,14 +493,18 @@ function MainApp() {
     }
 
     if (pendingPosition) {
-      const newPoint: TrackPoint = {
+      const newPoint: CheckPoint = {
         latitude: pendingPosition.coords.latitude,
         longitude: pendingPosition.coords.longitude,
         timestamp: pendingPosition.timestamp,
         elevation: pendingPosition.coords.altitude || undefined,
-        comment: data.comment.trim() || undefined,
-        photo: photoUrl
+        note: data.comment.trim() || undefined,
+        photo: photoUrl,
+        isPublic: data.isPrivate ? false : true,
+        groupId: groupId,
+        trackId: trackId
       };
+
 
       //--save to local first
       setTrackPoints((prev) => [...prev, newPoint]);
@@ -513,23 +518,23 @@ function MainApp() {
 
       if (data.cloudEnabled) {
         if (data.isIncident) {
-          const result = await setDoc({
-            collection: "incidents",
-            doc: {
-              key: `${trackId}_${groupId}`,
-              data: newPoint
-            }
-          });
+          // const result = await setDoc({
+          //   collection: "incidents",
+          //   doc: {
+          //     key: `${trackId}_${groupId}`,
+          //     data: newPoint
+          //   }
+          // });
         }
         if (data.isPrivate && userSettings?.trackPointCollection) {
-          const result = await setDoc({
-            satellite: { satelliteId: userSettings?.storageId },
-            collection: userSettings.trackPointCollection,
-            doc: {
-              key: `${trackId}_${groupId}_${Date.now()}`,
-              data: newPoint
-            }
-          });
+          // const result = await setDoc({
+          //   satellite: { satelliteId: userSettings?.storageId },
+          //   collection: userSettings.trackPointCollection,
+          //   doc: {
+          //     key: `${trackId}_${groupId}_${Date.now()}`,
+          //     data: newPoint
+          //   }
+          // });
         } else {
           // const result = await setDoc({
           //   collection: "live_tracks",
@@ -538,7 +543,8 @@ function MainApp() {
           //     data: newPoint
           //   }
           // });
-          await alltracks.addTrackPoint(newPoint);
+          await alltracks.createCheckpoint(newPoint);
+          
           setHasCloudPoints(true);
         }
       }
