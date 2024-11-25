@@ -1077,7 +1077,7 @@ function MainApp() {
             setShowCommentModal(false);
             setPendingPosition(null);
           }}
-          user={user}
+
         />
       )}
 

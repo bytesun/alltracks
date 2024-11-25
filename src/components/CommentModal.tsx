@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './CommentModal.css';
-import { User } from "@junobuild/core";
+import { useGlobalContext } from './Store';
 interface CommentModalProps {
   onSave: (data: {
     comment: string;
@@ -10,9 +10,12 @@ interface CommentModalProps {
     photo: File | undefined; // New field
   }) => void;
   onClose: () => void;
-  user: User | null;
 }
-export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, user }) => {
+export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) => {
+
+  const { state:{
+    isAuthed, principal
+  }} = useGlobalContext();
   const [comment, setComment] = useState('');
   const [showCloudOptions, setShowCloudOptions] = useState(false);
 
@@ -103,8 +106,8 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
                 <input
                   type="checkbox"
                   checked={enableCloud}
-                  disabled={!user}
-                  title={!user ? "Please sign in to enable cloud sync" : ""}
+                  disabled={!isAuthed}
+                  title={!isAuthed ? "Please sign in to enable cloud sync" : ""}
                   onChange={(e) => {
                     setEnableCloud(e.target.checked);
                     if (!e.target.checked) {
@@ -113,7 +116,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose, use
                     }
                   }}
                 />
-                Enable Cloud Sync {!user && "(Sign in required)"}
+                Enable Cloud Sync {!isAuthed && "(Sign in required)"}
               </label>
               <label>
                 <input
