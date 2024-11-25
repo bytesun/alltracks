@@ -16,11 +16,13 @@ import { EventPage } from './pages/EventPage';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
+import Store from './components/Store';
 export const App: React.FC = () => {
 
   return (
     <NotificationProvider>
       <StatsProvider>
+        <Store>
         <Routes >
           <Route path="/" element={<MainApp/>} />
           <Route path="/trails" element={<Trails />} />
@@ -34,6 +36,7 @@ export const App: React.FC = () => {
           <Route path="/group/:groupId" element={<GroupPage />} />
           <Route path="/user/:userKey" element={<UserPage />} />
         </Routes>
+        </Store>
       </StatsProvider>
     </NotificationProvider>
   );

@@ -7,6 +7,7 @@ import { parseGPX } from "../utils/importFormats";
 import { icon } from 'leaflet';
 import { Navbar } from '../components/Navbar';
 import "../styles/Live.css";
+import { useAlltracks, useICEvent } from '../components/Store';
 
 interface EventDetails {
     date: string;
@@ -29,6 +30,8 @@ const trailHeadIcon = icon({
 });
 export const Live: React.FC = () => {
     const { liveId } = useParams();
+    const alltracks = useAlltracks();
+    const icevent = useICEvent();
     const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
     const [trailPoints, setTrailPoints] = useState<[number, number][]>([
@@ -56,18 +59,19 @@ export const Live: React.FC = () => {
 
     useEffect(() => {
         const fetchTrackPoints = async () => {
-            const tracks = await listDocs({
-                collection: "live_tracks",
-                filter: {
-                    matcher: {
-                        key: "^" + liveId + "_",
-                    }
-                }
+            // // const tracks = await listDocs({
+            // //     collection: "live_tracks",
+            // //     filter: {
+            // //         matcher: {
+            // //             key: "^" + liveId + "_",
+            // //         }
+            // //     }
 
-            });
-
-            const points = tracks.items.map(doc => doc.data as TrackPoint);
-            setTrackPoints(points);
+            // // });
+            const result = await alltracks.getCheckpoints({groupId:"0"})
+            console.log("get checkpoints" , result)
+            // const points = tracks.items.map(doc => doc.data as TrackPoint);
+            // setTrackPoints(points);
         };
         fetchTrackPoints();
     }, [liveId]);
