@@ -618,79 +618,68 @@ function MainApp() {
         const speedKmh = totalDistance / duration;
         //upload file to arweave
 
-        if (wallet) {
+        // if (wallet) {
           // Create Arweave transaction
-          const transaction = await arweave.createTransaction({
-            data: content
-          }, wallet);
+          // const transaction = await arweave.createTransaction({
+          //   data: content
+          // }, wallet);
 
-          // Add tags
-          transaction.addTag('Content-Type', mimeType);
-          transaction.addTag('App-Name', 'AllTracks');
-          transaction.addTag('Track-ID', eventId);
-          transaction.addTag('Group-ID', groupId);
-          transaction.addTag('Description', description);
-          transaction.addTag('Distance', totalDistance.toString());
-          transaction.addTag('Duration', duration.toString());
-          transaction.addTag('Elevation-Gain', elevationGain.toString());
-          transaction.addTag('Start-Time', new Date(trackPoints[0].timestamp).toLocaleString());
-          transaction.addTag('File-Type', 'track');
-          transaction.addTag('Owner', principal.toText());
+          // // Add tags
+          // transaction.addTag('Content-Type', mimeType);
+          // transaction.addTag('App-Name', 'AllTracks');
+          // transaction.addTag('Track-ID', eventId);
+          // transaction.addTag('Group-ID', groupId);
+          // transaction.addTag('Description', description);
+          // transaction.addTag('Distance', totalDistance.toString());
+          // transaction.addTag('Duration', duration.toString());
+          // transaction.addTag('Elevation-Gain', elevationGain.toString());
+          // transaction.addTag('Start-Time', new Date(trackPoints[0].timestamp).toLocaleString());
+          // transaction.addTag('File-Type', 'track');
+          // transaction.addTag('Owner', principal.toText());
 
-          // Sign and post transaction
-          await arweave.transactions.sign(transaction, wallet);
-          const response = await arweave.transactions.post(transaction);
+          // // Sign and post transaction
+          // await arweave.transactions.sign(transaction, wallet);
+          // const response = await arweave.transactions.post(transaction);
 
-          if (response.status === 200) {
-            showNotification(`Track uploaded to Arweave ${transaction.id}`, 'success');
-            if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
+          // if (response.status === 200) {
+          //   showNotification(`Track uploaded to Arweave ${transaction.id}`, 'success');
+          //   if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
               const userStats = await loadUserStats();
               if (userStats) {
                 const updatedStats = {
-                  totalDistance: userStats.data.totalDistance + totalDistance,
-                  totalHours: userStats.data.totalHours + duration,
-                  totalElevation: userStats.data.totalElevation + elevationGain,
-                  completedTrails: userStats.data.completedTrails + 1,
-                  firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleDateString(),
+                  totalDistance: userStats.totalDistance + totalDistance,
+                  totalHours: userStats.totalHours + duration,
+                  totalElevation: userStats.totalElevation + elevationGain,
+                  completedTrails: userStats.completedTrails + 1,
+                  firstHikeDate: userStats.firstHikeDate,
                 };
-                // await setDoc({
-                //   collection: "stats",
-                //   doc: {
-                //     ...userStats,
-                //     data: updatedStats
-                //   }
-                // });
+                await alltracks.updateUserStats(updatedStats);
                 showNotification('updated user stats', 'success');
               } else {
-                // await setDoc({
-                //   collection: "stats",
-                //   doc: {
-                //     key: user.key,
-                //     data: {
-                //       totalDistance: totalDistance,
-                //       totalHours: duration,
-                //       totalElevation: elevationGain,
-                //       completedTrails: 1,
-                //       firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleDateString(),
-                //     }
-                //   }
-                // });
+                const updatedStats = {
+                  totalDistance:  totalDistance,
+                  totalHours:  duration,
+                  totalElevation:  elevationGain,
+                  completedTrails:  1,
+                  firstHikeDate: trackPoints[0].timestamp,
+                };
+                await alltracks.updateUserStats(updatedStats);
                 showNotification('created user stats', 'success');
               }
-            } else {
-              showNotification('it is not valid hiking track', 'error');
-            }
+            // } else {
+            //   showNotification('it is not valid hiking track', 'error');
+            // }
 
-            showNotification('Track uploaded to cloud storage', 'success');
+            // showNotification('Track uploaded to cloud storage', 'success');
 
-            clearTrackFromIndexDB(trackId);
-            clearPoints();
+        //     clearTrackFromIndexDB(trackId);
+        //     clearPoints();
 
-          }
+        //   }
 
-        } else {
-          showNotification(`Please connect your wallet to upload tracks to Arweave`, 'error');
-        }
+        // } else {
+        //   showNotification(`Please connect your wallet to upload tracks to Arweave`, 'error');
+        // }
 
         // Upload file to juno
         // const blob = new Blob([content], { type: mimeType });
@@ -755,6 +744,7 @@ function MainApp() {
 
       }//cloud storage
     } catch (error) {
+      setMessage(error.message);
       showNotification(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setIsExporting(false);
@@ -1066,7 +1056,7 @@ function MainApp() {
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
         showNotification={showNotification}
-        user = {principal.toText()}
+        user = {principal ? principal.toText() : null}
       />
 
       {showCommentModal && (
