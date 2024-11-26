@@ -16,12 +16,11 @@ import { TrackPoint } from './types/TrackPoint';
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
 import { ExportModal } from './components/ExportModal';
 
-import { signIn, signOut, authSubscribe, User, uploadFile, setDoc } from "@junobuild/core";
 import { Navbar } from './components/Navbar';
 
 import { TrackPointsModal } from './components/TrackPointsModal';
 import { FeedbackModal } from './components/FeedbackModal';
-import { getDoc } from "@junobuild/core";
+
 import { useNotification } from './context/NotificationContext';
 import { UserStats } from "./types/UserStats";
 import { StartTrackModal } from './components/StartTrackModal';
@@ -34,7 +33,7 @@ import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
 import { CheckPoint } from './types/CheckPoint';
-
+import { useGlobalContext } from './components/Store';
 
 interface ProfileSettings {
   storageId: string;
@@ -60,12 +59,14 @@ const currentLocationIcon = icon({
 
 
 function MainApp() {
+
   const [notification, setNotification] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
   } | null>(null);
-
+  const { state: { isAuthed,principal } } = useGlobalContext();
   const [showNotice, setShowNotice] = useState(true);
+
   const alltracks = useAlltracks();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
@@ -86,7 +87,7 @@ function MainApp() {
   const [locationError, setLocationError] = useState<string>('');
   const [autoCenter, setAutoCenter] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId, setTrackId] = useState<string | null>(null);
@@ -175,30 +176,6 @@ function MainApp() {
     saveIndexdb();
   }, [trackPoints])
 
-
-  useEffect(() => {
-    const loadUserSettings = async () => {
-      if (user?.key) {
-        const doc = await getDoc<ProfileSettings>({
-          collection: "profiles",
-          key: user.key
-        });
-
-        if (doc?.data) {
-          setUserSettings(doc.data);
-        }
-      }
-    };
-
-    loadUserSettings();
-  }, [user]);
-
-  useEffect(() => {
-    const unsubscribe = authSubscribe((user: User | null) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
 
 
   useEffect(() => {
@@ -658,7 +635,7 @@ function MainApp() {
           transaction.addTag('Elevation-Gain', elevationGain.toString());
           transaction.addTag('Start-Time', new Date(trackPoints[0].timestamp).toLocaleString());
           transaction.addTag('File-Type', 'track');
-          transaction.addTag('Owner', user.key);
+          transaction.addTag('Owner', principal.toText());
 
           // Sign and post transaction
           await arweave.transactions.sign(transaction, wallet);
@@ -676,28 +653,28 @@ function MainApp() {
                   completedTrails: userStats.data.completedTrails + 1,
                   firstHikeDate: userStats.data.firstHikeDate || new Date(trackPoints[0].timestamp).toLocaleDateString(),
                 };
-                await setDoc({
-                  collection: "stats",
-                  doc: {
-                    ...userStats,
-                    data: updatedStats
-                  }
-                });
+                // await setDoc({
+                //   collection: "stats",
+                //   doc: {
+                //     ...userStats,
+                //     data: updatedStats
+                //   }
+                // });
                 showNotification('updated user stats', 'success');
               } else {
-                await setDoc({
-                  collection: "stats",
-                  doc: {
-                    key: user.key,
-                    data: {
-                      totalDistance: totalDistance,
-                      totalHours: duration,
-                      totalElevation: elevationGain,
-                      completedTrails: 1,
-                      firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleDateString(),
-                    }
-                  }
-                });
+                // await setDoc({
+                //   collection: "stats",
+                //   doc: {
+                //     key: user.key,
+                //     data: {
+                //       totalDistance: totalDistance,
+                //       totalHours: duration,
+                //       totalElevation: elevationGain,
+                //       completedTrails: 1,
+                //       firstHikeDate: new Date(trackPoints[0].timestamp).toLocaleDateString(),
+                //     }
+                //   }
+                // });
                 showNotification('created user stats', 'success');
               }
             } else {
@@ -785,15 +762,9 @@ function MainApp() {
   };
 
   const loadUserStats = async () => {
-    if (user?.key) {
-      const stats = await getDoc<UserStats>({
-        collection: "stats",
-        key: user.key
-      });
-
-      if (stats?.data) {
-        return stats;
-      }
+    if(isAuthed){
+      const stats = await alltracks.getUserstats(principal);
+      return stats
     }
   };
   const handleStartTrack = (trackSettings: {
@@ -899,7 +870,7 @@ function MainApp() {
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
 
             </p>
-            {user && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Live</a>}
+            {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Live</a>}
 
           </div>}
 
@@ -1094,8 +1065,8 @@ function MainApp() {
       <FeedbackModal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
-        user={user}
         showNotification={showNotification}
+        user = {principal.toText()}
       />
 
       {showCommentModal && (
@@ -1116,7 +1087,6 @@ function MainApp() {
         <ExportModal
           onExport={handleExport}
           onClose={() => setShowExportModal(false)}
-          user={user}
           trackId={trackId}
         />
       )}

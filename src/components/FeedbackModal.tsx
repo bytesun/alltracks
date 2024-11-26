@@ -5,7 +5,7 @@ import "../styles/FeedbackModal.css";
 interface FeedbackModalProps {
     isOpen: boolean;
     onClose: () => void;
-    user: User | null;
+    user: String | null;
     showNotification: (message: string, type: 'success' | 'error' | 'info') => void;
   }
 export const FeedbackModal = ({ isOpen, onClose, user ,showNotification }: FeedbackModalProps) => {
@@ -24,7 +24,7 @@ export const FeedbackModal = ({ isOpen, onClose, user ,showNotification }: Feedb
                 key: crypto.randomUUID(),
                 data: {
                     ...feedback,
-                    userId: user?.key,
+                    userId: user,
                     createdAt: Date.now()
                 }
             }

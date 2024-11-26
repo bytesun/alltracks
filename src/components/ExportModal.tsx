@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './ExportModal.css';
-import { User } from "@junobuild/core";
-
+import { useGlobalContext } from './Store';
 interface ExportModalProps {
   onExport: (
     format: string, 
@@ -12,10 +11,10 @@ interface ExportModalProps {
     isPrivateStorage: boolean
   ) => void;
   onClose: () => void;
-  user: User | null;
   trackId: string;
 }
-export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, user, trackId }) => {
+export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  trackId }) => {
+  const { state:{ isAuthed } } = useGlobalContext();
   const [format, setFormat] = useState('csv');
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
   const [filename, setFilename] = useState('');
@@ -76,11 +75,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, use
               <label>Storage:</label>
               <select value={storage} onChange={(e) => setStorage(e.target.value as 'local' | 'cloud')}>
                 <option value="local">Local Download</option>
-                <option disabled={!user} value="cloud">Cloud Storage{!user && ' (login required)'}</option>
+                <option disabled={!isAuthed} value="cloud">Cloud Storage{!isAuthed && ' (login required)'}</option>
               </select>
             </div>
           </div>
-          {storage === 'cloud' && user && (
+          {storage === 'cloud' && isAuthed && (
             <div className="storage-options">
               <label>
                 <input
