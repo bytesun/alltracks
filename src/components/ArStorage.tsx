@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Arweave from 'arweave';
+import { arweave,arweaveGateway } from '../utils/arweave';
 import { User, setDoc, listDocs } from '@junobuild/core';
 import { UploadARForm } from './UploadARForm';
 import '../styles/ArStorage.css'
@@ -44,11 +44,6 @@ export const ArStorage: React.FC = () => {
     }
   }, []);
 
-  const arweave = Arweave.init({
-    host: 'arweave.net',
-    port: 443,
-    protocol: 'https'
-  });
 
   useEffect(() => {
     loadPhotos();
@@ -250,7 +245,7 @@ export const ArStorage: React.FC = () => {
               return (
                 <div key={photo.artxid} className="photo-item">
                   <img
-                    src={`https://arweave.net/${photo.artxid}`}
+                    src={`${arweaveGateway}/${photo.artxid}`}
                     alt={photo.description}
                   />
                   <div className="photo-info">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Doc, listDocs, listAssets } from '@junobuild/core';
+import { arweave, arweaveGateway } from '../utils/arweave';
 import { TrackPoint } from '../types/TrackPoint';
 import '../styles/PhotosTab.css';
 
@@ -12,110 +12,59 @@ interface Photo {
   description: string;
 
 }
+
 export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
   const [photos, setPhotos] = React.useState<string[]>([]);
   const [arphotos, setArphotos] = React.useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = React.useState<Photo | null>(null);
   const [currentYear, setCurrentYear] = React.useState<number>(new Date().getFullYear());
 
+
   React.useEffect(() => {
     
-    const fetchPhotos = async () => {
-      const startOfYear = new Date(currentYear, 0, 1).getTime() * 1000000;
-      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000;
-  
-      const photoItems = await listAssets({
-        collection: "photos",
-        filter: {
-          matcher: {
-            key: `.*_${groupId}_.*`,
-            createdAt: {
-              matcher: "between",
-              timestamps: {
-                start: BigInt(startOfYear),
-                end: BigInt(endOfYear)
-              }
-            }
-          },
-          order: {
-            desc: true,
-            field: "created_at"
-          }
-        }
-      });
-
-      const photos = photoItems.items
-        .map(asset => asset.downloadUrl);
-
-      setPhotos(photos);
-    };
-
-    fetchPhotos();
-  }, [groupId, currentYear]);
-
-  React.useEffect(() => {
-    // const fetchPhotos = async () => {
-    //   const photoItems = await listDocs<Photo>({
-    //     collection: "photos",
-    //     filter: {
-    //       matcher: {
-    //         key: `.*_${groupId}_.*`,
-    //       },
-    //       order: {
-    //         desc: true,
-    //         field: "created_at"
-    //       }
-    //     }
-    //   });
-
-    //   const photos = photoItems.items
-    //     .map(doc => {
-    //       return {
-    //         artxid: doc.data.artxid,
-    //         key: doc.key,
-    //         description: doc.description
-    //       };
-    //     });
-
-    //   setArphotos(photos);
-    // };
-
     loadPhotos();
 
   }, [groupId, currentYear]);
 
   const loadPhotos = async () => {
-    const startOfYear = new Date(currentYear, 0, 1).getTime() * 1000000;
-    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000;
 
-    const photoItems = await listDocs<Photo>({
-      collection: "photos",
-      filter: {
-        matcher: {
-          key: `.*_${groupId}_.*`,
-          createdAt: {
-            matcher: "between",
-            timestamps: {
-              start: BigInt(startOfYear),
-              end: BigInt(endOfYear)
+    const query = {
+        query: `{
+            transactions(
+                tags: [
+                    { name: "App-Name", values: ["AllTracks"] },
+                     { name: "File-Type", values: ["photo"] },
+                   
+
+                ],
+                block: {
+                    min: ${currentYear}
+                }
+            ) {
+                edges {
+                    node {
+                        id
+                        tags {
+                            name
+                            value
+                        }
+                    }
+                }
             }
-          }
-        },
-        order: {
-          desc: true,
-          field: "created_at"
-        }
-      }
-    });
+        }`
+    };
 
-    const photos = photoItems.items.map(doc => ({
-      artxid: doc.data.artxid,
-      key: doc.key,
-      description: doc.description
+    const response = await arweave.api.post('/graphql', query);
+    console.log(response.data);
+    const photos = response.data.data.transactions.edges.map(edge => ({
+        artxid: edge.node.id,
+        key: edge.node.tags.find(t => t.name === 'Original-Name')?.value || '',
+        description: edge.node.tags.find(t => t.name === 'Description')?.value || ''
     }));
 
     setArphotos(photos);
-  };
+};
+
   return (
     <div className="photos-container">
       <div className="filters-row">
@@ -140,14 +89,10 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
       <div className="photos-grid">
         {arphotos.map((photo, index) => (
           <div key={index} className="photo-item" onClick={() => setSelectedPhoto(photo)}>
-            <img src={`https://arweave.net/${photo.artxid}`} alt={`Photo ${index + 1}`} />
+            <img src={`${arweaveGateway}/${photo.artxid}`} alt={`Photo ${index + 1}`} />
           </div>
         ))}
-        {photos.map((photo, index) => (
-          <div key={index} className="photo-item" >
-            <img src={photo} alt={`Photo ${index + 1}`} />
-          </div>
-        ))}
+
       </div>
       {selectedPhoto && (
         <div className="modal-overlay" onClick={() => setSelectedPhoto(null)}>
@@ -161,7 +106,7 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
 
             <div className="modal-body">
               <img
-                src={`https://arweave.net/${selectedPhoto.artxid}`}
+                src={`${arweaveGateway}/${selectedPhoto.artxid}`}
                 alt={selectedPhoto.key}
                 className="full-size-photo"
               />

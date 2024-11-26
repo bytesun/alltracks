@@ -5,7 +5,15 @@ import { Spinner } from '../components/Spinner';
 import './Trails.css';
 import { Trail } from '../types/Trail'
 
+import  Arweave from 'arweave';
 
+const arweave = Arweave.init({
+  host: 'arweave.net',    // Hostname or IP address
+  port: 443,             // Port
+  protocol: 'https',     // Network protocol
+  timeout: 20000,        // Network request timeouts in milliseconds
+  logging: false,        // Enable network request logging
+});
 
 export const Trails = () => {
 
@@ -32,7 +40,7 @@ export const Trails = () => {
           { name: "App-Name", values: ["AllTracks"] },
           { name: "File-Type", values: ["trail"] },
         ]
-        first: 100
+
       ) {
         edges {
           node {
@@ -49,15 +57,9 @@ export const Trails = () => {
       }
     }`;
   
-    const response = await fetch('https://arweave.net/graphql', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query })
-    });
+    const response = await arweave.api.post('/graphql', { query });
   
-    const result = await response.json();
+    const result = response.data;
     console.log(result);
     const formattedTrails = result.data.transactions.edges.map((edge: any) => {
       const tags = edge.node.tags.reduce((acc: any, tag: any) => {

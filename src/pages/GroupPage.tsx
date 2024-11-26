@@ -8,6 +8,7 @@ import { PhotosTab } from '../components/PhotosTab';
 import { Track } from '../types/Track';
 import '../styles/GroupPage.css';
 import { Group } from '../types/Group';
+import { useICEvent } from '../components/Store';
 
 interface TrackData {
     id: string;
@@ -20,6 +21,7 @@ interface TrackData {
 
 export const GroupPage: React.FC = () => {
     const { groupId } = useParams();
+    const icevent = useICEvent();
     const [group, setGroup] = useState<Group | null>(null);
     const [tracks, setTracks] = useState<TrackData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,50 +35,65 @@ export const GroupPage: React.FC = () => {
         new Date(Date.now()).toISOString().split('T')[0]
     );
 
+    useEffect(()=>{
+        icevent.getCalendar(BigInt(groupId)).then((data)=>{
+            if(data["ok"]){
+                setGroup({
+                    name: data["ok"].name,
+                    description: data["ok"].description,
+                    calendarId: groupId,
+                    members: [],
+                    groupBadge: ""
+                })
+            }
+            
+        })
+    },[groupId]);
 
     useEffect(() => {
         loadTrackPoints();
     }, [groupId]);
 
     useEffect(() => {
-        const loadGroupData = async () => {
-            const groupDoc = await getDoc({
-                collection: "groups",
-                key: groupId || ''
-            });
-            setGroup(groupDoc.data as Group);
+        // const loadGroupData = async () => {
+        //     const groupDoc = await getDoc({
+        //         collection: "groups",
+        //         key: groupId || ''
+        //     });
 
-            const tracksResult = await listDocs({
-                collection: "tracks",
-                filter: {
-                    matcher: {
-                        key: ".*_" + groupId
-                    },
-                    order: {
-                        desc: true,
-                        field: "updated_at"
-                      },
+        //     setGroup(groupDoc.data as Group);
 
-                },
+        //     const tracksResult = await listDocs({
+        //         collection: "tracks",
+        //         filter: {
+        //             matcher: {
+        //                 key: ".*_" + groupId
+        //             },
+        //             order: {
+        //                 desc: true,
+        //                 field: "updated_at"
+        //               },
 
-            });
-            console.log(tracksResult.items);
-            const tracks = tracksResult.items.map(item => {
-                const track = item.data as Track;
-                return {
-                    id: item.key,
-                    title: track.filename,
-                    distance: track.distance,
-                    duration: track.duration,
-                    createdAt: track.startime,
-                    description: track.description
-                };
-            });
-            setTracks(tracks);
-            setIsLoading(false);
-        };
+        //         },
 
-        loadGroupData();
+        //     });
+        //     console.log(tracksResult.items);
+        //     const tracks = tracksResult.items.map(item => {
+        //         const track = item.data as Track;
+        //         return {
+        //             id: item.key,
+        //             title: track.filename,
+        //             distance: track.distance,
+        //             duration: track.duration,
+        //             createdAt: track.startime,
+        //             description: track.description
+        //         };
+        //     });
+        //     setTracks(tracks);
+        //     setIsLoading(false);
+        // };
+
+        // loadGroupData();
     }, [groupId]);
     const loadTrackPoints = async () => {
         setIsLoading(true);

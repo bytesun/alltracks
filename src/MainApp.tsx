@@ -28,7 +28,7 @@ import { StartTrackModal } from './components/StartTrackModal';
 import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
-import Arweave from 'arweave';
+import { arweave } from './utils/arweave';
 import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
@@ -118,11 +118,6 @@ function MainApp() {
 
   const [wallet, setWallet] = useState<any>(null);
 
-  const arweave = Arweave.init({
-    host: 'arweave.net',
-    port: 443,
-    protocol: 'https'
-  });
 
   const [showTrailList, setShowTrailList] = useState(false);
 
