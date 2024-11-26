@@ -566,7 +566,7 @@ function MainApp() {
 
       }
     } catch (error) {
-      setMessage(JSON.stringify(error));
+      setMessage(error.message);
       showNotification(`Error uploading to cloud: ${error}`, error);
     }
   };
