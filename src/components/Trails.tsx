@@ -92,27 +92,6 @@ export const Trails: React.FC = () => {
             }
 
 
-
-            // const fileUpload = await uploadFile({
-            //     collection: "trails",
-            //     data: file,
-            // });
-            // const id = uuidv4();
-            // const trailDoc: Trail = {
-            //     ...trailData,
-            //     id,
-            //     userId: user?.key || '',
-            //     fileRef: fileUpload.downloadUrl
-            // };
-            // await setDoc({
-            //     collection: "trails",
-            //     doc: {
-            //         key: id,
-            //         data: trailDoc,
-            //         description:`${trailData.name} ${trailData.description} ${trailData.tags}`
-            //     }
-            // });
-
             loadTrails(); // Refresh the list
             setShowCreateModal(false);
         } catch (error) {
@@ -122,23 +101,7 @@ export const Trails: React.FC = () => {
         }
     };
 
-    // const loadTrails = async () => {
-    //     setIsLoading(true);
-    //     try {
-    //         // Add your trail loading logic here
-    //         const response = await listDocs({
-    //             collection: "trails",
-    //             filter: {
-    //                 owner: user?.key
-    //             }
-    //         });
-    //         setTrails(response.items.map(item => item.data as Trail));
-    //     } catch (error) {
-    //         console.error('Error loading trails:', error);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
+ 
 
     const loadTrails = async () => {
         setIsLoading(true);

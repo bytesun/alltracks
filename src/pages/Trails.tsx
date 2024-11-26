@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, authSubscribe, listDocs } from "@junobuild/core";
+
 import { Navbar } from '../components/Navbar';
 import { Spinner } from '../components/Spinner';
 import './Trails.css';
@@ -8,7 +8,7 @@ import { Trail } from '../types/Trail'
 
 
 export const Trails = () => {
-  const [user, setUser] = useState<User | null>(null);
+
   const [trails, setTrails] = useState<Trail[]>([]);
   const DEFAULT_TRAIL_IMAGE = 'https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io/logos/alltracks_hero.png';
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
@@ -20,35 +20,9 @@ export const Trails = () => {
     : trails;
 
   useEffect(() => {
-    const unsubscribe = authSubscribe((user: User | null) => {
-      setUser(user);
-
-    });
     fetchTrails();
-    return () => unsubscribe();
-  }, []);
+  }, [selectedDifficulty]);
 
-  // const fetchTrails = async () => {
-  //   setIsLoading(true);
-  //   const { items } = await listDocs<Trail>({
-  //     collection: "trails"
-  //   });
-
-  //   const formattedTrails = items.map(doc => ({
-  //     id: doc.key,
-  //     name: doc.data.name,
-  //     length: doc.data.length,
-  //     elevationGain: doc.data.elevationGain,
-  //     difficulty: doc.data.difficulty,
-  //     description: doc.data.description,
-  //     imageUrl: doc.data.imageUrl || DEFAULT_TRAIL_IMAGE,
-  //     fileRef: doc.data.fileRef
-
-  //   }));
-
-  //   setTrails(formattedTrails);
-  //   setIsLoading(false);
-  // };
   const fetchTrails = async () => {
     setIsLoading(true);
     
@@ -84,6 +58,7 @@ export const Trails = () => {
     });
   
     const result = await response.json();
+    console.log(result);
     const formattedTrails = result.data.transactions.edges.map((edge: any) => {
       const tags = edge.node.tags.reduce((acc: any, tag: any) => {
         acc[tag.name] = tag.value;

@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import '../styles/TrailListModal.css'
+import Arweave from 'arweave';
 
 import { Trail } from '../types/Trail';
-import { Doc, listDocs } from '@junobuild/core';
+
 interface TrailListModalProps {
     onSelect: (trail: Trail) => void;
     onClose: () => void;
 }
+const arweave = new Arweave({
+    host: 'arweave.net',
+    port: 443,
+    protocol: 'https'
+});
 
 export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClose }) => {
     const [trails, setTrails] = useState<Trail[]>([]);
@@ -29,22 +35,54 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
         setFilteredTrails(filtered);
     }, [searchTerm, trails, selectedDifficulty]);
 
+
     const loadTrails = async () => {
-        const result = await listDocs<Trail>({
-            collection: "trails",
-            filter: {
-                order: {
-                    desc: true,
-                    field: "updated_at"
-                }
-            }
-        });
 
-        const trailList = result.items.map(item => item.data as Trail);
-
-        setTrails(trailList);
-        setLoading(false);
+    
+        try {
+            const query = {
+                query: `{
+                    transactions(
+                        tags: [
+                        { name: "App-Name", values: ["AllTracks"] },
+                            { name: "File-Type", values: ["trail"] }
+                        ]
+                    ) {
+                        edges {
+                            node {
+                                id
+                                tags {
+                                    name
+                                    value
+                                }
+                                data {
+                                    size
+                                }
+                            }
+                        }
+                    }
+                }`
+            };
+    
+            const response = await arweave.api.post('/graphql', query);
+            console.log(response);
+            const trails = response.data.data.transactions.edges.map(edge => ({
+                id: edge.node.id,
+                name: edge.node.tags.find(t => t.name === 'name')?.value || '',
+                description: edge.node.tags.find(t => t.name === 'description')?.value || '',
+                difficulty: edge.node.tags.find(t => t.name === 'difficulty')?.value || '',
+                elevationGain: Number(edge.node.tags.find(t => t.name === 'elevationGain')?.value || 0),
+                length: Number(edge.node.tags.find(t => t.name === 'length')?.value || 0)
+            }));
+    
+            setTrails(trails);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error loading trails:', error);
+            setLoading(false);
+        }
     };
+    
 
     return (
         <div className="modal-overlay">

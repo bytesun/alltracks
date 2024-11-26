@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, listDocs } from "@junobuild/core";
+
 import './Tracks.css';
 import { useStats } from '../context/StatsContext'; 
 import { useGlobalContext } from './Store';
@@ -29,30 +29,9 @@ export const Tracks: React.FC = () => {
   const fetchTracks = async () => {
     let items = [];
     if (trackVisibility === 'public') {
-      // const result = await listDocs<TrackData>({
-      //   collection: "tracks",
-      //   filter: {
-      //     owner: user.owner,
-      //     order: {
-      //       desc: true,
-      //       field: "updated_at"
-      //     },
-      //   }
-      // });
-      // items = result.items;
+      
     } else {
-      // const result = await listDocs<TrackData>({
-      //   satellite: { satelliteId: settings.storageId },
-      //   collection: "tracks",
-      //   filter: {
-      //     order: {
-      //       desc: true,
-      //       field: "updated_at"
-      //     },
-      //   }
-
-      // });
-      // items = result.items;
+      
     }
     const formattedTracks = items.map(doc => ({
 

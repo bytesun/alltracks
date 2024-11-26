@@ -57,6 +57,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
         if (trackPoints.length > 0) {
             setSelectedPoint(trackPoints[0]);
         }
+       
     }, [trackPoints]);
 
     return (
@@ -153,7 +154,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                         onClick={() => setSelectedPoint(point)}
                     >
                         <div className="time">
-                            {new Date(point.timestamp).toLocaleTimeString()}, {new Date(point.timestamp).toLocaleDateString()}
+                            {new Date(Number(point.timestamp)).toLocaleTimeString()}, {new Date(Number(point.timestamp)).toLocaleDateString()}
                         </div>
                         <div className="details">
                             <div>Lat: {point.latitude.toFixed(4)}</div>

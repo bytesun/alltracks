@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, useMap, Polyline, Marker } from 'react-leaflet';
 import { TrackPoint } from "../types/TrackPoint";
-import { listDocs } from "@junobuild/core";
 import { parseGPX } from "../utils/importFormats";
 import { icon } from 'leaflet';
 import { Navbar } from '../components/Navbar';
@@ -58,20 +57,24 @@ export const Live: React.FC = () => {
 
 
     useEffect(() => {
-        const fetchTrackPoints = async () => {
-            // // const tracks = await listDocs({
-            // //     collection: "live_tracks",
-            // //     filter: {
-            // //         matcher: {
-            // //             key: "^" + liveId + "_",
-            // //         }
-            // //     }
+        const fetchTrackPoints = async () => {           
+            const result = await alltracks.getCheckpoints({trackId:liveId})   
+            console.log(result)   
+            let tps = [];
+            result.forEach(t => {
+                tps.push(
+                    {
+                        latitude: t.latitude,
+                        longitude: t.longitude,
+                        elevation: t.elevation,
+                        timestamp: Number(t.timestamp),
+                        comment: t.note[0],
+                        photo: t.photo.length > 0? t.photo[0] : undefined, 
+                    }
+                )
+            })
 
-            // // });
-            const result = await alltracks.getCheckpoints({groupId:"0"})
-            console.log("get checkpoints" , result)
-            // const points = tracks.items.map(doc => doc.data as TrackPoint);
-            // setTrackPoints(points);
+            setTrackPoints(tps);            
         };
         fetchTrackPoints();
     }, [liveId]);
