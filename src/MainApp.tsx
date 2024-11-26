@@ -553,7 +553,7 @@ function MainApp() {
               timestamp: BigInt(pendingPosition.timestamp),
               elevation: pendingPosition.coords.altitude || undefined,
               note: [data.comment.trim()],
-              photo: [photoUrl],
+              photo: photoUrl ? [photoUrl] : [],
               isPublic: data.isPrivate ? false : true,
               groupId: [groupId],
               trackId: trackId
