@@ -22,7 +22,7 @@ export const LEDGER_E6S = 1_000_000; //ICET
 //paging
 export const PAGING_LENGTH = 10;
 
-export const DERIVATION_ORIGION = "https://znisf-eqaaa-aaaaj-aabta-cai.raw.ic0.app";
+export const DERIVATION_ORIGION = "https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app";
 
 export const ws_gatewayUrl = "wss://gateway.icws.io";
 export const icUrl = "https://icp0.io";
