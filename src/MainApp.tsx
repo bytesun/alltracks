@@ -644,28 +644,11 @@ function MainApp() {
           // if (response.status === 200) {
           //   showNotification(`Track uploaded to Arweave ${transaction.id}`, 'success');
           //   if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
-              const userStats = await loadUserStats();
-              if (userStats) {
-                const updatedStats = {
-                  totalDistance: userStats.totalDistance + totalDistance,
-                  totalHours: userStats.totalHours + duration,
-                  totalElevation: userStats.totalElevation + elevationGain,
-                  completedTrails: userStats.completedTrails + 1,
-                  firstHikeDate: userStats.firstHikeDate,
-                };
-                await alltracks.updateUserStats(updatedStats);
+              // const userStats = await loadUserStats();
+
+                await alltracks.updateUserStats(totalDistance,duration,elevationGain);
                 showNotification('updated user stats', 'success');
-              } else {
-                const updatedStats = {
-                  totalDistance:  totalDistance,
-                  totalHours:  duration,
-                  totalElevation:  elevationGain,
-                  completedTrails:  1,
-                  firstHikeDate: trackPoints[0].timestamp,
-                };
-                await alltracks.updateUserStats(updatedStats);
-                showNotification('created user stats', 'success');
-              }
+             
             // } else {
             //   showNotification('it is not valid hiking track', 'error');
             // }
