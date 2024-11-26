@@ -513,8 +513,10 @@ function MainApp() {
       setAutoCenter(true);
       setTimeout(() => setAutoCenter(false), 100);
 
+      showNotification('Point recorded successfully', 'success');
       if (data.cloudEnabled) {
         try {
+          showNotification('Uploading to cloud...', 'info');
           if (data.isIncident) {
             // const result = await setDoc({
             //   collection: "incidents",
@@ -541,6 +543,7 @@ function MainApp() {
             //     data: newPoint
             //   }
             // });
+            showNotification('before Uploaded to cloud', 'success');
             await alltracks.createCheckpoint({
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
