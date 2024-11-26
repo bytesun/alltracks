@@ -66,7 +66,7 @@ function MainApp() {
   } | null>(null);
 
   const [showNotice, setShowNotice] = useState(true);
-  const  alltracks  = useAlltracks();
+  const alltracks = useAlltracks();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
@@ -499,9 +499,9 @@ function MainApp() {
         timestamp: pendingPosition.timestamp,
         elevation: pendingPosition.coords.altitude || undefined,
         note: data.comment.trim() || undefined,
-        photo: photoUrl,
+        photo: photoUrl || undefined,
         isPublic: data.isPrivate ? false : true,
-        groupId: groupId,
+        groupId: groupId || undefined,
         trackId: trackId
       };
 
@@ -517,35 +517,39 @@ function MainApp() {
       setTimeout(() => setAutoCenter(false), 100);
 
       if (data.cloudEnabled) {
-        if (data.isIncident) {
-          // const result = await setDoc({
-          //   collection: "incidents",
-          //   doc: {
-          //     key: `${trackId}_${groupId}`,
-          //     data: newPoint
-          //   }
-          // });
-        }
-        if (data.isPrivate && userSettings?.trackPointCollection) {
-          // const result = await setDoc({
-          //   satellite: { satelliteId: userSettings?.storageId },
-          //   collection: userSettings.trackPointCollection,
-          //   doc: {
-          //     key: `${trackId}_${groupId}_${Date.now()}`,
-          //     data: newPoint
-          //   }
-          // });
-        } else {
-          // const result = await setDoc({
-          //   collection: "live_tracks",
-          //   doc: {
-          //     key: `${trackId}_${groupId}_${Date.now()}`,
-          //     data: newPoint
-          //   }
-          // });
-          await alltracks.createCheckpoint(newPoint);
-          
-          setHasCloudPoints(true);
+        try {
+          if (data.isIncident) {
+            // const result = await setDoc({
+            //   collection: "incidents",
+            //   doc: {
+            //     key: `${trackId}_${groupId}`,
+            //     data: newPoint
+            //   }
+            // });
+          }
+          if (data.isPrivate && userSettings?.trackPointCollection) {
+            // const result = await setDoc({
+            //   satellite: { satelliteId: userSettings?.storageId },
+            //   collection: userSettings.trackPointCollection,
+            //   doc: {
+            //     key: `${trackId}_${groupId}_${Date.now()}`,
+            //     data: newPoint
+            //   }
+            // });
+          } else {
+            // const result = await setDoc({
+            //   collection: "live_tracks",
+            //   doc: {
+            //     key: `${trackId}_${groupId}_${Date.now()}`,
+            //     data: newPoint
+            //   }
+            // });
+            await alltracks.createCheckpoint(newPoint);
+
+            setHasCloudPoints(true);
+          }
+        } catch (error) {
+          showNotification(`Error uploading to cloud: ${error}`, error);
         }
       }
     }
@@ -626,7 +630,7 @@ function MainApp() {
           const transaction = await arweave.createTransaction({
             data: content
           }, wallet);
-    
+
           // Add tags
           transaction.addTag('Content-Type', mimeType);
           transaction.addTag('App-Name', 'AllTracks');
@@ -639,11 +643,11 @@ function MainApp() {
           transaction.addTag('Start-Time', new Date(trackPoints[0].timestamp).toLocaleString());
           transaction.addTag('File-Type', 'track');
           transaction.addTag('Owner', user.key);
-    
+
           // Sign and post transaction
           await arweave.transactions.sign(transaction, wallet);
           const response = await arweave.transactions.post(transaction);
-    
+
           if (response.status === 200) {
             showNotification(`Track uploaded to Arweave ${transaction.id}`, 'success');
             if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
@@ -683,15 +687,15 @@ function MainApp() {
             } else {
               showNotification('it is not valid hiking track', 'error');
             }
-  
+
             showNotification('Track uploaded to cloud storage', 'success');
-  
+
             clearTrackFromIndexDB(trackId);
             clearPoints();
-  
+
           }
 
-        }else{
+        } else {
           showNotification(`Please connect your wallet to upload tracks to Arweave`, 'error');
         }
 
@@ -715,43 +719,43 @@ function MainApp() {
 
 
         // if (savedAsset) {
-          // const fileRef = savedAsset.downloadUrl;
-          // const docData = {
-          //   eventId,
-          //   filename: filename,
-          //   description: description,
-          //   startime: new Date(trackPoints[0].timestamp).toLocaleString(),
-          //   endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
-          //   trackfile: fileRef,
-          //   distance: totalDistance,
-          //   duration: duration,
-          //   elevationGain: elevationGain
-          // };
+        // const fileRef = savedAsset.downloadUrl;
+        // const docData = {
+        //   eventId,
+        //   filename: filename,
+        //   description: description,
+        //   startime: new Date(trackPoints[0].timestamp).toLocaleString(),
+        //   endtime: new Date(trackPoints[trackPoints.length - 1].timestamp).toLocaleString(),
+        //   trackfile: fileRef,
+        //   distance: totalDistance,
+        //   duration: duration,
+        //   elevationGain: elevationGain
+        // };
 
-          // // Save metadata to private or public collection
-          // const docOptions = isPrivateStorage && userSettings?.storageId ? {
-          //   satellite: { satelliteId: userSettings.storageId },
-          //   collection: userSettings.trackFileCollection,
-          //   doc: {
-          //     key: eventId + "_" + groupId,
-          //     data: docData,
-          //     description: description,
-          //   }
-          // } : {
-          //   collection: "tracks",
-          //   doc: {
-          //     key: eventId + "_" + groupId,
-          //     data: docData,
-          //     description: description,
-          //   }
-          // };
+        // // Save metadata to private or public collection
+        // const docOptions = isPrivateStorage && userSettings?.storageId ? {
+        //   satellite: { satelliteId: userSettings.storageId },
+        //   collection: userSettings.trackFileCollection,
+        //   doc: {
+        //     key: eventId + "_" + groupId,
+        //     data: docData,
+        //     description: description,
+        //   }
+        // } : {
+        //   collection: "tracks",
+        //   doc: {
+        //     key: eventId + "_" + groupId,
+        //     data: docData,
+        //     description: description,
+        //   }
+        // };
 
-          // await setDoc(docOptions);
-          // showNotification('created track record', 'success');
+        // await setDoc(docOptions);
+        // showNotification('created track record', 'success');
 
 
-          //update userstate when it's public and long enough
-          
+        //update userstate when it's public and long enough
+
         // } else {
         //   showNotification('Failed to upload track file', 'error');
         // }
