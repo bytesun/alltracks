@@ -99,7 +99,9 @@ function MainApp() {
   const [hasCloudPoints, setHasCloudPoints] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [showImportOptions, setShowImportOptions] = useState(false);
+  const [message, setMessage] = useState<String | undefined>(undefined); 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -514,7 +516,7 @@ function MainApp() {
         setAutoCenter(true);
         setTimeout(() => setAutoCenter(false), 100);
 
-        showNotification('Point recorded successfully', 'success');
+        
         if (data.cloudEnabled) {
 
           showNotification('Uploading to cloud...', 'info');
@@ -544,12 +546,12 @@ function MainApp() {
             //     data: newPoint
             //   }
             // });
-            showNotification('before Uploaded to cloud', 'success');
+            
             await alltracks.createCheckpoint({
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
               timestamp: BigInt(pendingPosition.timestamp),
-              elevation: pendingPosition.coords.altitude ,
+              elevation: pendingPosition.coords.altitude || undefined,
               note: [data.comment.trim()],
               photo: [photoUrl],
               isPublic: data.isPrivate ? false : true,
@@ -564,6 +566,7 @@ function MainApp() {
 
       }
     } catch (error) {
+      setMessage(JSON.stringify(error));
       showNotification(`Error uploading to cloud: ${error}`, error);
     }
   };
@@ -850,6 +853,11 @@ function MainApp() {
           </div>
         )}
 
+        {message && (
+          <div className="message">
+            {message}
+          </div>
+        )}
         {!trackId && <div className="controls">
           <button onClick={() => setShowStartModal(true)}>Start Track</button>
         </div>}
