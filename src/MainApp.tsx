@@ -493,18 +493,15 @@ function MainApp() {
     }
 
     if (pendingPosition) {
-      const newPoint: CheckPoint = {
+      const newPoint: TrackPoint = {
         latitude: pendingPosition.coords.latitude,
         longitude: pendingPosition.coords.longitude,
         timestamp: pendingPosition.timestamp,
         elevation: pendingPosition.coords.altitude || undefined,
-        note: data.comment.trim() || undefined,
-        photo: photoUrl || undefined,
-        isPublic: data.isPrivate ? false : true,
-        groupId: groupId || undefined,
-        trackId: trackId
+        comment: data.comment.trim() || undefined,
+        photo: photoUrl || undefined,        
       };
-
+      
 
       //--save to local first
       setTrackPoints((prev) => [...prev, newPoint]);
@@ -544,7 +541,17 @@ function MainApp() {
             //     data: newPoint
             //   }
             // });
-            await alltracks.createCheckpoint(newPoint);
+            await alltracks.createCheckpoint({
+              latitude: pendingPosition.coords.latitude,
+              longitude: pendingPosition.coords.longitude,
+              timestamp: BigInt(pendingPosition.timestamp),
+              elevation: pendingPosition.coords.altitude || undefined,
+              note: [data.comment.trim() ],
+              photo: [photoUrl],
+              isPublic: data.isPrivate ? false : true,
+              groupId: [groupId],
+              trackId: trackId
+            });
 
             setHasCloudPoints(true);
           }
