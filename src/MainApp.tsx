@@ -492,30 +492,31 @@ function MainApp() {
       showNotification('Error uploading photo:', error);
     }
 
-    if (pendingPosition) {
-      const newPoint: TrackPoint = {
-        latitude: pendingPosition.coords.latitude,
-        longitude: pendingPosition.coords.longitude,
-        timestamp: pendingPosition.timestamp,
-        elevation: pendingPosition.coords.altitude || undefined,
-        comment: data.comment.trim() || undefined,
-        photo: photoUrl || undefined,        
-      };
-      
+    try {
+      if (pendingPosition) {
+        const newPoint: TrackPoint = {
+          latitude: pendingPosition.coords.latitude,
+          longitude: pendingPosition.coords.longitude,
+          timestamp: pendingPosition.timestamp,
+          elevation: pendingPosition.coords.altitude || undefined,
+          comment: data.comment.trim() || undefined,
+          photo: photoUrl || undefined,
+        };
 
-      //--save to local first
-      setTrackPoints((prev) => [...prev, newPoint]);
-      //save to  IndexDB
-      const updatedPoints = [...trackPoints, newPoint];
-      await saveTrackPointsToIndexDB(trackId, updatedPoints);
-      setPendingPosition(null);
-      // showNotification('Point recorded successfully', 'success');
-      setAutoCenter(true);
-      setTimeout(() => setAutoCenter(false), 100);
 
-      showNotification('Point recorded successfully', 'success');
-      if (data.cloudEnabled) {
-        try {
+        //--save to local first
+        setTrackPoints((prev) => [...prev, newPoint]);
+        //save to  IndexDB
+        const updatedPoints = [...trackPoints, newPoint];
+        await saveTrackPointsToIndexDB(trackId, updatedPoints);
+        setPendingPosition(null);
+        // showNotification('Point recorded successfully', 'success');
+        setAutoCenter(true);
+        setTimeout(() => setAutoCenter(false), 100);
+
+        showNotification('Point recorded successfully', 'success');
+        if (data.cloudEnabled) {
+
           showNotification('Uploading to cloud...', 'info');
           if (data.isIncident) {
             // const result = await setDoc({
@@ -549,7 +550,7 @@ function MainApp() {
               longitude: pendingPosition.coords.longitude,
               timestamp: BigInt(pendingPosition.timestamp),
               elevation: pendingPosition.coords.altitude || undefined,
-              note: [data.comment.trim() ],
+              note: [data.comment.trim()],
               photo: [photoUrl],
               isPublic: data.isPrivate ? false : true,
               groupId: [groupId],
@@ -558,10 +559,12 @@ function MainApp() {
 
             setHasCloudPoints(true);
           }
-        } catch (error) {
-          showNotification(`Error uploading to cloud: ${error}`, error);
+
         }
+
       }
+    } catch (error) {
+      showNotification(`Error uploading to cloud: ${error}`, error);
     }
   };
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
