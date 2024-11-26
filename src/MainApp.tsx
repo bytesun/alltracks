@@ -549,7 +549,7 @@ function MainApp() {
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
               timestamp: BigInt(pendingPosition.timestamp),
-              elevation: pendingPosition.coords.altitude || undefined,
+              elevation: pendingPosition.coords.altitude ,
               note: [data.comment.trim()],
               photo: [photoUrl],
               isPublic: data.isPrivate ? false : true,

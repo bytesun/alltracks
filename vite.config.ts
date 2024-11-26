@@ -15,5 +15,12 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 1000
-  }
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+    },
+  },
 })
