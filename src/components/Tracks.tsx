@@ -3,19 +3,16 @@ import React from 'react';
 import './Tracks.css';
 import { useStats } from '../context/StatsContext'; 
 import { useGlobalContext } from './Store';
+import { useAlltracks } from './Store';
+import { parseTracks } from '../utils/trackUtils';
+import { Track } from "../api/alltracks/backend.did"
 
-
-interface TrackData {
-  filename: string;
-  distance: number;
-  duration: number;
-  elevationGain: number;
-  startime: number;
-}
 
 export const Tracks: React.FC = () => {
-  const { state: { isAuthed } } = useGlobalContext();
-  const [tracks, setTracks] = React.useState<TrackData[]>([]);
+
+  const alltracks = useAlltracks();
+  const { state: { isAuthed, principal } } = useGlobalContext();
+  const [tracks, setTracks] = React.useState<Track[]>([]);
   const [trackVisibility, setTrackVisibility] = React.useState<'public' | 'private'>('public');
   const { settings } = useStats();
 
@@ -28,20 +25,11 @@ export const Tracks: React.FC = () => {
 
   const fetchTracks = async () => {
     let items = [];
-    if (trackVisibility === 'public') {
-      
-    } else {
-      
-    }
-    const formattedTracks = items.map(doc => ({
+    const tks = await alltracks.getTracks({user: principal })
 
-      filename: doc.data.filename,
-      distance: doc.data.distance,
-      duration: doc.data.duration,
-      elevationGain: doc.data.elevationGain,
-      startime: doc.data.startime,
-    }));
-
+   
+    const formattedTracks = parseTracks(tks);
+    console.log(formattedTracks)
     setTracks(formattedTracks);
   };
 
@@ -79,11 +67,11 @@ export const Tracks: React.FC = () => {
             <div key={track.startime} className="track-item">
               <span className="material-icons">route</span>
               <div className="track-info">
-                <div className="track-title">[{track.startime}] {track.filename}</div>
+                <div className="track-title">[{new Date(track.startime).toLocaleDateString()}] {track.name}</div>
                 <div className="track-meta">
-                  <span>{track.distance.toFixed(2)} km</span>
-                  <span>{track.duration.toFixed(2)} hr</span>
-                  <span>{track.elevationGain.toFixed(2)} m</span>
+                  <span>{track.length} km</span>
+                  <span>{track.duration} hr</span>
+                  <span>{track.elevation} m</span>
                   
                 </div>
               </div>

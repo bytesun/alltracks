@@ -33,12 +33,12 @@ export const routeTypeMap = {
           return {
             name,
             description,
-            distance: Number(distance),
-            elevationGain: Number(elevationGain),
-            duration: Number(duration),
+            distance: Number(distance.toFixed(2)),
+            elevationGain: Number(elevationGain.toFixed(2)),
+            duration: Number(duration.toFixed(2)),
             routeType: Object.getOwnPropertyNames(ttype)[0],
             difficulty: Object.getOwnPropertyNames(difficulty)[0],
-            rating: Number(rate),
+            rating: Number(rate.toFixed(2)),
             tags,
             trailfile,
             photos
