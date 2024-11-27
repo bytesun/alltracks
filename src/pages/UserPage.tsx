@@ -36,14 +36,15 @@ export const UserPage: React.FC = () => {
 
         const loadUserStats = async () => {
             const userstats = await alltracks.getUserstats(Principal.fromText(userKey))
+            console.log(userstats)
             if (userstats.length > 0) {
 
                 setUserStats({
-                    totalDistance: userstats.totalDistance,
-                    totalHours: userstats.totalHours,
-                    totalElevation: userstats.totalElevation,
-                    completedTrails: userstats.completedTrails,
-                    firstHikeDate: userstats.firstHikeDate,
+                    totalDistance: userstats[0].totalDistance,
+                    totalHours: userstats[0].totalHours,
+                    totalElevation: userstats[0].totalElevation,
+                    completedTrails: Number(userstats[0].completedTrails),
+                    firstHikeDate: new Date(Number(userstats[0].firstHikeDate)/1000000).toLocaleDateString(),
                 });
             }else{
                 setUserStats({
@@ -77,7 +78,7 @@ export const UserPage: React.FC = () => {
                 comment: point.note.length ? point.note[0] : '',
                 photo: point.photo.length > 0 ? point.photo[0] : undefined,
             }));
-            console.log(points)
+           
             setTrackPoints(points);
         }
 

@@ -57,7 +57,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
         if (trackPoints.length > 0) {
             setSelectedPoint(trackPoints[0]);
         }
-       
+
     }, [trackPoints]);
 
     return (
@@ -75,27 +75,25 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    {trackPoints.map((point, index) => (
+                    {selectedPoint && (
                         <Marker
-                            key={index}
-                            position={[point.latitude, point.longitude]}
-                            icon={selectedPoint === point ? highlightedIcon : defaultIcon}
+                            position={[selectedPoint.latitude, selectedPoint.longitude]}
+                            icon={highlightedIcon}
                         >
-                            <Popup >
+                            <Popup>
                                 <div className="marker-popup">
                                     <div className="marker-details">
-
-                                        {point.photo && (
+                                        {selectedPoint.photo && (
                                             <div className="image-container">
                                                 <div className="image-placeholder">
                                                     <span className="material-icons">image</span>
                                                     <span>Loading...</span>
                                                 </div>
                                                 <img
-                                                    src={point.photo}
+                                                    src={selectedPoint.photo}
                                                     alt="Location"
                                                     className="location-image"
-                                                    onClick={() => window.open(point.photo, '_blank')}
+                                                    onClick={() => window.open(selectedPoint.photo, '_blank')}
                                                     onLoad={(e) => {
                                                         (e.currentTarget as HTMLElement).style.display = 'block';
                                                         (e.currentTarget.previousElementSibling as HTMLElement)!.style.display = 'none';
@@ -108,17 +106,15 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                                                         if (placeholder) placeholder.textContent = 'Failed to load image';
                                                     }}
                                                 />
-
-
                                             </div>
                                         )}
-                                        <p>{point.comment}</p>
+                                        <p>{selectedPoint.comment}</p>
                                     </div>
                                 </div>
                             </Popup>
-
                         </Marker>
-                    ))}
+                    )}
+
                 </MapContainer>
             </div>
             <div className="timeline-column">
@@ -159,7 +155,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                         <div className="details">
                             <div>Lat: {point.latitude.toFixed(4)}</div>
                             <div>Lng: {point.longitude.toFixed(4)}</div>
-                            <div>Elevation: {point.elevation}m</div>
+                            <div>Elevation: {point.elevation.toFixed(2)}m</div>
                         </div>
                     </div>
                 ))}
