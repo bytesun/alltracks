@@ -7,11 +7,100 @@ type UserStats =
    totalElevation: float64;
    totalHours: float64;
  };
+type TrailType = 
+ variant {
+   outandback;
+   pointto;
+   tloop;
+ };
+type TrailFilter = 
+ variant {
+   difficulty: Difficulty;
+   ttype: TrailType;
+ };
+type Trail = 
+ record {
+   createdAt: Time;
+   createdBy: principal;
+   description: text;
+   difficulty: Difficulty;
+   distance: float64;
+   duration: float64;
+   elevationGain: float64;
+   id: nat;
+   name: text;
+   photos: vec text;
+   rate: float64;
+   tags: vec text;
+   trailfile: text;
+   ttype: TrailType;
+ };
+type TrackFilter = 
+ variant {
+   group: text;
+   user: principal;
+ };
+type Track = 
+ record {
+   createdBy: principal;
+   description: text;
+   duration: float64;
+   elevation: float64;
+   groupId: opt text;
+   id: text;
+   isPublic: bool;
+   length: float64;
+   name: text;
+   startime: Time;
+   trackfile: text;
+ };
 type Time = int;
+type Result_3 = 
+ variant {
+   err: text;
+   ok: Group;
+ };
+type Result_2 = 
+ variant {
+   err: text;
+   ok: Track;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: Trail;
+ };
 type Result = 
  variant {
    err: text;
    ok: nat;
+ };
+type NewTrail = 
+ record {
+   description: text;
+   difficulty: Difficulty;
+   distance: float64;
+   duration: float64;
+   elevationGain: float64;
+   name: text;
+   photos: vec text;
+   rate: float64;
+   tags: vec text;
+   trailfile: text;
+   ttype: TrailType;
+ };
+type NewTrack = 
+ record {
+   description: text;
+   duration: float64;
+   elevation: float64;
+   groupId: opt text;
+   id: text;
+   isPublic: bool;
+   length: float64;
+   name: text;
+   startime: Time;
+   trackfile: text;
  };
 type NewGroup = 
  record {
@@ -43,6 +132,13 @@ type Group =
    members: vec principal;
    name: text;
  };
+type Difficulty = 
+ variant {
+   easy;
+   extreme;
+   hard;
+   medium;
+ };
 type CheckpointFilter = 
  variant {
    groupId: text;
@@ -63,12 +159,19 @@ type CheckPoint =
    trackId: text;
  };
 service : {
-  createCheckpoint: (NewCheckPoint) -> (CheckPoint);
-  createGroup: (NewGroup) -> (Result);
+  createCheckpoint: (NewCheckPoint) -> (Result);
+  createGroup: (NewGroup) -> (Result_3);
+  createTrack: (NewTrack) -> (Result_2);
+  createTrail: (NewTrail) -> (Result_1);
   getCheckpoints: (CheckpointFilter) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
   getMyGroups: () -> (vec Group) query;
+  getTrack: (text) -> (opt Track) query;
+  getTracks: (TrackFilter) -> (vec Track) query;
+  getTrail: (nat) -> (opt Trail) query;
+  getTrails: (TrailFilter) -> (vec Trail) query;
   getUserstats: (principal) -> (opt UserStats) query;
+  searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);
-  updateUserStats: (float64, float64, float64) -> (UserStats);
+  updateUserStats: (float64, float64, float64) -> (Result);
 }

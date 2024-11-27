@@ -617,7 +617,29 @@ function MainApp() {
           const response = await arweave.transactions.post(transaction);
 
           if (response.status === 200) {
-            showNotification(`Track uploaded to Arweave ${transaction.id}`, 'success');
+            //create track record
+
+            const result = await alltracks.createTrack({
+              id: eventId,
+              groupId: [groupId],
+              name: filename,
+              description: description,
+              length: totalDistance,
+              duration: duration,
+              elevation: elevationGain,
+              startime: trackPoints[0].timestamp,              
+              trackfile: transaction.id,
+              isPublic: !isPrivateStorage,
+
+            });
+
+            if (result.error) {
+              showNotification(`Error creating track record: ${result.error}`, 'error');
+            } else {
+              showNotification(`Track record created: ${result.id}`, 'success');
+            }
+
+           
             if (!isPrivateStorage && totalDistance >= 1 && speedKmh <= 7) {
                     await alltracks.updateUserStats(totalDistance,duration,elevationGain);
                 showNotification('updated user stats', 'success');
