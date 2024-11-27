@@ -7,7 +7,8 @@ import { User } from "@junobuild/core";
 import { EditGroupModal } from './EditGroupModal';
 import { Group } from '../types/Group';
 import { useNotification } from '../context/NotificationContext';
-import { useGlobalContext } from './Store';
+import { useGlobalContext, useAlltracks } from './Store';
+import { NewGroup } from '../api/alltracks/backend.did';
 
 interface BeEditGroup extends Group {
   key: string;
@@ -15,7 +16,8 @@ interface BeEditGroup extends Group {
 }
 
 export const GroupManagement = () => {
-  const { state: { isAuthed } } = useGlobalContext();
+  const { state: { isAuthed , principal} } = useGlobalContext();
+  const alltracks = useAlltracks();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [groups, setGroups] = useState<BeEditGroup[]>([]);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
@@ -27,6 +29,8 @@ export const GroupManagement = () => {
 
   const fetchGroups = async () => {
     try {
+      const groups = await alltracks.getMyGroups();
+      
       // const { items } = await listDocs<Group>({
       //   collection: "groups",
       //   filter: {
@@ -40,7 +44,14 @@ export const GroupManagement = () => {
       //   version: item.version
       // }));
 
-      // setGroups(formattedGroups);
+      const formattedGroups = groups.map(item => ({
+        name: item.name,
+        description: item.description,
+        calendarId: item.id,
+        members: item.members,
+        groupBadge: item.groupBadge,
+      } as Group));
+      setGroups(formattedGroups);
     } catch (error) {
       console.error('Error fetching groups:', error);
     }
@@ -48,6 +59,15 @@ export const GroupManagement = () => {
   const handleCreateGroup = async (groupData: Group) => {
 
     try {
+      const result = await alltracks.createGroup({
+        name: groupData.name,
+        description: groupData.description,
+        members: [principal],
+        id: groupData.calendarId,
+        admin: principal
+        
+      } as NewGroup);
+      console.log("result", result)
       // await setDoc({
       //   collection: "groups",
       //   doc: {
@@ -58,8 +78,15 @@ export const GroupManagement = () => {
       //     }
       //   }
       // });
-      // await fetchGroups();
-      setIsModalOpen(false);
+      if(result["ok"]){
+        showNotification(`Group ${groupData.name} created successfully`, 'success');
+        await fetchGroups();
+        setIsModalOpen(false);
+      }
+      else{
+        showNotification(`Error creating group ${result["err"]}`, 'error');
+      }
+     
     } catch (error) {
       showNotification(`Error creating group ${error} `, 'error');
     }
