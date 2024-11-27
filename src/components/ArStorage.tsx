@@ -146,7 +146,12 @@ export const ArStorage: React.FC = () => {
       transaction.addTag('Tags', formData.tags);
       transaction.addTag('File-Type', 'photo');
 
-      await arweave.transactions.sign(transaction, wallet);
+      if(wallet) {
+        await arweave.transactions.sign(transaction, wallet);
+      }else{
+        await arweave.transactions.sign(transaction);
+      }
+      
       const response = await arweave.transactions.post(transaction);
 
       if (response.status === 200) {

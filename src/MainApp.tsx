@@ -64,7 +64,7 @@ function MainApp() {
     message: string;
     type: 'success' | 'error' | 'info';
   } | null>(null);
-  const { state: { isAuthed,principal } } = useGlobalContext();
+  const { state: { isAuthed, principal } } = useGlobalContext();
   const [showNotice, setShowNotice] = useState(true);
 
   const alltracks = useAlltracks();
@@ -100,7 +100,7 @@ function MainApp() {
   const [hasCloudPoints, setHasCloudPoints] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
   const [showImportOptions, setShowImportOptions] = useState(false);
-  const [message, setMessage] = useState<String | undefined>(undefined); 
+  const [message, setMessage] = useState<String | undefined>(undefined);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
 
@@ -488,17 +488,17 @@ function MainApp() {
         setAutoCenter(true);
         setTimeout(() => setAutoCenter(false), 100);
 
-        
+
         if (data.cloudEnabled) {
 
-          
+
           if (data.isIncident) {
-           
+
           }
           if (data.isPrivate && userSettings?.trackPointCollection) {
-            
-          } else {            
-            
+
+          } else {
+
             await alltracks.createCheckpoint({
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
@@ -592,78 +592,65 @@ function MainApp() {
         const elevationGain = getElevationGain();
         const speedKmh = totalDistance / duration;
         //upload file to arweave
-        const result = await alltracks.createTrack({
-          id: eventId,
-          groupId: [groupId],
-          name: filename,
-          description: description,
-          length: totalDistance,
-          duration: duration,
-          elevation: elevationGain,
-          startime: trackPoints[0].timestamp,              
-          trackfile: "test",
-          isPublic: !isPrivateStorage,
 
-        });
 
-        // if (wallet) {
-          
-        //   const transaction = await arweave.createTransaction({
-        //     data: content
-        //   }, wallet);
 
-        //   // Add tags
-        //   transaction.addTag('Content-Type', mimeType);
-        //   transaction.addTag('App-Name', 'AllTracks');
-        //   transaction.addTag('Track-ID', eventId);
-        //   transaction.addTag('Group-ID', groupId);
-        //   transaction.addTag('Description', description);
-        //   transaction.addTag('Distance', totalDistance.toString());
-        //   transaction.addTag('Duration', duration.toString());
-        //   transaction.addTag('Elevation-Gain', elevationGain.toString());
-        //   transaction.addTag('Start-Time', trackPoints[0].timestamp.toString());
-        //   transaction.addTag('File-Type', 'track');
-        //   transaction.addTag('Owner', principal.toText());
 
-        //   // Sign and post transaction
-        //   await arweave.transactions.sign(transaction, wallet);
-        //   const response = await arweave.transactions.post(transaction);
+        const transaction = await arweave.createTransaction({
+          data: content
+        }, wallet);
 
-        //   if (response.status === 200) {
-        //     //create track record
+        // Add tags
+        transaction.addTag('Content-Type', mimeType);
+        transaction.addTag('App-Name', 'AllTracks');
+        transaction.addTag('Track-ID', eventId);
+        transaction.addTag('Group-ID', groupId);
+        transaction.addTag('Description', description);
+        transaction.addTag('Distance', totalDistance.toString());
+        transaction.addTag('Duration', duration.toString());
+        transaction.addTag('Elevation-Gain', elevationGain.toString());
+        transaction.addTag('Start-Time', trackPoints[0].timestamp.toString());
+        transaction.addTag('File-Type', 'track');
+        transaction.addTag('Owner', principal.toText());
 
-        //     const result = await alltracks.createTrack({
-        //       id: eventId,
-        //       groupId: [groupId],
-        //       name: filename,
-        //       description: description,
-        //       length: totalDistance,
-        //       duration: duration,
-        //       elevation: elevationGain,
-        //       startime: trackPoints[0].timestamp,              
-        //       trackfile: transaction.id,
-        //       isPublic: !isPrivateStorage,
+        // Sign and post transaction
+        if (wallet) {
+          await arweave.transactions.sign(transaction, wallet);
+        } else {//call wallet to sign manually
+          await arweave.transactions.sign(transaction);
+        }
+        const response = await arweave.transactions.post(transaction);
 
-        //     });
+        if (response.status === 200) {
+          //create track record
 
-        //     if (result.error) {
-        //       showNotification(`Error creating track record: ${result.error}`, 'error');
-        //     } else {
-        //       showNotification(`Track record created: ${result.id}`, 'success');
-        //     }
+          const result = await alltracks.createTrack({
+            id: eventId,
+            groupId: [groupId],
+            name: filename,
+            description: description,
+            length: totalDistance,
+            duration: duration,
+            elevation: elevationGain,
+            startime: trackPoints[0].timestamp,
+            trackfile: transaction.id,
+            isPublic: !isPrivateStorage,
 
-        //     showNotification('Track uploaded to cloud storage', 'success');
+          });
 
-        //     clearTrackFromIndexDB(trackId);
-        //     clearPoints();
+          if (result.error) {
+            showNotification(`Error creating track record: ${result.error}`, 'error');
+          } else {
+            showNotification(`Track record created: ${result.id}`, 'success');
+          }
 
-        //   }
+          showNotification('Track uploaded to cloud storage', 'success');
 
-        // } else {
-        //   showNotification(`Please connect your wallet to upload tracks to Arweave`, 'error');
-        // }
+          clearTrackFromIndexDB(trackId);
+          clearPoints();
 
-        
+        }
+
       }//cloud storage
     } catch (error) {
       setMessage(error.message);
@@ -731,7 +718,7 @@ function MainApp() {
           </div>
         )}
 
-        
+
         {!trackId && <div className="controls">
           <button onClick={() => setShowStartModal(true)}>Start Track</button>
         </div>}
@@ -969,7 +956,7 @@ function MainApp() {
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
         showNotification={showNotification}
-        user = {principal ? principal.toText() : null}
+        user={principal ? principal.toText() : null}
       />
 
       {showCommentModal && (

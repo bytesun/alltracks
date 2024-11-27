@@ -116,7 +116,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
             value={formData.trackId}
             onChange={handleInputChange}
             placeholder="Enter track ID"
-            disabled={!wallet}
+            
           />
         </div>
       </div>
@@ -133,7 +133,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
             value={formData.groupId}
             onChange={handleInputChange}
             placeholder="Enter group ID"
-            disabled={!wallet}
+            
           />
         </div>
       </div>
@@ -150,7 +150,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
             value={formData.tags}
             onChange={handleInputChange}
             placeholder="Enter tags (comma separated)"
-            disabled={!wallet}
+            
           />
         </div>
       </div>
@@ -166,7 +166,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
             onChange={handleFileChange}
             className="file-input"
             accept="image/*"
-            disabled={!wallet}
+            
           />
         </div>
       </div>
@@ -174,7 +174,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
 
         <button
           type="submit"
-          disabled={!file || isUploading || !wallet}
+          disabled={!file || isUploading }
           className="upload-button"
         >
 
