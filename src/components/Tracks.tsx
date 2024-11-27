@@ -67,7 +67,7 @@ export const Tracks: React.FC = () => {
             <div key={track.startime} className="track-item">
               <span className="material-icons">route</span>
               <div className="track-info">
-                <div className="track-title">[{new Date(track.startime).toLocaleDateString()}] {track.name}</div>
+                <div className="track-title">[{new Date(Number(track.startime)).toLocaleDateString()}] {track.name}</div>
                 <div className="track-meta">
                   <span>{track.length} km</span>
                   <span>{track.duration} hr</span>

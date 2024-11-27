@@ -15,10 +15,11 @@ import { TrackAchievements } from '../components/TrackAchievements';
 import { ArStorage } from '../components/ArStorage';
 
 import { UserStats } from '../types/UserStats';
-import { useGlobalContext } from '../components/Store';
+import { useGlobalContext, useAlltracks } from '../components/Store';
 
 export const Profile: React.FC = () => {
 
+  const alltracks = useAlltracks();
   const [activeTab, setActiveTab] = useState('profile');
   const { state: { isAuthed, principal } } = useGlobalContext();
 
@@ -31,26 +32,35 @@ export const Profile: React.FC = () => {
     firstHikeDate: new Date().toDateString(),
   });
 
-  // useEffect(() => {
-  //   const loadUserStats = async () => {
-  //     const statDoc = await getDoc<UserStats>({
-  //       collection: "stats",
-  //       key: user?.key,
-  //     });
-  //     setUserStats(statDoc?.data || {
-  //       totalDistance: 0,
-  //       totalHours: 0,
-  //       totalElevation: 0,
-  //       completedTrails: 0,
-  //       firstHikeDate: new Date().toDateString(),
-  //     });
-  //   };
+  useEffect(() => {
+    console.log("Loading user stats...")
+    const loadUserStats = async () => {
+      console.log("Loading user stats in...")
+      const us = await alltracks.getUserstats(principal);
+      console.log(us)
 
-  //   if (user) {
-  //     loadUserStats();
-  //   }
-  // }, [user]);
+      if (us.length > 0) {
+        const uss = us[0];
+        setUserStats({
+          totalDistance: uss.totalDistance,
+          totalHours: uss.totalHours,
+          totalElevation: uss.totalElevation,
+          completedTrails: Number(uss.completedTrails),
+          firstHikeDate: new Date(Number(uss.firstHikeDate)/1000000).toLocaleDateString(),
+        });
+      };
 
+    }
+    loadUserStats();
+  }, [isAuthed]);
+
+  useEffect(() => {
+    const updateUserStats = async () => {
+      const result = await alltracks.updateUserStats(3,24,35);
+      console.log(result)
+    };
+    updateUserStats();
+  },[]);
 
   if (!isAuthed) {
     return <Navigate to="/" replace />;
@@ -69,7 +79,7 @@ export const Profile: React.FC = () => {
               <span className="material-icons">person</span>
               POH
             </div>
- 
+
 
             <div
               className={`sidebar-item ${activeTab === 'group' ? 'active' : ''}`}
@@ -129,7 +139,7 @@ export const Profile: React.FC = () => {
             )}
             {activeTab === 'tracks' && <Tracks />}
             {activeTab === 'trails' && <Trails />}
-  
+
             {activeTab === 'arstorage' && (
               <ArStorage
               />

@@ -128,7 +128,7 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
                                         <h3>{trail.name}</h3>
                                         <div className="trail-stats">
                                             <span>{trail.elevationGain} m</span>
-                                            <span>{trail.length} km</span>
+                                            <span>{trail.distance} km</span>
                                             <span>{trail.difficulty} </span>
                                         </div>
                                     </div>

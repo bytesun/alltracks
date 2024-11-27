@@ -705,13 +705,13 @@ function MainApp() {
   const handleTrailSelect = async (trail: Trail) => {
 
     if (trail) {
-      const response = await fetch(trail.fileRef);
+      const response = await fetch(trail.trailfile);
       const content = await response.text();
 
       let points: TrackPoint[] = [];
-      if (trail.fileRef.endsWith('.gpx')) {
+      if (trail.trailfile.endsWith('.gpx')) {
         points = parseGPX(content);
-      } else if (trail.fileRef.endsWith('.kml')) {
+      } else if (trail.trailfile.endsWith('.kml')) {
         points = parseKML(content);
       } else {
         points = parseCSV(content);
