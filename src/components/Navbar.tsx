@@ -65,7 +65,7 @@ export const Navbar = () => {
   const handleIILogin = async () => {
     console.log("login II with " + derivationOrigin)
     authClient.login({
-      // derivationOrigin: DERIVATION_ORIGION,
+      derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
       onSuccess: () => {
