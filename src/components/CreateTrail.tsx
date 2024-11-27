@@ -6,11 +6,13 @@ export interface TrailForm {
     description: string;
     length: number;
     elevationGain: number;
+    duration: number;
     routeType: 'loop' | 'out-and-back' | 'point-to-point';
     difficulty: 'easy' | 'moderate' | 'hard' | 'expert';
     rating: number;
     tags: string[];
     imageUrl: string;
+
 }
 
 interface CreateTrailProps {
@@ -25,11 +27,12 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
         description: '',
         length: 0,
         elevationGain: 0,
+        duration: 0,
         routeType: 'loop',
         difficulty: 'moderate',
         rating: 0,
         tags: [],
-        imageUrl: ''
+        imageUrl: null
 
     });
 
@@ -103,6 +106,17 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
                             value={formData.elevationGain}
                             onChange={handleInputChange}
                             min="0"
+                        />
+                    </div>
+                    <div className="trail-form-group">
+                        <label>Duration (hours)</label>
+                        <input
+                            type="number"
+                            name="duration"
+                            value={formData.duration}
+                            onChange={handleInputChange}
+                            min="0"
+                            placeholder="Estimated duration"
                         />
                     </div>
                 </div>

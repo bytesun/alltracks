@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Cookies from 'js-cookie';
 import Arweave from 'arweave';
 import { useNotification } from '../context/NotificationContext';
-import { useGlobalContext } from './Store';
+import { useGlobalContext, useAlltracks } from './Store';
 
 interface Trail {
     id: string;
@@ -28,6 +28,7 @@ export const Trails: React.FC = () => {
     const { state:{
         isAuthed, principal
     }} = useGlobalContext();
+    const alltracks = useAlltracks();
     
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -84,6 +85,28 @@ export const Trails: React.FC = () => {
 
                 if (response.status === 200) {
                     const fileUrl = `https://arweave.net/${transaction.id}`;
+                    const newtrail = {
+                        name: trailData.name,
+                        description: trailData.description,
+                        distance: Number(trailData.length),
+                        elevationGain: Number(trailData.elevationGain),
+                        duration:Number(trailData.duration),
+                        ttype: getSaveTrailType(trailData.routeType),
+                        difficulty: getDifficulty(trailData.difficulty),
+                        rate: Number(trailData.rating),
+                        tags: trailData.tags,                        
+                        trailfile: transaction.id,
+                        photos: [trailData.imageUrl],
+                    };
+                    console.log(newtrail);
+                    const result = await alltracks.createTrail(newtrail);   
+                    if (result.success) {
+                        
+                        showNotification('Trail uploaded successfully', 'success');
+                    } else {
+                        console.error('Error uploading trail:', result.error);
+                        showNotification('Error uploading trail', 'error');
+                    }
 
                     showNotification('Trail uploaded successfully', 'success');
                 }
@@ -102,6 +125,33 @@ export const Trails: React.FC = () => {
     };
 
  
+    const getSaveTrailType = (trailType: string) => {
+        
+        if (trailType === 'loop') {
+            return {'tloop':null};
+        } else if (trailType === 'out-and-back') {
+            return {'outandback':null};
+            } else if (trailType === 'hard') {
+            return {'hard':null};
+        } else if (trailType === 'point-to-point') {
+            return {'pointto':null};
+        } else {
+            return null;
+        }
+    };
+    const getDifficulty = (difficulty: string) => {
+        if (difficulty === 'easy') {
+            return {'easy':null};
+        } else if (difficulty === 'moderate') {
+            return {'moderate':null};
+        } else if (difficulty === 'hard') {
+            return {'hard':null};
+        } else if (difficulty === 'expert') {
+            return {'expert':null};
+        } else {
+            return 'Unknown';
+        }
+    };  
 
     const loadTrails = async () => {
         setIsLoading(true);

@@ -732,11 +732,7 @@ function MainApp() {
           </div>
         )}
 
-        {message && (
-          <div className="message">
-            {message}
-          </div>
-        )}
+        
         {!trackId && <div className="controls">
           <button onClick={() => setShowStartModal(true)}>Start Track</button>
         </div>}
