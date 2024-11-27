@@ -3,10 +3,11 @@ export
 interface Trail {
   id: string;
   name: string;
-  length: number;
+  distance: number;
   elevationGain: number;
+  duration: number;
   difficulty: 'easy' | 'moderate' | 'hard';
   description: string;
-  imageUrl: string;
-  fileRef: string;
+  photos: string[];
+  trailfile: string;
 }

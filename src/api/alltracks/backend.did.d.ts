@@ -19,8 +19,8 @@ export type CheckpointFilter = { 'user' : Principal } |
   { 'trackId' : string };
 export type Difficulty = { 'easy' : null } |
   { 'hard' : null } |
-  { 'extreme' : null } |
-  { 'medium' : null };
+  { 'expert' : null } |
+  { 'moderate' : null };
 export interface Group {
   'id' : string,
   'members' : Array<Principal>,
@@ -134,6 +134,7 @@ export interface _SERVICE {
   'getCheckpoints' : ActorMethod<[CheckpointFilter], Array<CheckPoint>>,
   'getGroup' : ActorMethod<[string], [] | [Group]>,
   'getMyGroups' : ActorMethod<[], Array<Group>>,
+  'getMyTrails' : ActorMethod<[], Array<Trail>>,
   'getTrack' : ActorMethod<[string], [] | [Track]>,
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,

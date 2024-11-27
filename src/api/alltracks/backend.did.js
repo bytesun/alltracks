@@ -63,8 +63,8 @@ export const idlFactory = ({ IDL }) => {
   const Difficulty = IDL.Variant({
     'easy' : IDL.Null,
     'hard' : IDL.Null,
-    'extreme' : IDL.Null,
-    'medium' : IDL.Null,
+    'expert' : IDL.Null,
+    'moderate' : IDL.Null,
   });
   const NewTrail = IDL.Record({
     'duration' : IDL.Float64,
@@ -141,6 +141,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getGroup' : IDL.Func([IDL.Text], [IDL.Opt(Group)], ['query']),
     'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),
+    'getMyTrails' : IDL.Func([], [IDL.Vec(Trail)], ['query']),
     'getTrack' : IDL.Func([IDL.Text], [IDL.Opt(Track)], ['query']),
     'getTracks' : IDL.Func([TrackFilter], [IDL.Vec(Track)], ['query']),
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),

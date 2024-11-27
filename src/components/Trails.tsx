@@ -5,43 +5,40 @@ import './Trails.css';
 import { TrailForm } from './CreateTrail';
 import { v4 as uuidv4 } from 'uuid';
 import Cookies from 'js-cookie';
-import Arweave from 'arweave';
+import { arweave } from '../utils/arweave';
 import { useNotification } from '../context/NotificationContext';
 import { useGlobalContext, useAlltracks } from './Store';
+import { Trail as TrailType } from '../api/alltracks/backend.did';
+import { routeTypeMap, difficultyMap, parseTrails } from '../utils/trailUtils';
 
 interface Trail {
     id: string;
     name: string;
     description: string;
-    length: number;
+    distance: number;
     elevationGain: number;
+    duration: number;
     routeType: 'loop' | 'out-and-back' | 'point-to-point';
     difficulty: 'easy' | 'moderate' | 'hard' | 'expert';
     rating: number;
     tags: string[];
     userId: string;
-    fileRef: string;
-    imageUrl: string;
+    trailfile: string;
+    photos: string[];
 }
 
 export const Trails: React.FC = () => {
-    const { state:{
+    const { state: {
         isAuthed, principal
-    }} = useGlobalContext();
+    } } = useGlobalContext();
     const alltracks = useAlltracks();
-    
+
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [wallet, setWallet] = useState<any>(null);
     const { showNotification } = useNotification();
 
-
-    const arweave = Arweave.init({
-        host: 'arweave.net',
-        port: 443,
-        protocol: 'https'
-    });
 
     useEffect(() => {
         loadTrails();
@@ -76,8 +73,8 @@ export const Trails: React.FC = () => {
                 transaction.addTag('Rating', trailData.rating.toString());
                 transaction.addTag('Tags', trailData.tags.join(','));
                 transaction.addTag('User-Key', principal.toText());
-                transaction.addTag('File-Type', 'trail');                
-                
+                transaction.addTag('File-Type', 'trail');
+
 
                 // Sign and post transaction
                 await arweave.transactions.sign(transaction, wallet);
@@ -90,18 +87,18 @@ export const Trails: React.FC = () => {
                         description: trailData.description,
                         distance: Number(trailData.length),
                         elevationGain: Number(trailData.elevationGain),
-                        duration:Number(trailData.duration),
-                        ttype: getSaveTrailType(trailData.routeType),
-                        difficulty: getDifficulty(trailData.difficulty),
+                        duration: Number(trailData.duration),
+                        ttype: routeTypeMap[trailData.routeType],
+                        difficulty: difficultyMap[trailData.difficulty],
                         rate: Number(trailData.rating),
-                        tags: trailData.tags,                        
+                        tags: trailData.tags,
                         trailfile: transaction.id,
                         photos: [trailData.imageUrl],
                     };
                     console.log(newtrail);
-                    const result = await alltracks.createTrail(newtrail);   
+                    const result = await alltracks.createTrail(newtrail);
                     if (result.success) {
-                        
+
                         showNotification('Trail uploaded successfully', 'success');
                     } else {
                         console.error('Error uploading trail:', result.error);
@@ -124,97 +121,22 @@ export const Trails: React.FC = () => {
         }
     };
 
- 
-    const getSaveTrailType = (trailType: string) => {
-        
-        if (trailType === 'loop') {
-            return {'tloop':null};
-        } else if (trailType === 'out-and-back') {
-            return {'outandback':null};
-            } else if (trailType === 'hard') {
-            return {'hard':null};
-        } else if (trailType === 'point-to-point') {
-            return {'pointto':null};
-        } else {
-            return null;
-        }
-    };
-    const getDifficulty = (difficulty: string) => {
-        if (difficulty === 'easy') {
-            return {'easy':null};
-        } else if (difficulty === 'moderate') {
-            return {'moderate':null};
-        } else if (difficulty === 'hard') {
-            return {'hard':null};
-        } else if (difficulty === 'expert') {
-            return {'expert':null};
-        } else {
-            return 'Unknown';
-        }
-    };  
+
 
     const loadTrails = async () => {
         setIsLoading(true);
-        
-        const query = `{
-          transactions(
-            tags: [
-              { name: "App-Name", values: ["AllTracks"] },
-              { name: "File-Type", values: ["trail"] },
-              { name: "User-Key", values: ["${principal.toText()}"] }
-            ]
-            first: 100
-          ) {
-            edges {
-              node {
-                id
-                owner {
-                  address
-                }
-                tags {
-                  name
-                  value
-                }
-                block {
-                  timestamp
-                }
-              }
-            }
-          }
-        }`;
-      
-        const response = await fetch('https://arweave.net/graphql', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query })
-        });
-      
-        const result = await response.json();
-        const trails = result.data.transactions.edges.map((edge: any) => {
-          const tags = edge.node.tags.reduce((acc: any, tag: any) => {
-            acc[tag.name] = tag.value;
-            return acc;
-          }, {});
-      
-          return {
-            id: edge.node.id,
-            name: tags['Trail-Name'],
-            description: tags['Description'],
-            length: Number(tags['Length']),
-            elevationGain: Number(tags['Elevation']),
-            routeType: tags['Trail-Type'],
-            difficulty: tags['Difficulty'],
-            fileRef: `https://arweave.net/${edge.node.id}`,
-            timestamp: edge.node.block?.timestamp
-          };
-        });
-      
-        setTrails(trails);
-        setIsLoading(false);
-      };
-      
+        try {
+            const trails = await alltracks.getMyTrails();
+            const formatTrails = parseTrails(trails);
+            console.log(formatTrails);
+            setTrails(formatTrails);
+        } catch (error) {
+            console.error('Error loading trails:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="trails-section">
             {isLoading && (
@@ -240,8 +162,12 @@ export const Trails: React.FC = () => {
                             <div className="trail-info">
                                 <div className="trail-title">{trail.name}</div>
                                 <div className="trail-meta">
-                                    <span>{trail.length} km</span>
+                                    <span>{trail.distance} km</span>
+                                    <span>{trail.duration} hours</span>
+                                    <span>{trail.elevationGain} m</span>
                                     <span>{trail.difficulty}</span>
+                                    
+                                    <span>{trail.routeType}</span>
                                     <span>{trail.rating}/5</span>
                                 </div>
                             </div>

@@ -135,9 +135,9 @@ type Group =
 type Difficulty = 
  variant {
    easy;
-   extreme;
+   expert;
    hard;
-   medium;
+   moderate;
  };
 type CheckpointFilter = 
  variant {
@@ -166,6 +166,7 @@ service : {
   getCheckpoints: (CheckpointFilter) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
   getMyGroups: () -> (vec Group) query;
+  getMyTrails: () -> (vec Trail) query;
   getTrack: (text) -> (opt Track) query;
   getTracks: (TrackFilter) -> (vec Track) query;
   getTrail: (nat) -> (opt Trail) query;
