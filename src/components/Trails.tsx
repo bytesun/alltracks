@@ -5,7 +5,7 @@ import './Trails.css';
 import { TrailForm } from './CreateTrail';
 import { v4 as uuidv4 } from 'uuid';
 import Cookies from 'js-cookie';
-import { arweave } from '../utils/arweave';
+import { arweave, arweaveGateway } from '../utils/arweave';
 import { useNotification } from '../context/NotificationContext';
 import { useGlobalContext, useAlltracks } from './Store';
 import { Trail as TrailType } from '../api/alltracks/backend.did';
@@ -81,7 +81,7 @@ export const Trails: React.FC = () => {
                 const response = await arweave.transactions.post(transaction);
 
                 if (response.status === 200) {
-                    const fileUrl = `https://arweave.net/${transaction.id}`;
+                    const fileUrl = `${arweaveGateway}/${transaction.id}`;
                     const newtrail = {
                         name: trailData.name,
                         description: trailData.description,
@@ -92,7 +92,10 @@ export const Trails: React.FC = () => {
                         difficulty: difficultyMap[trailData.difficulty],
                         rate: Number(trailData.rating),
                         tags: trailData.tags,
-                        trailfile: transaction.id,
+                        trailfile: {
+                            fileType:file.type,
+                            url:fileUrl
+                        },
                         photos: [trailData.imageUrl],
                     };
                     console.log(newtrail);

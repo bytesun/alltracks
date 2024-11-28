@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { arweave,arweaveGateway } from '../utils/arweave';
+import { arweave, arweaveGateway } from '../utils/arweave';
 import { User, setDoc, listDocs } from '@junobuild/core';
 import { UploadARForm } from './UploadARForm';
 import '../styles/ArStorage.css'
 import { useNotification } from '../context/NotificationContext';
 import Cookies from 'js-cookie';
-import { useGlobalContext } from './Store';
-
+import { useGlobalContext, useAlltracks } from './Store';
+import { Photo } from '../api/alltracks/backend.did'
+import { PhotosTab } from './PhotosTab';
 
 interface UploadFormData {
   trackId: string;
   groupId: string;
   tags: string;
   filename: string;
+  date: string;
 }
 
-interface Photo {
-  artxid: string;
-  description: string;
-  key: string;
-}
 export const ArStorage: React.FC = () => {
-  const { state:{
+  const { state: {
     isAuthed, principal
-  }} = useGlobalContext();
+  } } = useGlobalContext();
+  const alltracks = useAlltracks();
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -37,7 +35,7 @@ export const ArStorage: React.FC = () => {
 
 
   useEffect(() => {
-   
+
     const savedWallet = Cookies.get('arweave_wallet');
     if (savedWallet) {
       setWallet(JSON.parse(savedWallet));
@@ -81,7 +79,8 @@ export const ArStorage: React.FC = () => {
 
     const startOfYear = new Date(currentYear, 0, 1).getTime() * 1000000;
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000;
-
+    const result = await alltracks.getMyPhotos(startOfYear, endOfYear);
+    setPhotos(result);
     // const result = await listDocs<Photo>({
     //   collection: "photos",
     //   filter: {
@@ -123,8 +122,8 @@ export const ArStorage: React.FC = () => {
 
   const filteredPhotos = photos.filter(photo => {
     if (!selectedGroupId) return true;
-    const { groupId } = extractIds(photo.key);
-    return groupId === selectedGroupId;
+    if(!photo.groupId) return false;
+    else return photo.groupId[0] === selectedGroupId;
   });
 
 
@@ -146,28 +145,37 @@ export const ArStorage: React.FC = () => {
       transaction.addTag('Tags', formData.tags);
       transaction.addTag('File-Type', 'photo');
 
-      if(wallet) {
+      if (wallet) {
         await arweave.transactions.sign(transaction, wallet);
-      }else{
+      } else {
         await arweave.transactions.sign(transaction);
       }
-      
+
       const response = await arweave.transactions.post(transaction);
 
       if (response.status === 200) {
         setTransactionId(transaction.id);
-        await setDoc({
-          collection: "photos",
-          doc: {
-            key: `${formData.trackId}_${formData.groupId}_${Date.now()}`,
-            data: {
-              artxid: transaction.id,
-              filename: formData.filename,
-              contentype: file.type
-            },
-            description: formData.tags
-          }
-        })
+
+        // await setDoc({
+        //   collection: "photos",
+        //   doc: {
+        //     key: `${formData.trackId}_${formData.groupId}_${Date.now()}`,
+        //     data: {
+        //       artxid: transaction.id,
+        //       filename: formData.filename,
+        //       contentype: file.type
+        //     },
+        //     description: formData.tags
+        //   }
+        // })'
+
+        await alltracks.addPhoto({
+          groupId: formData.groupId,
+          photoUrl: arweaveGateway + "/" + transaction.id,
+          tags: formData.tags,
+          timestamp: new Date(formData.date).getTime()*1000000,
+          trackId: formData.trackId,
+        });
       }
       loadPhotos();
       setShowUploadForm(false)
@@ -177,9 +185,9 @@ export const ArStorage: React.FC = () => {
       setUploading(false);
     }
   };
-  const uniqueGroupIds = [...new Set(photos.map(photo => extractIds(photo.key).groupId))];
+  const uniqueGroupIds = [...new Set(photos.map(photo => photo.groupId ? photo.groupId[0] : ''))];
 
-  
+
   return (
     <div className="ar-storage">
       <div className="ar-storage-header">
@@ -216,7 +224,7 @@ export const ArStorage: React.FC = () => {
               className="year-nav-button"
             >
               <span className="material-icons">chevron_left</span>
-              
+
             </button>
             <span className="current-year">{currentYear}</span>
             <button
@@ -224,7 +232,7 @@ export const ArStorage: React.FC = () => {
               className="year-nav-button"
               disabled={currentYear === new Date().getFullYear()}
             >
-              
+
               <span className="material-icons">chevron_right</span>
             </button>
           </div>
@@ -245,19 +253,19 @@ export const ArStorage: React.FC = () => {
           <div>Loading photos...</div>
         ) : (
           <div className="photo-grid">
-            {filteredPhotos.map(photo => {
-              const { trackId, groupId } = extractIds(photo.key);
+            {filteredPhotos.map((photo,i) => {
+       
               return (
-                <div key={photo.artxid} className="photo-item">
+                <div key={i} className="photo-item">
                   <img
-                    src={`${arweaveGateway}/${photo.artxid}`}
-                    alt={photo.description}
+                    src={photo.photoUrl}
+                    alt={photo.tags.toString()}
                   />
                   <div className="photo-info">
-                    <h4>{photo.description}</h4>
+                    <h4>{photo.tags.toString()}</h4>
                     <div className="photo-meta">
-                      <span>Track: {trackId}</span>,
-                      <span>Group: {groupId}</span>
+                      <span>Track: {photo.trackId}</span>,
+                      <span>Group: {photo.groupId? photo.groupId[0]:''}</span>
                     </div>
                   </div>
                 </div>

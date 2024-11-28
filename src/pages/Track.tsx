@@ -8,26 +8,35 @@ import { Track } from '../types/Track';
 import "../styles/Track.css";
 import { Navbar } from '../components/Navbar';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-
+import { useAlltracks } from '../components/Store';
+import { parseTracks } from '../utils/trackUtils';
+import { FILETYPE_GPX , FILETYPE_KML} from '../lib/constants';
 
 export const TrackPage: React.FC = () => {
+
+  const alltracks = useAlltracks();
   const { trackId } = useParams<{ trackId: string }>();
-  const [track, setTrack] = useState<Doc<Track> | null>(null);
+  const [track, setTrack] = useState<Track | null>(null);
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   useEffect(() => {
 
     const fetchTrack = async () => {
-      const trackDoc = await getDoc<Track>({
-        collection: "tracks",
-        key: trackId as string
-      });
+      // const trackDoc = await getDoc<Track>({
+      //   collection: "tracks",
+      //   key: trackId as string
+      // });
 
-      if (trackDoc) {
-        setTrack(trackDoc);
+      // if (trackDoc) {
+      //   setTrack(trackDoc);
 
 
+      // }
+      const track = alltracks.getTrack(trackId);
+      if (track) {
+        const parsrsedTracks = parseTracks([track]);
+        setTrack(parsrsedTracks[0]);
       }
     };
 
@@ -38,19 +47,17 @@ export const TrackPage: React.FC = () => {
     const fetchTrackPoints = async () => {
 
       if (track) {
-        const response = await fetch(track.data.trackfile);
+        const response = await fetch(track.trackfile.url);
         const content = await response.text();
 
-        const fileExtension = track.data.trackfile.split('.').pop()?.toLowerCase();
-        console.log("File extension:", fileExtension);
+
         let points: TrackPoint[] = [];
 
-        if (fileExtension === 'gpx') {
+        if (track.trackfile.fileType === FILETYPE_GPX) {
           points = parseGPX(content);
-        } else if (fileExtension === 'kml') {
+        } else if (track.trackfile.fileType === FILETYPE_KML) {
           points = parseKML(content);
-        } else if (fileExtension === 'csv') {
-          points = parseCSV(content);
+        
         } else {
           points = parseCSV(content);
         }
@@ -63,24 +70,24 @@ export const TrackPage: React.FC = () => {
 
   const TrackSummary = () => (
     <div className="track-summary">
-      <h2>{track?.data.filename || 'Unnamed Track'}</h2>
-      <p>{track?.data.description || ''}</p>
+      <h2>{track?.name || 'Unnamed Track'}</h2>
+      <p>{track?.description || ''}</p>
       <div className="track-stats">
         <div className="stat">
           <label>Start</label>
-          <span>{(track?.data.startime || 0)} </span>
+          <span>{(track?.startime || 0)} </span>
         </div>
         <div className="stat">
           <label>Distance</label>
-          <span>{(track?.data.distance.toFixed(2) || 0)} km</span>
+          <span>{(track?.length.toFixed(2) || 0)} km</span>
         </div>
         <div className="stat">
           <label>Duration</label>
-          <span>{track?.data.duration.toFixed(2) || 0} hrs</span>
+          <span>{track?.duration.toFixed(2) || 0} hrs</span>
         </div>
         <div className="stat">
           <label>Elevation Gain</label>
-          <span>{track?.data.elevationGain.toFixed(0) || 0}m</span>
+          <span>{track?.elevation.toFixed(0) || 0}m</span>
         </div>
 
       </div>

@@ -1,20 +1,18 @@
 import { useState, useEffect } from 'react';
 import '../styles/TrailListModal.css'
-import Arweave from 'arweave';
-
 import { Trail } from '../types/Trail';
-
+import { useGlobalContext, useAlltracks } from './Store';
+import { parseTrails } from '../utils/trailUtils';
 interface TrailListModalProps {
     onSelect: (trail: Trail) => void;
     onClose: () => void;
 }
-const arweave = new Arweave({
-    host: 'arweave.net',
-    port: 443,
-    protocol: 'https'
-});
 
 export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClose }) => {
+    const { state:{
+        isAuthed, principal
+      }} = useGlobalContext();
+      const alltracks = useAlltracks();
     const [trails, setTrails] = useState<Trail[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -36,46 +34,12 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
     }, [searchTerm, trails, selectedDifficulty]);
 
 
-    const loadTrails = async () => {
-
-    
+    const loadTrails = async () => {    
         try {
-            const query = {
-                query: `{
-                    transactions(
-                        tags: [
-                        { name: "App-Name", values: ["AllTracks"] },
-                            { name: "File-Type", values: ["trail"] }
-                        ]
-                    ) {
-                        edges {
-                            node {
-                                id
-                                tags {
-                                    name
-                                    value
-                                }
-                                data {
-                                    size
-                                }
-                            }
-                        }
-                    }
-                }`
-            };
-    
-            const response = await arweave.api.post('/graphql', query);
-            console.log(response);
-            const trails = response.data.data.transactions.edges.map(edge => ({
-                id: edge.node.id,
-                name: edge.node.tags.find(t => t.name === 'name')?.value || '',
-                description: edge.node.tags.find(t => t.name === 'description')?.value || '',
-                difficulty: edge.node.tags.find(t => t.name === 'difficulty')?.value || '',
-                elevationGain: Number(edge.node.tags.find(t => t.name === 'elevationGain')?.value || 0),
-                length: Number(edge.node.tags.find(t => t.name === 'length')?.value || 0)
-            }));
-    
-            setTrails(trails);
+            const result = await alltracks.getTrails();
+            const parsedTrails = parseTrails(result);
+            
+            setTrails(parsedTrails);
             setLoading(false);
         } catch (error) {
             console.error('Error loading trails:', error);

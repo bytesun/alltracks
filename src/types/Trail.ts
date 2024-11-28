@@ -1,13 +1,16 @@
 export 
 
 interface Trail {
-  id: string;
+  id: number;
   name: string;
   distance: number;
   elevationGain: number;
   duration: number;
-  difficulty: 'easy' | 'moderate' | 'hard';
+  difficulty: string;
   description: string;
   photos: string[];
-  trailfile: string;
+  trailfile: {
+    fileType: string;
+    url: string;
+  };
 }

@@ -1,8 +1,10 @@
 export const idlFactory = ({ IDL }) => {
   const Time = IDL.Int;
+  const Result = IDL.Variant({ 'ok' : IDL.Nat, 'err' : IDL.Text });
   const NewCheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
+    'isIncident' : IDL.Bool,
     'note' : IDL.Opt(IDL.Text),
     'groupId' : IDL.Opt(IDL.Text),
     'trackId' : IDL.Text,
@@ -11,13 +13,13 @@ export const idlFactory = ({ IDL }) => {
     'isPublic' : IDL.Bool,
     'photo' : IDL.Opt(IDL.Text),
   });
-  const Result = IDL.Variant({ 'ok' : IDL.Nat, 'err' : IDL.Text });
   const NewGroup = IDL.Record({
     'id' : IDL.Text,
     'members' : IDL.Vec(IDL.Principal),
     'admin' : IDL.Principal,
     'name' : IDL.Text,
     'description' : IDL.Text,
+    'badge' : IDL.Opt(IDL.Text),
   });
   const Group = IDL.Record({
     'id' : IDL.Text,
@@ -27,14 +29,16 @@ export const idlFactory = ({ IDL }) => {
     'createdAt' : Time,
     'createdBy' : IDL.Principal,
     'description' : IDL.Text,
+    'badge' : IDL.Opt(IDL.Text),
   });
   const Result_3 = IDL.Variant({ 'ok' : Group, 'err' : IDL.Text });
+  const StorageFile = IDL.Record({ 'url' : IDL.Text, 'fileType' : IDL.Text });
   const NewTrack = IDL.Record({
     'id' : IDL.Text,
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
     'startime' : Time,
-    'trackfile' : IDL.Text,
+    'trackfile' : StorageFile,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'groupId' : IDL.Opt(IDL.Text),
@@ -46,7 +50,7 @@ export const idlFactory = ({ IDL }) => {
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
     'startime' : Time,
-    'trackfile' : IDL.Text,
+    'trackfile' : StorageFile,
     'name' : IDL.Text,
     'createdBy' : IDL.Principal,
     'description' : IDL.Text,
@@ -69,7 +73,7 @@ export const idlFactory = ({ IDL }) => {
   const NewTrail = IDL.Record({
     'duration' : IDL.Float64,
     'ttype' : TrailType,
-    'trailfile' : IDL.Text,
+    'trailfile' : StorageFile,
     'difficulty' : Difficulty,
     'name' : IDL.Text,
     'rate' : IDL.Float64,
@@ -83,7 +87,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'duration' : IDL.Float64,
     'ttype' : TrailType,
-    'trailfile' : IDL.Text,
+    'trailfile' : StorageFile,
     'difficulty' : Difficulty,
     'name' : IDL.Text,
     'createdAt' : Time,
@@ -96,14 +100,10 @@ export const idlFactory = ({ IDL }) => {
     'photos' : IDL.Vec(IDL.Text),
   });
   const Result_1 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
-  const CheckpointFilter = IDL.Variant({
-    'user' : IDL.Principal,
-    'groupId' : IDL.Text,
-    'trackId' : IDL.Text,
-  });
   const CheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
+    'isIncident' : IDL.Bool,
     'note' : IDL.Opt(IDL.Text),
     'createdBy' : IDL.Principal,
     'groupId' : IDL.Opt(IDL.Text),
@@ -112,6 +112,18 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'isPublic' : IDL.Bool,
     'photo' : IDL.Opt(IDL.Text),
+  });
+  const CheckpointFilter = IDL.Variant({
+    'user' : IDL.Principal,
+    'groupId' : IDL.Text,
+  });
+  const Photo = IDL.Record({
+    'createdBy' : IDL.Principal,
+    'tags' : IDL.Vec(IDL.Text),
+    'photoUrl' : IDL.Text,
+    'groupId' : IDL.Opt(IDL.Text),
+    'trackId' : IDL.Text,
+    'timestamp' : IDL.Int,
   });
   const TrackFilter = IDL.Variant({
     'user' : IDL.Principal,
@@ -130,30 +142,59 @@ export const idlFactory = ({ IDL }) => {
     'totalElevation' : IDL.Float64,
   });
   return IDL.Service({
+    'addPhoto' : IDL.Func(
+        [
+          IDL.Record({
+            'tags' : IDL.Vec(IDL.Text),
+            'photoUrl' : IDL.Text,
+            'groupId' : IDL.Opt(IDL.Text),
+            'trackId' : IDL.Text,
+            'timestamp' : Time,
+          }),
+        ],
+        [Result],
+        [],
+      ),
     'createCheckpoint' : IDL.Func([NewCheckPoint], [Result], []),
     'createGroup' : IDL.Func([NewGroup], [Result_3], []),
     'createTrack' : IDL.Func([NewTrack], [Result_2], []),
     'createTrail' : IDL.Func([NewTrail], [Result_1], []),
+    'getCheckPointsByTrackId' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(CheckPoint)],
+        ['query'],
+      ),
     'getCheckpoints' : IDL.Func(
-        [CheckpointFilter],
+        [CheckpointFilter, Time, Time],
         [IDL.Vec(CheckPoint)],
         ['query'],
       ),
     'getGroup' : IDL.Func([IDL.Text], [IDL.Opt(Group)], ['query']),
+    'getGroupPhotos' : IDL.Func(
+        [IDL.Text, Time, Time],
+        [IDL.Vec(Photo)],
+        ['query'],
+      ),
     'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),
+    'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),
     'getMyTrails' : IDL.Func([], [IDL.Vec(Trail)], ['query']),
     'getTrack' : IDL.Func([IDL.Text], [IDL.Opt(Track)], ['query']),
+    'getTrackPhotos' : IDL.Func(
+        [IDL.Text, Time, Time],
+        [IDL.Vec(Photo)],
+        ['query'],
+      ),
     'getTracks' : IDL.Func([TrackFilter], [IDL.Vec(Track)], ['query']),
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
     'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
     'getUserstats' : IDL.Func([IDL.Principal], [IDL.Opt(UserStats)], ['query']),
+    'searchPhotosByTags' : IDL.Func(
+        [IDL.Vec(IDL.Text)],
+        [IDL.Vec(Photo)],
+        ['query'],
+      ),
     'searchTrails' : IDL.Func([IDL.Text], [IDL.Vec(Trail)], ['query']),
     'updateGroup' : IDL.Func([IDL.Text, NewGroup], [Result], []),
-    'updateUserStats' : IDL.Func(
-        [IDL.Float64, IDL.Float64, IDL.Float64],
-        [Result],
-        [],
-      ),
   });
 };
 export const init = ({ IDL }) => { return []; };

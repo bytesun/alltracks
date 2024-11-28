@@ -32,7 +32,7 @@ type Trail =
    photos: vec text;
    rate: float64;
    tags: vec text;
-   trailfile: text;
+   trailfile: StorageFile;
    ttype: TrailType;
  };
 type TrackFilter = 
@@ -52,9 +52,14 @@ type Track =
    length: float64;
    name: text;
    startime: Time;
-   trackfile: text;
+   trackfile: StorageFile;
  };
 type Time = int;
+type StorageFile = 
+ record {
+   fileType: text;
+   url: text;
+ };
 type Result_3 = 
  variant {
    err: text;
@@ -75,6 +80,15 @@ type Result =
    err: text;
    ok: nat;
  };
+type Photo = 
+ record {
+   createdBy: principal;
+   groupId: opt text;
+   photoUrl: text;
+   tags: vec text;
+   timestamp: int;
+   trackId: text;
+ };
 type NewTrail = 
  record {
    description: text;
@@ -86,7 +100,7 @@ type NewTrail =
    photos: vec text;
    rate: float64;
    tags: vec text;
-   trailfile: text;
+   trailfile: StorageFile;
    ttype: TrailType;
  };
 type NewTrack = 
@@ -100,11 +114,12 @@ type NewTrack =
    length: float64;
    name: text;
    startime: Time;
-   trackfile: text;
+   trackfile: StorageFile;
  };
 type NewGroup = 
  record {
    admin: principal;
+   badge: opt text;
    description: text;
    id: text;
    members: vec principal;
@@ -114,6 +129,7 @@ type NewCheckPoint =
  record {
    elevation: float64;
    groupId: opt text;
+   isIncident: bool;
    isPublic: bool;
    latitude: float64;
    longitude: float64;
@@ -125,6 +141,7 @@ type NewCheckPoint =
 type Group = 
  record {
    admin: principal;
+   badge: opt text;
    createdAt: Time;
    createdBy: principal;
    description: text;
@@ -142,7 +159,6 @@ type Difficulty =
 type CheckpointFilter = 
  variant {
    groupId: text;
-   trackId: text;
    user: principal;
  };
 type CheckPoint = 
@@ -150,6 +166,7 @@ type CheckPoint =
    createdBy: principal;
    elevation: float64;
    groupId: opt text;
+   isIncident: bool;
    isPublic: bool;
    latitude: float64;
    longitude: float64;
@@ -159,20 +176,32 @@ type CheckPoint =
    trackId: text;
  };
 service : {
+  addPhoto:
+   (record {
+      groupId: opt text;
+      photoUrl: text;
+      tags: vec text;
+      timestamp: Time;
+      trackId: text;
+    }) -> (Result);
   createCheckpoint: (NewCheckPoint) -> (Result);
   createGroup: (NewGroup) -> (Result_3);
   createTrack: (NewTrack) -> (Result_2);
   createTrail: (NewTrail) -> (Result_1);
-  getCheckpoints: (CheckpointFilter) -> (vec CheckPoint) query;
+  getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
+  getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
+  getGroupPhotos: (text, Time, Time) -> (vec Photo) query;
   getMyGroups: () -> (vec Group) query;
+  getMyPhotos: (Time, Time) -> (vec Photo) query;
   getMyTrails: () -> (vec Trail) query;
   getTrack: (text) -> (opt Track) query;
+  getTrackPhotos: (text, Time, Time) -> (vec Photo) query;
   getTracks: (TrackFilter) -> (vec Track) query;
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
   getUserstats: (principal) -> (opt UserStats) query;
+  searchPhotosByTags: (vec text) -> (vec Photo) query;
   searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);
-  updateUserStats: (float64, float64, float64) -> (Result);
 }

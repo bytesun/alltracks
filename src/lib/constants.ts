@@ -26,3 +26,7 @@ export const DERIVATION_ORIGION = "https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.a
 
 export const ws_gatewayUrl = "wss://gateway.icws.io";
 export const icUrl = "https://icp0.io";
+
+export const FILETYPE_GPX = "application/gpx+xml";
+export const FILETYPE_KML = "application/vnd.google-earth.kml+xml";
+export const FILETYPE_CSV = "text/csv";

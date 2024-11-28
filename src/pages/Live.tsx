@@ -58,8 +58,7 @@ export const Live: React.FC = () => {
 
     useEffect(() => {
         const fetchTrackPoints = async () => {           
-            const result = await alltracks.getCheckpoints({trackId:liveId})   
-            console.log(result)   
+            const result = await alltracks.getCheckpointsByTrackId(liveId)   
             let tps = [];
             result.forEach(t => {
                 tps.push(

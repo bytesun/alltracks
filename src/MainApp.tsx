@@ -28,12 +28,14 @@ import { StartTrackModal } from './components/StartTrackModal';
 import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
-import { arweave } from './utils/arweave';
+import { arweave, arweaveGateway } from './utils/arweave';
 import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
 import { CheckPoint } from './types/CheckPoint';
 import { useGlobalContext } from './components/Store';
+
+import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
 
 interface ProfileSettings {
   storageId: string;
@@ -438,7 +440,7 @@ function MainApp() {
             const response = await arweave.transactions.post(transaction);
 
             if (response.status === 200) {
-              photoUrl = `https://arweave.net/${transaction.id}`;
+              photoUrl = `${arweaveGateway}/${transaction.id}`;
               showNotification('Photo uploaded to Arweave:', "success");
             }
           } catch (error) {
@@ -491,29 +493,20 @@ function MainApp() {
 
         if (data.cloudEnabled) {
 
+          await alltracks.createCheckpoint({
+            latitude: pendingPosition.coords.latitude,
+            longitude: pendingPosition.coords.longitude,
+            timestamp: BigInt(pendingPosition.timestamp),
+            elevation: pendingPosition.coords.altitude || undefined,
+            note: [data.comment.trim()],
+            photo: photoUrl ? [photoUrl] : [],
+            isPublic: data.isPrivate ? false : true,
+            isIncident: data.isIncident ? true : false,
+            groupId: [groupId],
+            trackId: trackId
+          });
 
-          if (data.isIncident) {
-
-          }
-          if (data.isPrivate && userSettings?.trackPointCollection) {
-
-          } else {
-
-            await alltracks.createCheckpoint({
-              latitude: pendingPosition.coords.latitude,
-              longitude: pendingPosition.coords.longitude,
-              timestamp: BigInt(pendingPosition.timestamp),
-              elevation: pendingPosition.coords.altitude || undefined,
-              note: [data.comment.trim()],
-              photo: photoUrl ? [photoUrl] : [],
-              isPublic: data.isPrivate ? false : true,
-              groupId: [groupId],
-              trackId: trackId
-            });
-
-            setHasCloudPoints(true);
-          }
-
+          setHasCloudPoints(true);
         }
 
       }
@@ -633,7 +626,10 @@ function MainApp() {
             duration: duration,
             elevation: elevationGain,
             startime: trackPoints[0].timestamp,
-            trackfile: transaction.id,
+            trackfile: {
+              fileType: mimeType,
+              url: arweaveGateway + "/" + transaction.id
+            },
             isPublic: !isPrivateStorage,
 
           });
@@ -691,13 +687,13 @@ function MainApp() {
   const handleTrailSelect = async (trail: Trail) => {
 
     if (trail) {
-      const response = await fetch(trail.trailfile);
+      const response = await fetch(trail.trailfile.url);
       const content = await response.text();
 
       let points: TrackPoint[] = [];
-      if (trail.trailfile.endsWith('.gpx')) {
+      if (trail.trailfile.fileType === FILETYPE_GPX) {
         points = parseGPX(content);
-      } else if (trail.trailfile.endsWith('.kml')) {
+      } else if (trail.trailfile.fileType === FILETYPE_KML) {
         points = parseKML(content);
       } else {
         points = parseCSV(content);

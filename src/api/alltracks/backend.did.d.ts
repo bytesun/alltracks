@@ -5,6 +5,7 @@ import type { IDL } from '@dfinity/candid';
 export interface CheckPoint {
   'latitude' : number,
   'elevation' : number,
+  'isIncident' : boolean,
   'note' : [] | [string],
   'createdBy' : Principal,
   'groupId' : [] | [string],
@@ -15,8 +16,7 @@ export interface CheckPoint {
   'photo' : [] | [string],
 }
 export type CheckpointFilter = { 'user' : Principal } |
-  { 'groupId' : string } |
-  { 'trackId' : string };
+  { 'groupId' : string };
 export type Difficulty = { 'easy' : null } |
   { 'hard' : null } |
   { 'expert' : null } |
@@ -29,10 +29,12 @@ export interface Group {
   'createdAt' : Time,
   'createdBy' : Principal,
   'description' : string,
+  'badge' : [] | [string],
 }
 export interface NewCheckPoint {
   'latitude' : number,
   'elevation' : number,
+  'isIncident' : boolean,
   'note' : [] | [string],
   'groupId' : [] | [string],
   'trackId' : string,
@@ -47,13 +49,14 @@ export interface NewGroup {
   'admin' : Principal,
   'name' : string,
   'description' : string,
+  'badge' : [] | [string],
 }
 export interface NewTrack {
   'id' : string,
   'duration' : number,
   'elevation' : number,
   'startime' : Time,
-  'trackfile' : string,
+  'trackfile' : StorageFile,
   'name' : string,
   'description' : string,
   'groupId' : [] | [string],
@@ -63,7 +66,7 @@ export interface NewTrack {
 export interface NewTrail {
   'duration' : number,
   'ttype' : TrailType,
-  'trailfile' : string,
+  'trailfile' : StorageFile,
   'difficulty' : Difficulty,
   'name' : string,
   'rate' : number,
@@ -73,6 +76,14 @@ export interface NewTrail {
   'elevationGain' : number,
   'photos' : Array<string>,
 }
+export interface Photo {
+  'createdBy' : Principal,
+  'tags' : Array<string>,
+  'photoUrl' : string,
+  'groupId' : [] | [string],
+  'trackId' : string,
+  'timestamp' : bigint,
+}
 export type Result = { 'ok' : bigint } |
   { 'err' : string };
 export type Result_1 = { 'ok' : Trail } |
@@ -81,13 +92,14 @@ export type Result_2 = { 'ok' : Track } |
   { 'err' : string };
 export type Result_3 = { 'ok' : Group } |
   { 'err' : string };
+export interface StorageFile { 'url' : string, 'fileType' : string }
 export type Time = bigint;
 export interface Track {
   'id' : string,
   'duration' : number,
   'elevation' : number,
   'startime' : Time,
-  'trackfile' : string,
+  'trackfile' : StorageFile,
   'name' : string,
   'createdBy' : Principal,
   'description' : string,
@@ -101,7 +113,7 @@ export interface Trail {
   'id' : bigint,
   'duration' : number,
   'ttype' : TrailType,
-  'trailfile' : string,
+  'trailfile' : StorageFile,
   'difficulty' : Difficulty,
   'name' : string,
   'createdAt' : Time,
@@ -127,22 +139,41 @@ export interface UserStats {
   'totalElevation' : number,
 }
 export interface _SERVICE {
+  'addPhoto' : ActorMethod<
+    [
+      {
+        'tags' : Array<string>,
+        'photoUrl' : string,
+        'groupId' : [] | [string],
+        'trackId' : string,
+        'timestamp' : Time,
+      },
+    ],
+    Result
+  >,
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result>,
   'createGroup' : ActorMethod<[NewGroup], Result_3>,
   'createTrack' : ActorMethod<[NewTrack], Result_2>,
   'createTrail' : ActorMethod<[NewTrail], Result_1>,
-  'getCheckpoints' : ActorMethod<[CheckpointFilter], Array<CheckPoint>>,
+  'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
+  'getCheckpoints' : ActorMethod<
+    [CheckpointFilter, Time, Time],
+    Array<CheckPoint>
+  >,
   'getGroup' : ActorMethod<[string], [] | [Group]>,
+  'getGroupPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
   'getMyGroups' : ActorMethod<[], Array<Group>>,
+  'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,
   'getTrack' : ActorMethod<[string], [] | [Track]>,
+  'getTrackPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
   'getUserstats' : ActorMethod<[Principal], [] | [UserStats]>,
+  'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result>,
-  'updateUserStats' : ActorMethod<[number, number, number], Result>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

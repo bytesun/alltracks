@@ -67,7 +67,7 @@ export const UserPage: React.FC = () => {
         const start = BigInt(new Date(startDate).getTime() * 1000000);
         const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() * 1000000);
 
-        const result = await alltracks.getCheckpoints({ user: Principal.fromText(userKey) });
+        const result = await alltracks.getCheckpoints({ user: Principal.fromText(userKey) }, start, end);
 
         if (result.length > 0) {
             const points = result.map(point => ({

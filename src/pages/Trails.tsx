@@ -4,7 +4,7 @@ import { Navbar } from '../components/Navbar';
 import { Spinner } from '../components/Spinner';
 import './Trails.css';
 import { Trail } from '../types/Trail'
-import { arweave, arweaveGateway } from '../utils/arweave';
+
 import { useAlltracks } from '../components/Store';
 import { parseTrails } from '../utils/trailUtils';
 
@@ -75,7 +75,7 @@ export const Trails = () => {
                     <span>{trail.duration} hours</span>
                     <span>{trail.elevationGain} m </span>
                     <a
-                      href={arweaveGateway +'/'+ trail.trailfile}
+                      href={trail.trailfile.url}
                       download
                       className="download-link"
                     >

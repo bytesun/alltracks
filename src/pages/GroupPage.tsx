@@ -8,7 +8,7 @@ import { PhotosTab } from '../components/PhotosTab';
 import { Track } from '../types/Track';
 import '../styles/GroupPage.css';
 import { Group } from '../types/Group';
-import { useICEvent } from '../components/Store';
+import { useICEvent, useAlltracks } from '../components/Store';
 
 interface TrackData {
     id: string;
@@ -22,6 +22,8 @@ interface TrackData {
 export const GroupPage: React.FC = () => {
     const { groupId } = useParams();
     const icevent = useICEvent();
+
+    const alltracks = useAlltracks();
     const [group, setGroup] = useState<Group | null>(null);
     const [tracks, setTracks] = useState<TrackData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -36,17 +38,31 @@ export const GroupPage: React.FC = () => {
     );
 
     useEffect(()=>{
-        icevent.getCalendar(BigInt(groupId)).then((data)=>{
-            if(data["ok"]){
+
+        // icevent.getCalendar(BigInt(groupId)).then((data)=>{
+        //     if(data["ok"]){
+        //         setGroup({
+        //             name: data["ok"].name,
+        //             description: data["ok"].description,
+        //             calendarId: groupId,
+        //             members: [],
+        //             groupBadge: ""
+        //         })
+        //     }
+            
+        // })
+
+        alltracks.getGroup(groupId).then((data)=>{
+            if(data.length > 0){
                 setGroup({
-                    name: data["ok"].name,
-                    description: data["ok"].description,
+                    name: data[0].name,
+                    description: data[0].description,
                     calendarId: groupId,
                     members: [],
                     groupBadge: ""
                 })
             }
-            
+
         })
     },[groupId]);
 
@@ -54,71 +70,42 @@ export const GroupPage: React.FC = () => {
         loadTrackPoints();
     }, [groupId]);
 
-    useEffect(() => {
-        // const loadGroupData = async () => {
-        //     const groupDoc = await getDoc({
-        //         collection: "groups",
-        //         key: groupId || ''
-        //     });
-
-        //     setGroup(groupDoc.data as Group);
-
-        //     const tracksResult = await listDocs({
-        //         collection: "tracks",
-        //         filter: {
-        //             matcher: {
-        //                 key: ".*_" + groupId
-        //             },
-        //             order: {
-        //                 desc: true,
-        //                 field: "updated_at"
-        //               },
-
-        //         },
-
-        //     });
-        //     console.log(tracksResult.items);
-        //     const tracks = tracksResult.items.map(item => {
-        //         const track = item.data as Track;
-        //         return {
-        //             id: item.key,
-        //             title: track.filename,
-        //             distance: track.distance,
-        //             duration: track.duration,
-        //             createdAt: track.startime,
-        //             description: track.description
-        //         };
-        //     });
-        //     setTracks(tracks);
-        //     setIsLoading(false);
-        // };
-
-        // loadGroupData();
-    }, [groupId]);
+   
     const loadTrackPoints = async () => {
         setIsLoading(true);
         const start = BigInt(new Date(startDate).getTime() * 1000000);
         const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() * 1000000);
 
-        const result = await listDocs({
-            collection: "live_tracks",
+        // const result = await listDocs({
+        //     collection: "live_tracks",
 
-            filter: {
-                matcher: {
-                    key: `.*_${groupId}_.*`,
-                    createdAt: {
-                        matcher: "between",
-                        timestamps: { start, end }
-                    }
-                },
-                order: {
-                    desc: true,
-                    field: "updated_at"
-                }
-            }
-        });
+        //     filter: {
+        //         matcher: {
+        //             key: `.*_${groupId}_.*`,
+        //             createdAt: {
+        //                 matcher: "between",
+        //                 timestamps: { start, end }
+        //             }
+        //         },
+        //         order: {
+        //             desc: true,
+        //             field: "updated_at"
+        //         }
+        //     }
+        // });
 
-        const points = result.items.map(doc => doc.data as TrackPoint);
+        // const points = result.items.map(doc => doc.data as TrackPoint);
+        const result = await alltracks.getCheckPoints({groupId: groupId},start,end);
+        const points = result.map(point => ({
+            latitude: point.latitude,
+            longitude: point.longitude,
+            timestamp: Number(point.timestamp)  ,
+            elevation: point.elevation,
+            comment: point.note.length ? point.note[0] : '',
+            photo: point.photo.length > 0 ? point.photo[0] : undefined,
+        }));
+       
+
         setTrackPoints(points);
         setIsLoading(false);
     };

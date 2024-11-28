@@ -12,6 +12,7 @@ interface UploadFormData {
   groupId: string;
   tags: string;
   filename: string;
+  date: string;
 }
 
 export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isUploading }) => {
@@ -21,7 +22,8 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
     trackId: '',
     groupId: '',
     tags: '',
-    filename: ''
+    filename: '',
+    date: new Date().toISOString().split('T')[0] 
   });
 
   React.useEffect(() => {
@@ -52,7 +54,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (file) {
-       onSubmit(formData, file);     
+      onSubmit(formData, file);
     }
   };
   const handleWalletUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +77,90 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
   };
   return (
     <form onSubmit={handleSubmit} className="upload-form">
-      <div className="wallet-section">
+      
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">calendar_today</span>
+          <span>Date</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+      </div>
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">fingerprint</span>
+          <span>Track ID</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="text"
+            name="trackId"
+            value={formData.trackId}
+            onChange={handleInputChange}
+            placeholder="Enter track ID"
+
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">group</span>
+          <span>Group ID</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="text"
+            name="groupId"
+            value={formData.groupId}
+            onChange={handleInputChange}
+            placeholder="Enter group ID"
+
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">label</span>
+          <span>Tags</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="text"
+            name="tags"
+            value={formData.tags}
+            onChange={handleInputChange}
+            placeholder="Enter tags (comma separated)"
+
+          />
+        </div>
+      </div>
+
+      <div className="setting-row">
+        <div className="setting-label">
+          <span className="material-icons">upload_file</span>
+          <span>Photo</span>
+        </div>
+        <div className="setting-control">
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="file-input"
+            accept="image/*"
+
+          />
+        </div>
+      </div>
+      <div className="setting-control actions-row">
+      {/* <div className="wallet-section">
         <input
           type="file"
           accept=".json"
@@ -103,78 +188,10 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
           </button>
         )}
 
-      </div>
-      <div className="setting-row">
-        <div className="setting-label">
-          <span className="material-icons">fingerprint</span>
-          <span>Track ID</span>
-        </div>
-        <div className="setting-control">
-          <input
-            type="text"
-            name="trackId"
-            value={formData.trackId}
-            onChange={handleInputChange}
-            placeholder="Enter track ID"
-            
-          />
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-label">
-          <span className="material-icons">group</span>
-          <span>Group ID</span>
-        </div>
-        <div className="setting-control">
-          <input
-            type="text"
-            name="groupId"
-            value={formData.groupId}
-            onChange={handleInputChange}
-            placeholder="Enter group ID"
-            
-          />
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-label">
-          <span className="material-icons">label</span>
-          <span>Tags</span>
-        </div>
-        <div className="setting-control">
-          <input
-            type="text"
-            name="tags"
-            value={formData.tags}
-            onChange={handleInputChange}
-            placeholder="Enter tags (comma separated)"
-            
-          />
-        </div>
-      </div>
-
-      <div className="setting-row">
-        <div className="setting-label">
-          <span className="material-icons">upload_file</span>
-          <span>Photo</span>
-        </div>
-        <div className="setting-control">
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="file-input"
-            accept="image/*"
-            
-          />
-        </div>
-      </div>
-      <div className="setting-control actions-row">
-
+      </div> */}
         <button
           type="submit"
-          disabled={!file || isUploading }
+          disabled={!file || isUploading}
           className="upload-button"
         >
 

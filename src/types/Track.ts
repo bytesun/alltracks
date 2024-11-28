@@ -1,11 +1,17 @@
 export interface Track {
-  eventId: string;
-  filename: string;
+  id: string;
+  groupId: string;
+  name: string;
   description: string;
   startime: string;
   endtime: string;
-  trackfile: string;
-  distance: number;
+  trackfile: {
+    fileType: string;
+    url: string;
+  };
+  length: number;
   duration: number;
-  elevationGain: number;
+  elevation: number;
+  isPublic: boolean;
+  createdBy: string;  
 }
