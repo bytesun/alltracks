@@ -54,65 +54,68 @@ export const Trails: React.FC = () => {
     const handleTrailSubmit = async (trailData: TrailForm, file: File) => {
         setIsLoading(true);
         try {
+
+            // Create Arweave transaction for trail file
+            const fileBuffer = await file.arrayBuffer();
+
+            const transaction = await arweave.createTransaction({
+                data: fileBuffer
+            });
+
+            // Add metadata tags
+            transaction.addTag('Content-Type', file.type);
+            transaction.addTag('App-Name', 'AllTracks');
+            transaction.addTag('Trail-Name', trailData.name);
+            transaction.addTag('Description', trailData.description);
+            transaction.addTag('Trail-Type', trailData.routeType);
+            transaction.addTag('Difficulty', trailData.difficulty);
+            transaction.addTag('Length', trailData.length.toString());
+            transaction.addTag('Elevation', trailData.elevationGain.toString());
+            transaction.addTag('Rating', trailData.rating.toString());
+            transaction.addTag('Tags', trailData.tags.join(','));
+            transaction.addTag('User-Key', principal.toText());
+            transaction.addTag('File-Type', 'trail');
+
+
+            // Sign and post transaction
             if (wallet) {
-                // Create Arweave transaction for trail file
-                const fileBuffer = await file.arrayBuffer();
-                const transaction = await arweave.createTransaction({
-                    data: fileBuffer
-                }, wallet);
-
-                // Add metadata tags
-                transaction.addTag('Content-Type', file.type);
-                transaction.addTag('App-Name', 'AllTracks');
-                transaction.addTag('Trail-Name', trailData.name);
-                transaction.addTag('Description', trailData.description);
-                transaction.addTag('Trail-Type', trailData.routeType);
-                transaction.addTag('Difficulty', trailData.difficulty);
-                transaction.addTag('Length', trailData.length.toString());
-                transaction.addTag('Elevation', trailData.elevationGain.toString());
-                transaction.addTag('Rating', trailData.rating.toString());
-                transaction.addTag('Tags', trailData.tags.join(','));
-                transaction.addTag('User-Key', principal.toText());
-                transaction.addTag('File-Type', 'trail');
-
-
-                // Sign and post transaction
                 await arweave.transactions.sign(transaction, wallet);
-                const response = await arweave.transactions.post(transaction);
+            } else {
+                await arweave.transactions.sign(transaction);
+            }
+            const response = await arweave.transactions.post(transaction);
 
-                if (response.status === 200) {
-                    const fileUrl = `${arweaveGateway}/${transaction.id}`;
-                    const newtrail = {
-                        name: trailData.name,
-                        description: trailData.description,
-                        distance: Number(trailData.length),
-                        elevationGain: Number(trailData.elevationGain),
-                        duration: Number(trailData.duration),
-                        ttype: routeTypeMap[trailData.routeType],
-                        difficulty: difficultyMap[trailData.difficulty],
-                        rate: Number(trailData.rating),
-                        tags: trailData.tags,
-                        trailfile: {
-                            fileType:file.type,
-                            url:fileUrl
-                        },
-                        photos: [trailData.imageUrl],
-                    };
-                    console.log(newtrail);
-                    const result = await alltracks.createTrail(newtrail);
-                    if (result.success) {
-
-                        showNotification('Trail uploaded successfully', 'success');
-                    } else {
-                        console.error('Error uploading trail:', result.error);
-                        showNotification('Error uploading trail', 'error');
-                    }
+            if (response.status === 200) {
+                const fileUrl = `${arweaveGateway}/${transaction.id}`;
+                const newtrail = {
+                    name: trailData.name,
+                    description: trailData.description,
+                    distance: Number(trailData.length),
+                    elevationGain: Number(trailData.elevationGain),
+                    duration: Number(trailData.duration),
+                    ttype: routeTypeMap[trailData.routeType],
+                    difficulty: difficultyMap[trailData.difficulty],
+                    rate: Number(trailData.rating),
+                    tags: trailData.tags,
+                    trailfile: {
+                        fileType: file.type,
+                        url: fileUrl
+                    },
+                    photos: [trailData.imageUrl],
+                };
+                console.log(newtrail);
+                const result = await alltracks.createTrail(newtrail);
+                if (result.success) {
 
                     showNotification('Trail uploaded successfully', 'success');
+                } else {
+                    console.error('Error uploading trail:', result.error);
+                    showNotification('Error uploading trail', 'error');
                 }
-            } else {
-                showNotification('Please connect your wallet', 'error');
+
+                showNotification('Trail uploaded successfully', 'success');
             }
+
 
 
             loadTrails(); // Refresh the list
@@ -169,7 +172,7 @@ export const Trails: React.FC = () => {
                                     <span>{trail.duration} hours</span>
                                     <span>{trail.elevationGain} m</span>
                                     <span>{trail.difficulty}</span>
-                                    
+
                                     <span>{trail.routeType}</span>
                                     <span>{trail.rating}/5</span>
                                 </div>
