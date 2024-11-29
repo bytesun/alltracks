@@ -54,8 +54,18 @@ export const Trails: React.FC = () => {
     const handleTrailSubmit = async (trailData: TrailForm, file: File) => {
         setIsLoading(true);
         try {
+            const extension = file.name.split('.').pop()?.toLowerCase();
 
-            // Create Arweave transaction for trail file
+            // Map extension to content type
+            const contentType = {
+                'gpx': 'application/gpx+xml',
+                'kml': 'application/vnd.google-earth.kml+xml',
+                'csv': 'text/csv',
+                'json': 'application/json'
+            }[extension] || 'application/octet-stream';
+            console.log("Creating trail...", contentType)
+
+            //Create Arweave transaction for trail file
             const fileBuffer = await file.arrayBuffer();
 
             const transaction = await arweave.createTransaction({
@@ -63,7 +73,7 @@ export const Trails: React.FC = () => {
             });
 
             // Add metadata tags
-            transaction.addTag('Content-Type', file.type);
+            transaction.addTag('Content-Type', contentType);
             transaction.addTag('App-Name', 'AllTracks');
             transaction.addTag('Trail-Name', trailData.name);
             transaction.addTag('Description', trailData.description);
@@ -98,7 +108,7 @@ export const Trails: React.FC = () => {
                     rate: Number(trailData.rating),
                     tags: trailData.tags,
                     trailfile: {
-                        fileType: file.type,
+                        fileType: contentType,
                         url: fileUrl
                     },
                     photos: [trailData.imageUrl],
