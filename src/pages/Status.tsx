@@ -6,8 +6,7 @@ import { listDocs } from "@junobuild/core";
 import { parseGPX } from "../utils/importFormats";
 import { icon } from 'leaflet';
 import { Navbar } from '../components/Navbar';
-
-import { User, authSubscribe, signIn, signOut } from "@junobuild/core";
+import { useAlltracks, useICEvent } from '../components/Store';
 
 import "../styles/Status.css";
 
@@ -20,9 +19,10 @@ const locationIcon = icon({
 
 export const Status: React.FC = () => {
 
+    const alltracks = useAlltracks();
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
     const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
-    const [user, setUser] = useState<User | null>(null);
+
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
     const [modalPhoto, setModalPhoto] = useState<string | null>(null);
     const [showIncidents, setShowIncidents] = useState(true);
@@ -49,32 +49,38 @@ export const Status: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => {
-        const unsubscribe = authSubscribe((user: User | null) => {
-            setUser(user);
-        });
-        return () => unsubscribe();
-    }, []);
 
     useEffect(() => {
         const fetchTrackPoints = async () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
-            const tracks = await listDocs({
-                collection: "incidents",
-                filter: {
-                    matcher: {
-                        createdAt: {
-                            matcher: "greaterThan",
-                            timestamp: BigInt(today.getTime()* 1_000_000)
-                        },
-                    },
+           const checkpoints = await alltracks.getIncidentCheckpoints(today.getTime() * 1_000_000- 24 * 60 * 60 * 1_000_000, today.getTime() * 1_000_000 + 24 * 60 * 60 * 1_000_000)
+            console.log(checkpoints)
+            // const tracks = await listDocs({
+            //     collection: "incidents",
+            //     filter: {
+            //         matcher: {
+            //             createdAt: {
+            //                 matcher: "greaterThan",
+            //                 timestamp: BigInt(today.getTime()* 1_000_000)
+            //             },
+            //         },
 
-                }
+            //     }
+            // });
+
+            const points = checkpoints.map(p => {
+                return {
+                    latitude: p.latitude,
+                    longitude: p.longitude,
+                    elevation: p.elevation,
+                    timestamp: Number(p.timestamp),
+                    comment: p.note[0],
+                    photo: p.photo.length > 0 ? p.photo[0] : undefined,
+                } as TrackPoint;
             });
-
-            const points = tracks.items.map(doc => doc.data as TrackPoint);
+            
 
             const filteredPoints = userLocation ? points.filter(point => {
                 const distance = calculateDistance(

@@ -21,8 +21,6 @@ interface TrackData {
 
 export const GroupPage: React.FC = () => {
     const { groupId } = useParams();
-    const icevent = useICEvent();
-
     const alltracks = useAlltracks();
     const [group, setGroup] = useState<Group | null>(null);
     const [tracks, setTracks] = useState<TrackData[]>([]);
@@ -95,7 +93,7 @@ export const GroupPage: React.FC = () => {
         // });
 
         // const points = result.items.map(doc => doc.data as TrackPoint);
-        const result = await alltracks.getCheckPoints({groupId: groupId},start,end);
+        const result = await alltracks.getCheckpoints({groupId: groupId},start,end);
         const points = result.map(point => ({
             latitude: point.latitude,
             longitude: point.longitude,

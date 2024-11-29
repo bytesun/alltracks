@@ -21,7 +21,7 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
 
 
   React.useEffect(() => {
-    
+
     loadPhotos();
 
   }, [groupId, currentYear]);
@@ -29,17 +29,13 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
   const loadPhotos = async () => {
 
     const query = {
-        query: `{
+      query: `{
             transactions(
                 tags: [
                     { name: "App-Name", values: ["AllTracks"] },
-                     { name: "File-Type", values: ["photo"] },
-                   
-
+                  { name: "Group-ID", values: ["${groupId}"] },
                 ],
-                block: {
-                    min: ${currentYear}
-                }
+            first: 50
             ) {
                 edges {
                     node {
@@ -57,13 +53,13 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
     const response = await arweave.api.post('/graphql', query);
     console.log(response.data);
     const photos = response.data.data.transactions.edges.map(edge => ({
-        artxid: edge.node.id,
-        key: edge.node.tags.find(t => t.name === 'Original-Name')?.value || '',
-        description: edge.node.tags.find(t => t.name === 'Description')?.value || ''
+      artxid: edge.node.id,
+      key: edge.node.tags.find(t => t.name === 'Original-Name')?.value || '',
+      description: edge.node.tags.find(t => t.name === 'Description')?.value || ''
     }));
 
     setArphotos(photos);
-};
+  };
 
   return (
     <div className="photos-container">

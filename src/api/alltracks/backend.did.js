@@ -4,8 +4,7 @@ export const idlFactory = ({ IDL }) => {
   const NewCheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
-    'isIncident' : IDL.Bool,
-    'note' : IDL.Opt(IDL.Text),
+    'note' : IDL.Text,
     'groupId' : IDL.Opt(IDL.Text),
     'trackId' : IDL.Text,
     'longitude' : IDL.Float64,
@@ -19,7 +18,7 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Principal,
     'name' : IDL.Text,
     'description' : IDL.Text,
-    'badge' : IDL.Opt(IDL.Text),
+    'badge' : IDL.Text,
   });
   const Group = IDL.Record({
     'id' : IDL.Text,
@@ -29,16 +28,40 @@ export const idlFactory = ({ IDL }) => {
     'createdAt' : Time,
     'createdBy' : IDL.Principal,
     'description' : IDL.Text,
-    'badge' : IDL.Opt(IDL.Text),
+    'badge' : IDL.Text,
   });
   const Result_3 = IDL.Variant({ 'ok' : Group, 'err' : IDL.Text });
-  const StorageFile = IDL.Record({ 'url' : IDL.Text, 'fileType' : IDL.Text });
+  const IncidentCategory = IDL.Variant({
+    'other' : IDL.Null,
+    'wildlife' : IDL.Null,
+    'obstacle' : IDL.Null,
+    'hazard' : IDL.Null,
+    'weather' : IDL.Null,
+  });
+  const Severity = IDL.Variant({
+    'low' : IDL.Null,
+    'high' : IDL.Null,
+    'critical' : IDL.Null,
+    'medium' : IDL.Null,
+  });
+  const NewIncidentPoint = IDL.Record({
+    'latitude' : IDL.Float64,
+    'elevation' : IDL.Float64,
+    'note' : IDL.Text,
+    'groupId' : IDL.Opt(IDL.Text),
+    'trackId' : IDL.Text,
+    'longitude' : IDL.Float64,
+    'timestamp' : Time,
+    'category' : IncidentCategory,
+    'severity' : Severity,
+    'photo' : IDL.Opt(IDL.Text),
+  });
   const NewTrack = IDL.Record({
     'id' : IDL.Text,
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
     'startime' : Time,
-    'trackfile' : StorageFile,
+    'trackfile' : IDL.Text,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'groupId' : IDL.Opt(IDL.Text),
@@ -50,7 +73,7 @@ export const idlFactory = ({ IDL }) => {
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
     'startime' : Time,
-    'trackfile' : StorageFile,
+    'trackfile' : IDL.Text,
     'name' : IDL.Text,
     'createdBy' : IDL.Principal,
     'description' : IDL.Text,
@@ -73,7 +96,7 @@ export const idlFactory = ({ IDL }) => {
   const NewTrail = IDL.Record({
     'duration' : IDL.Float64,
     'ttype' : TrailType,
-    'trailfile' : StorageFile,
+    'trailfile' : IDL.Text,
     'difficulty' : Difficulty,
     'name' : IDL.Text,
     'rate' : IDL.Float64,
@@ -87,7 +110,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'duration' : IDL.Float64,
     'ttype' : TrailType,
-    'trailfile' : StorageFile,
+    'trailfile' : IDL.Text,
     'difficulty' : Difficulty,
     'name' : IDL.Text,
     'createdAt' : Time,
@@ -103,8 +126,7 @@ export const idlFactory = ({ IDL }) => {
   const CheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
-    'isIncident' : IDL.Bool,
-    'note' : IDL.Opt(IDL.Text),
+    'note' : IDL.Text,
     'createdBy' : IDL.Principal,
     'groupId' : IDL.Opt(IDL.Text),
     'trackId' : IDL.Text,
@@ -123,7 +145,20 @@ export const idlFactory = ({ IDL }) => {
     'photoUrl' : IDL.Text,
     'groupId' : IDL.Opt(IDL.Text),
     'trackId' : IDL.Text,
-    'timestamp' : IDL.Int,
+    'timestamp' : Time,
+  });
+  const IncidentPoint = IDL.Record({
+    'latitude' : IDL.Float64,
+    'elevation' : IDL.Float64,
+    'note' : IDL.Text,
+    'createdBy' : IDL.Principal,
+    'groupId' : IDL.Opt(IDL.Text),
+    'trackId' : IDL.Text,
+    'longitude' : IDL.Float64,
+    'timestamp' : Time,
+    'category' : IncidentCategory,
+    'severity' : Severity,
+    'photo' : IDL.Opt(IDL.Text),
   });
   const TrackFilter = IDL.Variant({
     'user' : IDL.Principal,
@@ -157,6 +192,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'createCheckpoint' : IDL.Func([NewCheckPoint], [Result], []),
     'createGroup' : IDL.Func([NewGroup], [Result_3], []),
+    'createIncidentPoint' : IDL.Func([NewIncidentPoint], [Result], []),
     'createTrack' : IDL.Func([NewTrack], [Result_2], []),
     'createTrail' : IDL.Func([NewTrail], [Result_1], []),
     'getCheckPointsByTrackId' : IDL.Func(
@@ -173,6 +209,31 @@ export const idlFactory = ({ IDL }) => {
     'getGroupPhotos' : IDL.Func(
         [IDL.Text, Time, Time],
         [IDL.Vec(Photo)],
+        ['query'],
+      ),
+    'getIncidentCheckpoints' : IDL.Func(
+        [Time, Time],
+        [IDL.Vec(CheckPoint)],
+        ['query'],
+      ),
+    'getIncidentPointsByCategory' : IDL.Func(
+        [IncidentCategory],
+        [IDL.Vec(IncidentPoint)],
+        ['query'],
+      ),
+    'getIncidentPointsBySeverity' : IDL.Func(
+        [Severity],
+        [IDL.Vec(IncidentPoint)],
+        ['query'],
+      ),
+    'getIncidentPointsByTimeRange' : IDL.Func(
+        [Time, Time],
+        [IDL.Vec(IncidentPoint)],
+        ['query'],
+      ),
+    'getIncidentPointsByTrack' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(IncidentPoint)],
         ['query'],
       ),
     'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),

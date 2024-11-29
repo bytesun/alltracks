@@ -5,8 +5,7 @@ import type { IDL } from '@dfinity/candid';
 export interface CheckPoint {
   'latitude' : number,
   'elevation' : number,
-  'isIncident' : boolean,
-  'note' : [] | [string],
+  'note' : string,
   'createdBy' : Principal,
   'groupId' : [] | [string],
   'trackId' : string,
@@ -29,13 +28,30 @@ export interface Group {
   'createdAt' : Time,
   'createdBy' : Principal,
   'description' : string,
-  'badge' : [] | [string],
+  'badge' : string,
+}
+export type IncidentCategory = { 'other' : null } |
+  { 'wildlife' : null } |
+  { 'obstacle' : null } |
+  { 'hazard' : null } |
+  { 'weather' : null };
+export interface IncidentPoint {
+  'latitude' : number,
+  'elevation' : number,
+  'note' : string,
+  'createdBy' : Principal,
+  'groupId' : [] | [string],
+  'trackId' : string,
+  'longitude' : number,
+  'timestamp' : Time,
+  'category' : IncidentCategory,
+  'severity' : Severity,
+  'photo' : [] | [string],
 }
 export interface NewCheckPoint {
   'latitude' : number,
   'elevation' : number,
-  'isIncident' : boolean,
-  'note' : [] | [string],
+  'note' : string,
   'groupId' : [] | [string],
   'trackId' : string,
   'longitude' : number,
@@ -49,14 +65,26 @@ export interface NewGroup {
   'admin' : Principal,
   'name' : string,
   'description' : string,
-  'badge' : [] | [string],
+  'badge' : string,
+}
+export interface NewIncidentPoint {
+  'latitude' : number,
+  'elevation' : number,
+  'note' : string,
+  'groupId' : [] | [string],
+  'trackId' : string,
+  'longitude' : number,
+  'timestamp' : Time,
+  'category' : IncidentCategory,
+  'severity' : Severity,
+  'photo' : [] | [string],
 }
 export interface NewTrack {
   'id' : string,
   'duration' : number,
   'elevation' : number,
   'startime' : Time,
-  'trackfile' : StorageFile,
+  'trackfile' : string,
   'name' : string,
   'description' : string,
   'groupId' : [] | [string],
@@ -66,7 +94,7 @@ export interface NewTrack {
 export interface NewTrail {
   'duration' : number,
   'ttype' : TrailType,
-  'trailfile' : StorageFile,
+  'trailfile' : string,
   'difficulty' : Difficulty,
   'name' : string,
   'rate' : number,
@@ -82,7 +110,7 @@ export interface Photo {
   'photoUrl' : string,
   'groupId' : [] | [string],
   'trackId' : string,
-  'timestamp' : bigint,
+  'timestamp' : Time,
 }
 export type Result = { 'ok' : bigint } |
   { 'err' : string };
@@ -92,14 +120,17 @@ export type Result_2 = { 'ok' : Track } |
   { 'err' : string };
 export type Result_3 = { 'ok' : Group } |
   { 'err' : string };
-export interface StorageFile { 'url' : string, 'fileType' : string }
+export type Severity = { 'low' : null } |
+  { 'high' : null } |
+  { 'critical' : null } |
+  { 'medium' : null };
 export type Time = bigint;
 export interface Track {
   'id' : string,
   'duration' : number,
   'elevation' : number,
   'startime' : Time,
-  'trackfile' : StorageFile,
+  'trackfile' : string,
   'name' : string,
   'createdBy' : Principal,
   'description' : string,
@@ -113,7 +144,7 @@ export interface Trail {
   'id' : bigint,
   'duration' : number,
   'ttype' : TrailType,
-  'trailfile' : StorageFile,
+  'trailfile' : string,
   'difficulty' : Difficulty,
   'name' : string,
   'createdAt' : Time,
@@ -153,6 +184,7 @@ export interface _SERVICE {
   >,
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result>,
   'createGroup' : ActorMethod<[NewGroup], Result_3>,
+  'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result>,
   'createTrack' : ActorMethod<[NewTrack], Result_2>,
   'createTrail' : ActorMethod<[NewTrail], Result_1>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
@@ -162,6 +194,17 @@ export interface _SERVICE {
   >,
   'getGroup' : ActorMethod<[string], [] | [Group]>,
   'getGroupPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
+  'getIncidentCheckpoints' : ActorMethod<[Time, Time], Array<CheckPoint>>,
+  'getIncidentPointsByCategory' : ActorMethod<
+    [IncidentCategory],
+    Array<IncidentPoint>
+  >,
+  'getIncidentPointsBySeverity' : ActorMethod<[Severity], Array<IncidentPoint>>,
+  'getIncidentPointsByTimeRange' : ActorMethod<
+    [Time, Time],
+    Array<IncidentPoint>
+  >,
+  'getIncidentPointsByTrack' : ActorMethod<[string], Array<IncidentPoint>>,
   'getMyGroups' : ActorMethod<[], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,

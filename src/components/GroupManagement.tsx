@@ -64,7 +64,8 @@ export const GroupManagement = () => {
         description: groupData.description,
         members: [principal],
         id: groupData.calendarId,
-        admin: principal
+        admin: principal,
+        badge: groupData.groupBadge,
         
       } as NewGroup);
       console.log("result", result)

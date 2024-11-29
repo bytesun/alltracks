@@ -32,7 +32,7 @@ type Trail =
    photos: vec text;
    rate: float64;
    tags: vec text;
-   trailfile: StorageFile;
+   trailfile: text;
    ttype: TrailType;
  };
 type TrackFilter = 
@@ -52,13 +52,15 @@ type Track =
    length: float64;
    name: text;
    startime: Time;
-   trackfile: StorageFile;
+   trackfile: text;
  };
 type Time = int;
-type StorageFile = 
- record {
-   fileType: text;
-   url: text;
+type Severity = 
+ variant {
+   critical;
+   high;
+   low;
+   medium;
  };
 type Result_3 = 
  variant {
@@ -86,7 +88,7 @@ type Photo =
    groupId: opt text;
    photoUrl: text;
    tags: vec text;
-   timestamp: int;
+   timestamp: Time;
    trackId: text;
  };
 type NewTrail = 
@@ -100,7 +102,7 @@ type NewTrail =
    photos: vec text;
    rate: float64;
    tags: vec text;
-   trailfile: StorageFile;
+   trailfile: text;
    ttype: TrailType;
  };
 type NewTrack = 
@@ -114,12 +116,25 @@ type NewTrack =
    length: float64;
    name: text;
    startime: Time;
-   trackfile: StorageFile;
+   trackfile: text;
+ };
+type NewIncidentPoint = 
+ record {
+   category: IncidentCategory;
+   elevation: float64;
+   groupId: opt text;
+   latitude: float64;
+   longitude: float64;
+   note: text;
+   photo: opt text;
+   severity: Severity;
+   timestamp: Time;
+   trackId: text;
  };
 type NewGroup = 
  record {
    admin: principal;
-   badge: opt text;
+   badge: text;
    description: text;
    id: text;
    members: vec principal;
@@ -129,19 +144,40 @@ type NewCheckPoint =
  record {
    elevation: float64;
    groupId: opt text;
-   isIncident: bool;
    isPublic: bool;
    latitude: float64;
    longitude: float64;
-   note: opt text;
+   note: text;
    photo: opt text;
    timestamp: Time;
    trackId: text;
  };
+type IncidentPoint = 
+ record {
+   category: IncidentCategory;
+   createdBy: principal;
+   elevation: float64;
+   groupId: opt text;
+   latitude: float64;
+   longitude: float64;
+   note: text;
+   photo: opt text;
+   severity: Severity;
+   timestamp: Time;
+   trackId: text;
+ };
+type IncidentCategory = 
+ variant {
+   hazard;
+   obstacle;
+   other;
+   weather;
+   wildlife;
+ };
 type Group = 
  record {
    admin: principal;
-   badge: opt text;
+   badge: text;
    createdAt: Time;
    createdBy: principal;
    description: text;
@@ -166,11 +202,10 @@ type CheckPoint =
    createdBy: principal;
    elevation: float64;
    groupId: opt text;
-   isIncident: bool;
    isPublic: bool;
    latitude: float64;
    longitude: float64;
-   note: opt text;
+   note: text;
    photo: opt text;
    timestamp: Time;
    trackId: text;
@@ -186,12 +221,19 @@ service : {
     }) -> (Result);
   createCheckpoint: (NewCheckPoint) -> (Result);
   createGroup: (NewGroup) -> (Result_3);
+  createIncidentPoint: (NewIncidentPoint) -> (Result);
   createTrack: (NewTrack) -> (Result_2);
   createTrail: (NewTrail) -> (Result_1);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
   getGroupPhotos: (text, Time, Time) -> (vec Photo) query;
+  getIncidentCheckpoints: (Time, Time) -> (vec CheckPoint) query;
+  getIncidentPointsByCategory: (IncidentCategory) ->
+   (vec IncidentPoint) query;
+  getIncidentPointsBySeverity: (Severity) -> (vec IncidentPoint) query;
+  getIncidentPointsByTimeRange: (Time, Time) -> (vec IncidentPoint) query;
+  getIncidentPointsByTrack: (text) -> (vec IncidentPoint) query;
   getMyGroups: () -> (vec Group) query;
   getMyPhotos: (Time, Time) -> (vec Photo) query;
   getMyTrails: () -> (vec Trail) query;
