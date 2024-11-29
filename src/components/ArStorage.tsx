@@ -80,6 +80,7 @@ export const ArStorage: React.FC = () => {
     const startOfYear = new Date(currentYear, 0, 1).getTime() * 1000000;
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000;
     const result = await alltracks.getMyPhotos(startOfYear, endOfYear);
+    console.log(result);
     setPhotos(result);
     // const result = await listDocs<Photo>({
     //   collection: "photos",
@@ -180,7 +181,8 @@ export const ArStorage: React.FC = () => {
       loadPhotos();
       setShowUploadForm(false)
     } catch (error) {
-      showNotification('Upload error:', error);
+      console.error('Upload error:', error.message);
+      showNotification('Upload error:', error.message);
     } finally {
       setUploading(false);
     }
