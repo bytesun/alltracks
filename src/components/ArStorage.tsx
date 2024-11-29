@@ -171,7 +171,7 @@ export const ArStorage: React.FC = () => {
         // })'
         const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         const photo = {
-          groupId: formData.groupId,
+          groupId: [formData.groupId],
           photoUrl: arweaveGateway + "/" + transaction.id,
           tags: tagsArray,
           timestamp: new Date(formData.date).getTime()*1000000,
