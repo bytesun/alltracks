@@ -169,14 +169,16 @@ export const ArStorage: React.FC = () => {
         //     description: formData.tags
         //   }
         // })'
-
-        await alltracks.addPhoto({
+        const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        const photo = {
           groupId: formData.groupId,
           photoUrl: arweaveGateway + "/" + transaction.id,
-          tags: formData.tags,
+          tags: tagsArray,
           timestamp: new Date(formData.date).getTime()*1000000,
           trackId: formData.trackId,
-        });
+        };
+        console.log(photo);
+        await alltracks.addPhoto(photo);
       }
       loadPhotos();
       setShowUploadForm(false)

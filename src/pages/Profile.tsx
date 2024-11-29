@@ -54,13 +54,6 @@ export const Profile: React.FC = () => {
     loadUserStats();
   }, [isAuthed]);
 
-  useEffect(() => {
-    const updateUserStats = async () => {
-      const result = await alltracks.updateUserStats(3,24,35);
-      console.log(result)
-    };
-    updateUserStats();
-  },[]);
 
   if (!isAuthed) {
     return <Navigate to="/" replace />;
