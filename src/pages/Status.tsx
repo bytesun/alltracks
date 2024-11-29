@@ -168,7 +168,7 @@ export const Status: React.FC = () => {
             <div className="status-container">
                 <div className="status-header">
                     <h3>Live Report Points</h3>
-                    <div className="status-filters">
+                    {/* <div className="status-filters">
                         <label>
                             <input 
                                 type="checkbox"
@@ -185,7 +185,7 @@ export const Status: React.FC = () => {
                             />
                             Inscriptions
                         </label>
-                    </div>
+                    </div> */}
                 </div>
                 <p className="track-description">
                     Showing tracking important points of interest or hazards from today within 10km of your location

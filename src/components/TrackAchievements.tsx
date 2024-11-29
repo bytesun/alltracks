@@ -29,14 +29,14 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
           <p>{calculateScore()}</p>
         </div>
       </div> */}
-
+{/* 
       <div className="achievement-card">
         <span className="material-icons">calendar_today</span>
         <div className="achievement-content">
           <h4>Since</h4>
           <p>{firstHikeDate}</p>
         </div>
-      </div>
+      </div> */}
       <div className="achievement-card">
         <span className="material-icons">speed</span>
         <div className="achievement-content">
