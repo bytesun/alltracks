@@ -616,7 +616,7 @@ function MainApp() {
 
         if (response.status === 200) {
           //create track record
-
+          
           const result = await alltracks.createTrack({
             id: eventId,
             groupId: [groupId],

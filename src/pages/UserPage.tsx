@@ -35,7 +35,7 @@ export const UserPage: React.FC = () => {
     useEffect(() => {
 
         const loadUserStats = async () => {
-            const userstats = await alltracks.getUserstats(Principal.fromText(userKey))
+            const userstats = await alltracks.getUserstats(userKey)
             console.log(userstats)
             if (userstats.length > 0) {
 

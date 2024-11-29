@@ -169,11 +169,11 @@ export const idlFactory = ({ IDL }) => {
     'difficulty' : Difficulty,
   });
   const UserStats = IDL.Record({
+    'id' : IDL.Text,
     'totalHours' : IDL.Float64,
     'firstHikeDate' : Time,
     'completedTrails' : IDL.Nat,
     'totalDistance' : IDL.Float64,
-    'hikerId' : IDL.Principal,
     'totalElevation' : IDL.Float64,
   });
   return IDL.Service({
@@ -248,7 +248,7 @@ export const idlFactory = ({ IDL }) => {
     'getTracks' : IDL.Func([TrackFilter], [IDL.Vec(Track)], ['query']),
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
     'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
-    'getUserstats' : IDL.Func([IDL.Principal], [IDL.Opt(UserStats)], ['query']),
+    'getUserstats' : IDL.Func([IDL.Text], [IDL.Opt(UserStats)], ['query']),
     'searchPhotosByTags' : IDL.Func(
         [IDL.Vec(IDL.Text)],
         [IDL.Vec(Photo)],

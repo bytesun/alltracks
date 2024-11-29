@@ -15,13 +15,14 @@ import { FILETYPE_GPX , FILETYPE_KML} from '../lib/constants';
 export const TrackPage: React.FC = () => {
 
   const alltracks = useAlltracks();
+  const [loading, setLoading] = useState(true);
   const { trackId } = useParams<{ trackId: string }>();
   const [track, setTrack] = useState<Track | null>(null);
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   useEffect(() => {
-
+    setLoading(true);
     const fetchTrack = async () => {
       // const trackDoc = await getDoc<Track>({
       //   collection: "tracks",
@@ -33,14 +34,17 @@ export const TrackPage: React.FC = () => {
 
 
       // }
-      const track = alltracks.getTrack(trackId);
-      if (track) {
-        const parsrsedTracks = parseTracks([track]);
+      const track = await alltracks.getTrack(trackId);
+      if (track.length > 0) {
+        console.log("Track:", track[0]);
+        const parsrsedTracks = parseTracks(track);
+
         setTrack(parsrsedTracks[0]);
       }
     };
 
     fetchTrack();
+    setLoading(false);
   }, [trackId]);
 
   useEffect(() => {
@@ -49,7 +53,6 @@ export const TrackPage: React.FC = () => {
       if (track) {
         const response = await fetch(track.trackfile.url);
         const content = await response.text();
-
 
         let points: TrackPoint[] = [];
 
@@ -62,7 +65,7 @@ export const TrackPage: React.FC = () => {
           points = parseCSV(content);
         }
         console.log("Track points:", points);
-        setTrackPoints(points);
+        //setTrackPoints(points);
       }
     };
     fetchTrackPoints();
@@ -139,7 +142,7 @@ export const TrackPage: React.FC = () => {
           </>
         ) : (
           <div className="loading-container">
-            <LoadingSpinner />
+            {loading && <LoadingSpinner />}
           </div>
         )}
       </div>

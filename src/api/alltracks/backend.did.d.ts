@@ -162,11 +162,11 @@ export type TrailType = { 'tloop' : null } |
   { 'outandback' : null } |
   { 'pointto' : null };
 export interface UserStats {
+  'id' : string,
   'totalHours' : number,
   'firstHikeDate' : Time,
   'completedTrails' : bigint,
   'totalDistance' : number,
-  'hikerId' : Principal,
   'totalElevation' : number,
 }
 export interface _SERVICE {
@@ -213,7 +213,7 @@ export interface _SERVICE {
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
-  'getUserstats' : ActorMethod<[Principal], [] | [UserStats]>,
+  'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result>,

@@ -6,6 +6,7 @@ import { useGlobalContext } from './Store';
 import { useAlltracks } from './Store';
 import { parseTracks } from '../utils/trackUtils';
 import { Track } from "../api/alltracks/backend.did"
+import { Link } from 'react-router-dom';
 
 
 export const Tracks: React.FC = () => {
@@ -64,6 +65,7 @@ export const Tracks: React.FC = () => {
       <div className="tracks-list">
         {tracks.length > 0 ? (
           tracks.map((track) => (
+            <Link to={`/track/${track.id}`} key={track.startime} className="track-item">
             <div key={track.startime} className="track-item">
               <span className="material-icons">route</span>
               <div className="track-info">
@@ -77,6 +79,7 @@ export const Tracks: React.FC = () => {
               </div>
 
             </div>
+            </Link>
           ))
         ) : (
           <div className="empty-tracks">

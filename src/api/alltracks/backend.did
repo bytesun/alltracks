@@ -2,7 +2,7 @@ type UserStats =
  record {
    completedTrails: nat;
    firstHikeDate: Time;
-   hikerId: principal;
+   id: text;
    totalDistance: float64;
    totalElevation: float64;
    totalHours: float64;
@@ -242,7 +242,7 @@ service : {
   getTracks: (TrackFilter) -> (vec Track) query;
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
-  getUserstats: (principal) -> (opt UserStats) query;
+  getUserstats: (text) -> (opt UserStats) query;
   searchPhotosByTags: (vec text) -> (vec Photo) query;
   searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);

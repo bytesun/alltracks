@@ -36,7 +36,7 @@ export const Profile: React.FC = () => {
     console.log("Loading user stats...")
     const loadUserStats = async () => {
       console.log("Loading user stats in...")
-      const us = await alltracks.getUserstats(principal);
+      const us = await alltracks.getUserstats(principal.toText());
       console.log(us)
 
       if (us.length > 0) {
