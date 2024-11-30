@@ -78,7 +78,7 @@ export const TrackPage: React.FC = () => {
       <div className="track-stats">
         <div className="stat">
           <label>Start</label>
-          <span>{(track?.startime || 0)} </span>
+          <span>{(new Date(track?.startime).toLocaleDateString() || 0)} </span>
         </div>
         <div className="stat">
           <label>Distance</label>
