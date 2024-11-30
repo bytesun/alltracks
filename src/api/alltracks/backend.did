@@ -40,6 +40,11 @@ type TrackFilter =
    group: text;
    user: principal;
  };
+type TrackFile = 
+ record {
+   fileType: text;
+   url: text;
+ };
 type Track = 
  record {
    createdBy: principal;
@@ -52,7 +57,7 @@ type Track =
    length: float64;
    name: text;
    startime: Time;
-   trackfile: text;
+   trackfile: TrackFile;
  };
 type Time = int;
 type Severity = 
@@ -116,7 +121,7 @@ type NewTrack =
    length: float64;
    name: text;
    startime: Time;
-   trackfile: text;
+   trackfile: TrackFile;
  };
 type NewIncidentPoint = 
  record {

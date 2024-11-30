@@ -56,12 +56,13 @@ export const idlFactory = ({ IDL }) => {
     'severity' : Severity,
     'photo' : IDL.Opt(IDL.Text),
   });
+  const TrackFile = IDL.Record({ 'url' : IDL.Text, 'fileType' : IDL.Text });
   const NewTrack = IDL.Record({
     'id' : IDL.Text,
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
     'startime' : Time,
-    'trackfile' : IDL.Text,
+    'trackfile' : TrackFile,
     'name' : IDL.Text,
     'description' : IDL.Text,
     'groupId' : IDL.Opt(IDL.Text),
@@ -73,7 +74,7 @@ export const idlFactory = ({ IDL }) => {
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
     'startime' : Time,
-    'trackfile' : IDL.Text,
+    'trackfile' : TrackFile,
     'name' : IDL.Text,
     'createdBy' : IDL.Principal,
     'description' : IDL.Text,

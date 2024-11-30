@@ -84,7 +84,7 @@ export interface NewTrack {
   'duration' : number,
   'elevation' : number,
   'startime' : Time,
-  'trackfile' : string,
+  'trackfile' : TrackFile,
   'name' : string,
   'description' : string,
   'groupId' : [] | [string],
@@ -130,7 +130,7 @@ export interface Track {
   'duration' : number,
   'elevation' : number,
   'startime' : Time,
-  'trackfile' : string,
+  'trackfile' : TrackFile,
   'name' : string,
   'createdBy' : Principal,
   'description' : string,
@@ -138,6 +138,7 @@ export interface Track {
   'length' : number,
   'isPublic' : boolean,
 }
+export interface TrackFile { 'url' : string, 'fileType' : string }
 export type TrackFilter = { 'user' : Principal } |
   { 'group' : string };
 export interface Trail {
