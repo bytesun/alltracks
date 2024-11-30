@@ -607,14 +607,14 @@ function MainApp() {
         transaction.addTag('Owner', principal.toText());
 
         // Sign and post transaction
-        if (wallet) {
-          await arweave.transactions.sign(transaction, wallet);
-        } else {//call wallet to sign manually
-          await arweave.transactions.sign(transaction);
-        }
-        const response = await arweave.transactions.post(transaction);
+        // if (wallet) {
+        //   await arweave.transactions.sign(transaction, wallet);
+        // } else {//call wallet to sign manually
+        //   await arweave.transactions.sign(transaction);
+        // }
+        // const response = await arweave.transactions.post(transaction);
 
-        if (response.status === 200) {
+        // if (response.status === 200) {
           //create track record
           
           const result = await alltracks.createTrack({
@@ -628,7 +628,7 @@ function MainApp() {
             startime: trackPoints[0].timestamp,
             trackfile: {
               fileType: mimeType,
-              url: arweaveGateway + "/" + transaction.id
+              url: arweaveGateway + "/",// + transaction.id
             },
             isPublic: !isPrivateStorage,
 
@@ -645,7 +645,7 @@ function MainApp() {
           clearTrackFromIndexDB(trackId);
           clearPoints();
 
-        }
+        // }
 
       }//cloud storage
     } catch (error) {
@@ -713,7 +713,11 @@ function MainApp() {
             {locationError}
           </div>
         )}
-
+        {message && (
+          <div className="message">
+            {message}
+          </div>
+        )}
 
         {!trackId && <div className="controls">
           <button onClick={() => setShowStartModal(true)}>Start Track</button>
