@@ -65,7 +65,7 @@ export const TrackPage: React.FC = () => {
           points = parseCSV(content);
         }
         console.log("Track points:", points);
-        //setTrackPoints(points);
+        setTrackPoints(points);
       }
     };
     fetchTrackPoints();

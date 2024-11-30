@@ -15,7 +15,7 @@ interface ExportModalProps {
 }
 export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  trackId }) => {
   const { state:{ isAuthed } } = useGlobalContext();
-  const [format, setFormat] = useState('csv');
+  const [format, setFormat] = useState('gpx');
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
   const [filename, setFilename] = useState('');
   const [description, setDescription] = useState('');
