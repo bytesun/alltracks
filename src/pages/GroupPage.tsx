@@ -11,12 +11,14 @@ import { Group } from '../types/Group';
 import { useICEvent, useAlltracks } from '../components/Store';
 import { UserStats } from '../types/UserStats';
 import { TrackAchievements } from '../components/TrackAchievements';
+import { parseTracks } from '../utils/trackUtils';
+
 interface TrackData {
     id: string;
     title: string;
-    distance: number;
+    length: number;
     duration: number;
-    createdAt: string;
+    startime: string;
     description: string;
 }
 
@@ -61,7 +63,8 @@ export const GroupPage: React.FC = () => {
                     groupBadge: ""
                 });
                 // Load group stats
-                alltracks.getGroupStats(groupId).then((stats) => {
+                alltracks.getUserstats(groupId).then((stats) => {
+                    console.log(stats)
                     if (stats.length > 0) {
                         setGroupStats({
                             totalDistance: stats[0].totalDistance,
@@ -82,6 +85,21 @@ export const GroupPage: React.FC = () => {
         loadTrackPoints();
     }, [groupId]);
 
+    useEffect(() => {
+        if (groupId) {            
+            loadTracks();
+        }
+    }, [groupId]);
+
+    const loadTracks = async () => {
+        setIsLoading(true);
+        const tcs = await alltracks.getTracks({group: groupId});
+        console.log(tcs)
+        const parsedTracks = parseTracks(tcs);
+
+        setTracks(parsedTracks);
+       setIsLoading(false);
+    };
 
     const loadTrackPoints = async () => {
         setIsLoading(true);
@@ -168,16 +186,16 @@ export const GroupPage: React.FC = () => {
                             {tracks.map(track => (
                                 <div key={track.id} className="track-list-item">
                                     <div className="track-info">
-                                        <span className="track-date">{new Date(track.createdAt).toLocaleDateString()}</span>
+                                        <span className="track-date">{new Date(track.startime).toLocaleDateString()}</span>
                                         <h3>{track.title}</h3>
                                         <div className="track-details">
                                             <span className="track-stat">
                                                 <span className="material-icons">straighten</span>
-                                                {track.distance.toFixed(2)} km
+                                                {track.length} km
                                             </span>
                                             <span className="track-stat">
                                                 <span className="material-icons">schedule</span>
-                                                {track.duration.toFixed(2)} hrs
+                                                {track.duration} hrs
                                             </span>
                                         </div>
                                     </div>
