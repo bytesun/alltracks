@@ -111,7 +111,7 @@ export const Trails: React.FC = () => {
                         fileType: contentType,
                         url: fileUrl
                     },
-                    photos: [trailData.imageUrl],
+                    photos: trailData.imageUrl?[trailData.imageUrl]:[],
                 };
                 console.log(newtrail);
                 const result = await alltracks.createTrail(newtrail);
