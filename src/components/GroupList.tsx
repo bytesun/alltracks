@@ -14,8 +14,9 @@ export const GroupList: React.FC<GroupListProps> = ({ groups, onEditGroup }) => 
       {groups.map((group) => (
         <div key={group.calendarId} className="group-card">
           <div className="group-info">
-            <h3>{group.name}</h3>
+            <h3>[{group.calendarId}] {group.name}</h3>
             <p>{group.description}</p>
+        
           </div>
           <div className="group-actions">
             <button 
