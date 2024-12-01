@@ -498,7 +498,7 @@ function MainApp() {
             longitude: pendingPosition.coords.longitude,
             timestamp: BigInt(pendingPosition.timestamp),
             elevation: pendingPosition.coords.altitude || undefined,
-            note: data.comment?.trim() || undefined,
+            note: data.comment?.trim() || '',
             photo: photoUrl ? [photoUrl] : [],
             isPublic: data.isPrivate ? false : true,
             isIncident: data.isIncident ? true : false,
@@ -617,7 +617,7 @@ function MainApp() {
         if (response.status === 200) {
           //create track record
           showNotification('Track uploaded to cloud storage', 'success');
-          
+
           const result = await alltracks.createTrack({
             id: eventId,
             groupId: [groupId],
