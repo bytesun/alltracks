@@ -531,8 +531,6 @@ function MainApp() {
     }
 
     setImportPoints(points);
-    //TODO, temp
-    setTrackPoints(points);
   };
 
   const clearPoints = () => {
@@ -619,7 +617,7 @@ function MainApp() {
         if (response.status === 200) {
           //create track record
 
-          const result = await alltracks.migrateTrack({
+          const result = await alltracks.createTrack({
             id: eventId,
             groupId: [groupId],
             name: filename,
