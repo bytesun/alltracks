@@ -75,7 +75,7 @@ export const UserPage: React.FC = () => {
                 longitude: point.longitude,
                 timestamp: Number(point.timestamp)  ,
                 elevation: point.elevation,
-                comment: point.note.length ? point.note[0] : '',
+                comment: point.note.length ? point.note[0] : undefined,
                 photo: point.photo.length > 0 ? point.photo[0] : undefined,
             })).sort((a, b) => b.timestamp - a.timestamp);
             

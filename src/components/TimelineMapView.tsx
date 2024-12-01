@@ -80,7 +80,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                             position={[selectedPoint.latitude, selectedPoint.longitude]}
                             icon={highlightedIcon}
                         >
-                            <Popup>
+                            {(selectedPoint.photo || selectedPoint.comment) && <Popup autoPan={true}>
                                 <div className="marker-popup">
                                     <div className="marker-details">
                                         {selectedPoint.photo && (
@@ -108,10 +108,10 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                                                 />
                                             </div>
                                         )}
-                                        <p>{selectedPoint.comment}</p>
+                                        <p>{selectedPoint.comment?selectedPoint.comment:"no info"}</p>
                                     </div>
                                 </div>
-                            </Popup>
+                            </Popup>}
                         </Marker>
                     )}
 
