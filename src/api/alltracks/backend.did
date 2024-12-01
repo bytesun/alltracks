@@ -18,6 +18,11 @@ type TrailFilter =
    difficulty: Difficulty;
    ttype: TrailType;
  };
+type TrailFile = 
+ record {
+   fileType: text;
+   url: text;
+ };
 type Trail = 
  record {
    createdAt: Time;
@@ -32,7 +37,7 @@ type Trail =
    photos: vec text;
    rate: float64;
    tags: vec text;
-   trailfile: text;
+   trailfile: TrailFile;
    ttype: TrailType;
  };
 type TrackFilter = 
@@ -75,12 +80,12 @@ type Result_3 =
 type Result_2 = 
  variant {
    err: text;
-   ok: Trail;
+   ok: Track;
  };
 type Result_1 = 
  variant {
    err: text;
-   ok: Track;
+   ok: Trail;
  };
 type Result = 
  variant {
@@ -107,7 +112,7 @@ type NewTrail =
    photos: vec text;
    rate: float64;
    tags: vec text;
-   trailfile: text;
+   trailfile: TrailFile;
    ttype: TrailType;
  };
 type NewTrack = 
@@ -227,8 +232,8 @@ service : {
   createCheckpoint: (NewCheckPoint) -> (Result);
   createGroup: (NewGroup) -> (Result_3);
   createIncidentPoint: (NewIncidentPoint) -> (Result);
-  createTrack: (NewTrack) -> (Result_1);
-  createTrail: (NewTrail) -> (Result_2);
+  createTrack: (NewTrack) -> (Result_2);
+  createTrail: (NewTrail) -> (Result_1);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
@@ -256,7 +261,6 @@ service : {
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
   getUserstats: (text) -> (opt UserStats) query;
-  migrateTrack: (NewTrack) -> (Result_1);
   searchPhotosByTags: (vec text) -> (vec Photo) query;
   searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);

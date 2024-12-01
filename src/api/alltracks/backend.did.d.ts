@@ -94,7 +94,7 @@ export interface NewTrack {
 export interface NewTrail {
   'duration' : number,
   'ttype' : TrailType,
-  'trailfile' : string,
+  'trailfile' : TrailFile,
   'difficulty' : Difficulty,
   'name' : string,
   'rate' : number,
@@ -114,9 +114,9 @@ export interface Photo {
 }
 export type Result = { 'ok' : bigint } |
   { 'err' : string };
-export type Result_1 = { 'ok' : Track } |
+export type Result_1 = { 'ok' : Trail } |
   { 'err' : string };
-export type Result_2 = { 'ok' : Trail } |
+export type Result_2 = { 'ok' : Track } |
   { 'err' : string };
 export type Result_3 = { 'ok' : Group } |
   { 'err' : string };
@@ -145,7 +145,7 @@ export interface Trail {
   'id' : bigint,
   'duration' : number,
   'ttype' : TrailType,
-  'trailfile' : string,
+  'trailfile' : TrailFile,
   'difficulty' : Difficulty,
   'name' : string,
   'createdAt' : Time,
@@ -157,6 +157,7 @@ export interface Trail {
   'elevationGain' : number,
   'photos' : Array<string>,
 }
+export interface TrailFile { 'url' : string, 'fileType' : string }
 export type TrailFilter = { 'ttype' : TrailType } |
   { 'difficulty' : Difficulty };
 export type TrailType = { 'tloop' : null } |
@@ -186,8 +187,8 @@ export interface _SERVICE {
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result>,
   'createGroup' : ActorMethod<[NewGroup], Result_3>,
   'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result>,
-  'createTrack' : ActorMethod<[NewTrack], Result_1>,
-  'createTrail' : ActorMethod<[NewTrail], Result_2>,
+  'createTrack' : ActorMethod<[NewTrack], Result_2>,
+  'createTrail' : ActorMethod<[NewTrail], Result_1>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpoints' : ActorMethod<
     [CheckpointFilter, Time, Time],
@@ -225,7 +226,6 @@ export interface _SERVICE {
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
-  'migrateTrack' : ActorMethod<[NewTrack], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result>,

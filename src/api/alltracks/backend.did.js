@@ -82,12 +82,13 @@ export const idlFactory = ({ IDL }) => {
     'length' : IDL.Float64,
     'isPublic' : IDL.Bool,
   });
-  const Result_1 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
+  const Result_2 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
   const TrailType = IDL.Variant({
     'tloop' : IDL.Null,
     'outandback' : IDL.Null,
     'pointto' : IDL.Null,
   });
+  const TrailFile = IDL.Record({ 'url' : IDL.Text, 'fileType' : IDL.Text });
   const Difficulty = IDL.Variant({
     'easy' : IDL.Null,
     'hard' : IDL.Null,
@@ -97,7 +98,7 @@ export const idlFactory = ({ IDL }) => {
   const NewTrail = IDL.Record({
     'duration' : IDL.Float64,
     'ttype' : TrailType,
-    'trailfile' : IDL.Text,
+    'trailfile' : TrailFile,
     'difficulty' : Difficulty,
     'name' : IDL.Text,
     'rate' : IDL.Float64,
@@ -111,7 +112,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'duration' : IDL.Float64,
     'ttype' : TrailType,
-    'trailfile' : IDL.Text,
+    'trailfile' : TrailFile,
     'difficulty' : Difficulty,
     'name' : IDL.Text,
     'createdAt' : Time,
@@ -123,7 +124,7 @@ export const idlFactory = ({ IDL }) => {
     'elevationGain' : IDL.Float64,
     'photos' : IDL.Vec(IDL.Text),
   });
-  const Result_2 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
   const CheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
@@ -194,8 +195,8 @@ export const idlFactory = ({ IDL }) => {
     'createCheckpoint' : IDL.Func([NewCheckPoint], [Result], []),
     'createGroup' : IDL.Func([NewGroup], [Result_3], []),
     'createIncidentPoint' : IDL.Func([NewIncidentPoint], [Result], []),
-    'createTrack' : IDL.Func([NewTrack], [Result_1], []),
-    'createTrail' : IDL.Func([NewTrail], [Result_2], []),
+    'createTrack' : IDL.Func([NewTrack], [Result_2], []),
+    'createTrail' : IDL.Func([NewTrail], [Result_1], []),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(CheckPoint)],
@@ -263,7 +264,6 @@ export const idlFactory = ({ IDL }) => {
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
     'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
     'getUserstats' : IDL.Func([IDL.Text], [IDL.Opt(UserStats)], ['query']),
-    'migrateTrack' : IDL.Func([NewTrack], [Result_1], []),
     'searchPhotosByTags' : IDL.Func(
         [IDL.Vec(IDL.Text)],
         [IDL.Vec(Photo)],
