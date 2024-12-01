@@ -616,7 +616,8 @@ function MainApp() {
 
         if (response.status === 200) {
           //create track record
-
+          showNotification('Track uploaded to cloud storage', 'success');
+          
           const result = await alltracks.createTrack({
             id: eventId,
             groupId: [groupId],
@@ -640,7 +641,7 @@ function MainApp() {
             showNotification(`Track record created: ${result.id}`, 'success');
           }
 
-          showNotification('Track uploaded to cloud storage', 'success');
+          
 
           clearTrackFromIndexDB(trackId);
           clearPoints();
