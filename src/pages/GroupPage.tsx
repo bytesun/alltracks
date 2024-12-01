@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Doc, getDoc, listDocs } from "@junobuild/core";
+
 import { Navbar } from '../components/Navbar';
 import { TrackPoint } from '../types/TrackPoint';
 import { TimelineMapView } from '../components/TimelineMapView';
@@ -11,6 +11,7 @@ import { Group } from '../types/Group';
 import { useICEvent, useAlltracks } from '../components/Store';
 import { UserStats } from '../types/UserStats';
 import { TrackAchievements } from '../components/TrackAchievements';
+import { GroupTracks } from '../components/GroupTracks';
 import { parseTracks } from '../utils/trackUtils';
 
 interface TrackData {
@@ -26,7 +27,7 @@ export const GroupPage: React.FC = () => {
     const { groupId } = useParams();
     const alltracks = useAlltracks();
     const [group, setGroup] = useState<Group | null>(null);
-    const [tracks, setTracks] = useState<TrackData[]>([]);
+    
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'tracks' | 'timeline' | 'photos'>('timeline');
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
@@ -84,24 +85,6 @@ export const GroupPage: React.FC = () => {
     useEffect(() => {
         loadTrackPoints();
     }, [groupId]);
-
-    useEffect(() => {
-        if (groupId) {            
-            loadTracks();
-        }
-    }, [groupId]);
-
-    const loadTracks = async () => {
-        setIsLoading(true);
-        const tcs = await alltracks.getTracks({group: groupId});
-        console.log(tcs)
-        const parsedTracks = parseTracks(tcs);
-        const sortedTracks = parsedTracks.sort((a, b) => 
-            new Date(b.startime).getTime() - new Date(a.startime).getTime()
-        );
-        setTracks(sortedTracks);
-       setIsLoading(false);
-    };
 
     const loadTrackPoints = async () => {
         setIsLoading(true);
@@ -183,31 +166,7 @@ export const GroupPage: React.FC = () => {
 
 
                 {activeTab === 'tracks' && (
-                    <section className="group-tracks">
-                        <div className="tracks-list">
-                            {tracks.map(track => (
-                                <div key={track.id} className="track-list-item">
-                                    <div className="track-info">
-                                        <span className="track-date">{new Date(track.startime).toLocaleDateString()}</span>
-                                        <h3>{track.title}</h3>
-                                        <div className="track-details">
-                                            <span className="track-stat">
-                                                <span className="material-icons">straighten</span>
-                                                {track.length} km
-                                            </span>
-                                            <span className="track-stat">
-                                                <span className="material-icons">schedule</span>
-                                                {track.duration} hrs
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Link to={`/track/${track.id}`} className="view-track-btn">
-                                        <span className="material-icons">chevron_right</span>
-                                    </Link>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
+                    <GroupTracks groupId={groupId}/>
                 )}
                 {activeTab === 'timeline' && (
                     <TimelineMapView
