@@ -96,8 +96,10 @@ export const GroupPage: React.FC = () => {
         const tcs = await alltracks.getTracks({group: groupId});
         console.log(tcs)
         const parsedTracks = parseTracks(tcs);
-
-        setTracks(parsedTracks);
+        const sortedTracks = parsedTracks.sort((a, b) => 
+            new Date(b.startime).getTime() - new Date(a.startime).getTime()
+        );
+        setTracks(sortedTracks);
        setIsLoading(false);
     };
 
