@@ -105,8 +105,8 @@ export const GroupPage: React.FC = () => {
 
     const loadTrackPoints = async () => {
         setIsLoading(true);
-        const start = BigInt(new Date(startDate).getTime() * 1000000);
-        const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() * 1000000);
+        const start = BigInt(new Date(startDate).getTime() );
+        const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() );
 
         // const result = await listDocs({
         //     collection: "live_tracks",
@@ -135,7 +135,7 @@ export const GroupPage: React.FC = () => {
             elevation: point.elevation,
             comment: point.note.length ? point.note[0] : '',
             photo: point.photo.length > 0 ? point.photo[0] : undefined,
-        }));
+        })).sort((a, b) => b.timestamp - a.timestamp);
 
 
         setTrackPoints(points);
