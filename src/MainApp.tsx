@@ -498,11 +498,11 @@ function MainApp() {
             longitude: pendingPosition.coords.longitude,
             timestamp: BigInt(pendingPosition.timestamp),
             elevation: pendingPosition.coords.altitude || undefined,
-            note: [data.comment.trim()],
+            note: data.comment?.trim() || undefined,
             photo: photoUrl ? [photoUrl] : [],
             isPublic: data.isPrivate ? false : true,
             isIncident: data.isIncident ? true : false,
-            groupId: [groupId],
+            groupId: groupId ? [groupId] : [],
             trackId: trackId
           });
 

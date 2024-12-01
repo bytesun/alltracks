@@ -248,6 +248,11 @@ service : {
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
   getUserstats: (text) -> (opt UserStats) query;
+  migrateCheckpoints: (vec CheckPoint) -> ();
+  migratePhotos: (vec Photo) -> ();
+  migrateTracks: (vec Track) -> ();
+  migrateTrails: (vec Trail) -> ();
+  migrateUserstats: (UserStats) -> ();
   searchPhotosByTags: (vec text) -> (vec Photo) query;
   searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);

@@ -250,6 +250,11 @@ export const idlFactory = ({ IDL }) => {
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
     'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
     'getUserstats' : IDL.Func([IDL.Text], [IDL.Opt(UserStats)], ['query']),
+    'migrateCheckpoints' : IDL.Func([IDL.Vec(CheckPoint)], [], []),
+    'migratePhotos' : IDL.Func([IDL.Vec(Photo)], [], []),
+    'migrateTracks' : IDL.Func([IDL.Vec(Track)], [], []),
+    'migrateTrails' : IDL.Func([IDL.Vec(Trail)], [], []),
+    'migrateUserstats' : IDL.Func([UserStats], [], []),
     'searchPhotosByTags' : IDL.Func(
         [IDL.Vec(IDL.Text)],
         [IDL.Vec(Photo)],
