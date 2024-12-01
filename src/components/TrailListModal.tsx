@@ -21,7 +21,7 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
 
     useEffect(() => {
         loadTrails();
-    }, []);
+    }, [searchTerm]);
 
     useEffect(() => {
         const filtered = trails.filter(trail => {
@@ -31,12 +31,12 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
             return matchesSearch && matchesDifficulty;
         });
         setFilteredTrails(filtered);
-    }, [searchTerm, trails, selectedDifficulty]);
+    }, [trails, selectedDifficulty]);
 
 
     const loadTrails = async () => {    
         try {
-            const result = await alltracks.getTrails();
+            const result = await alltracks.searchTrails(searchTerm);
             const parsedTrails = parseTrails(result);
             
             setTrails(parsedTrails);
@@ -71,6 +71,7 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
                             <option value="easy">Easy</option>
                             <option value="moderate">Moderate</option>
                             <option value="hard">Hard</option>
+                            <option value="expert">Expert</option>
                         </select>
                     </div>
                 </div>
