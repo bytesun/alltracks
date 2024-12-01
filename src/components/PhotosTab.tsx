@@ -89,7 +89,7 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
         {arphotos.map((photo, index) => (
           <div key={index} className="photo-item" onClick={() => setSelectedPhoto(photo)}>
             <img src={`${photo.photoUrl}`} alt={`Photo ${index + 1}`} />
-            <div className="photo-description"> {photo.trackId} {photo.tags.toString()}  on  {new Date(Number(photo.timestamp)/1000000).toLocaleDateString()}</div>
+            <div className="photo-description">  {photo.tags.toString()}  on  {new Date(Number(photo.timestamp)/1000000).toLocaleDateString()}</div>
           </div>
         ))}
 
