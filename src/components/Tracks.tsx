@@ -1,13 +1,13 @@
 import React from 'react';
 
 import './Tracks.css';
-import { useStats } from '../context/StatsContext'; 
+import { useStats } from '../context/StatsContext';
 import { useGlobalContext } from './Store';
 import { useAlltracks } from './Store';
 import { parseTracks } from '../utils/trackUtils';
 import { Track } from "../api/alltracks/backend.did"
 import { Link } from 'react-router-dom';
-
+import { CreateTrackModal } from './CreateTrackModal';
 
 export const Tracks: React.FC = () => {
 
@@ -16,6 +16,7 @@ export const Tracks: React.FC = () => {
   const [tracks, setTracks] = React.useState<Track[]>([]);
   const [trackVisibility, setTrackVisibility] = React.useState<'public' | 'private'>('public');
   const { settings } = useStats();
+  const [showCreateModal, setShowCreateModal] = React.useState(false);
 
   React.useEffect(() => {
     if (isAuthed) {
@@ -26,9 +27,9 @@ export const Tracks: React.FC = () => {
 
   const fetchTracks = async () => {
     let items = [];
-    const tks = await alltracks.getTracks({user: principal })
+    const tks = await alltracks.getTracks({ user: principal })
 
-   
+
     const formattedTracks = parseTracks(tks);
     console.log(formattedTracks)
     setTracks(formattedTracks);
@@ -38,6 +39,13 @@ export const Tracks: React.FC = () => {
     <div className="tracks-section">
       <div className="settings-header">
         <h3>My Tracks</h3>
+        {/* <button 
+    className="add-track-button"
+    onClick={() => setShowCreateModal(true)}
+  >
+    <span className="material-icons">add</span>
+    New Track
+  </button> */}
       </div>
       <div className="track-visibility-selector">
         <label>
@@ -66,19 +74,19 @@ export const Tracks: React.FC = () => {
         {tracks.length > 0 ? (
           tracks.map((track) => (
             <Link to={`/track/${track.id}`} key={track.startime} className="track-item">
-            <div key={track.startime} className="track-item">
-              <span className="material-icons">route</span>
-              <div className="track-info">
-                <div className="track-title">[{new Date(Number(track.startime)).toLocaleDateString()}] {track.name}</div>
-                <div className="track-meta">
-                  <span>{track.length} km</span>
-                  <span>{track.duration} hr</span>
-                  <span>{track.elevation} m</span>
-                  
-                </div>
-              </div>
+              <div key={track.startime} className="track-item">
+                <span className="material-icons">route</span>
+                <div className="track-info">
+                  <div className="track-title">[{new Date(Number(track.startime)).toLocaleDateString()}] {track.name}</div>
+                  <div className="track-meta">
+                    <span>{track.length} km</span>
+                    <span>{track.duration} hr</span>
+                    <span>{track.elevation} m</span>
 
-            </div>
+                  </div>
+                </div>
+
+              </div>
             </Link>
           ))
         ) : (
@@ -88,6 +96,12 @@ export const Tracks: React.FC = () => {
           </div>
         )}
       </div>
+      {showCreateModal && (
+        <CreateTrackModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => fetchTracks()}
+        />
+      )}
     </div>
   );
 };

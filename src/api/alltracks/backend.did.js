@@ -82,7 +82,7 @@ export const idlFactory = ({ IDL }) => {
     'length' : IDL.Float64,
     'isPublic' : IDL.Bool,
   });
-  const Result_2 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
+  const Result_1 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
   const TrailType = IDL.Variant({
     'tloop' : IDL.Null,
     'outandback' : IDL.Null,
@@ -123,7 +123,7 @@ export const idlFactory = ({ IDL }) => {
     'elevationGain' : IDL.Float64,
     'photos' : IDL.Vec(IDL.Text),
   });
-  const Result_1 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
+  const Result_2 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
   const CheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
@@ -194,8 +194,8 @@ export const idlFactory = ({ IDL }) => {
     'createCheckpoint' : IDL.Func([NewCheckPoint], [Result], []),
     'createGroup' : IDL.Func([NewGroup], [Result_3], []),
     'createIncidentPoint' : IDL.Func([NewIncidentPoint], [Result], []),
-    'createTrack' : IDL.Func([NewTrack], [Result_2], []),
-    'createTrail' : IDL.Func([NewTrail], [Result_1], []),
+    'createTrack' : IDL.Func([NewTrack], [Result_1], []),
+    'createTrail' : IDL.Func([NewTrail], [Result_2], []),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(CheckPoint)],
@@ -237,6 +237,19 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IncidentPoint)],
         ['query'],
       ),
+    'getListCounts' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'incidentPoints' : IDL.Nat,
+            'tracks' : IDL.Nat,
+            'trails' : IDL.Nat,
+            'checkpoints' : IDL.Nat,
+            'photos' : IDL.Nat,
+          }),
+        ],
+        ['query'],
+      ),
     'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),
     'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),
     'getMyTrails' : IDL.Func([], [IDL.Vec(Trail)], ['query']),
@@ -250,11 +263,7 @@ export const idlFactory = ({ IDL }) => {
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
     'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
     'getUserstats' : IDL.Func([IDL.Text], [IDL.Opt(UserStats)], ['query']),
-    'migrateCheckpoints' : IDL.Func([IDL.Vec(CheckPoint)], [], []),
-    'migratePhotos' : IDL.Func([IDL.Vec(Photo)], [], []),
-    'migrateTracks' : IDL.Func([IDL.Vec(Track)], [], []),
-    'migrateTrails' : IDL.Func([IDL.Vec(Trail)], [], []),
-    'migrateUserstats' : IDL.Func([UserStats], [], []),
+    'migrateTrack' : IDL.Func([NewTrack], [Result_1], []),
     'searchPhotosByTags' : IDL.Func(
         [IDL.Vec(IDL.Text)],
         [IDL.Vec(Photo)],

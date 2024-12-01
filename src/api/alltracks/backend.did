@@ -75,12 +75,12 @@ type Result_3 =
 type Result_2 = 
  variant {
    err: text;
-   ok: Track;
+   ok: Trail;
  };
 type Result_1 = 
  variant {
    err: text;
-   ok: Trail;
+   ok: Track;
  };
 type Result = 
  variant {
@@ -227,8 +227,8 @@ service : {
   createCheckpoint: (NewCheckPoint) -> (Result);
   createGroup: (NewGroup) -> (Result_3);
   createIncidentPoint: (NewIncidentPoint) -> (Result);
-  createTrack: (NewTrack) -> (Result_2);
-  createTrail: (NewTrail) -> (Result_1);
+  createTrack: (NewTrack) -> (Result_1);
+  createTrail: (NewTrail) -> (Result_2);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
@@ -239,6 +239,14 @@ service : {
   getIncidentPointsBySeverity: (Severity) -> (vec IncidentPoint) query;
   getIncidentPointsByTimeRange: (Time, Time) -> (vec IncidentPoint) query;
   getIncidentPointsByTrack: (text) -> (vec IncidentPoint) query;
+  getListCounts: () ->
+   (record {
+      checkpoints: nat;
+      incidentPoints: nat;
+      photos: nat;
+      tracks: nat;
+      trails: nat;
+    }) query;
   getMyGroups: () -> (vec Group) query;
   getMyPhotos: (Time, Time) -> (vec Photo) query;
   getMyTrails: () -> (vec Trail) query;
@@ -248,11 +256,7 @@ service : {
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
   getUserstats: (text) -> (opt UserStats) query;
-  migrateCheckpoints: (vec CheckPoint) -> ();
-  migratePhotos: (vec Photo) -> ();
-  migrateTracks: (vec Track) -> ();
-  migrateTrails: (vec Trail) -> ();
-  migrateUserstats: (UserStats) -> ();
+  migrateTrack: (NewTrack) -> (Result_1);
   searchPhotosByTags: (vec text) -> (vec Photo) query;
   searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);

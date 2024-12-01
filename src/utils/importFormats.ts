@@ -3,13 +3,14 @@ import { TrackPoint } from "../types/TrackPoint"
 export const parseCSV = (content: string): TrackPoint[] => {
   const lines = content.split('\n');
   const points = lines.slice(1).map(line => {
-    const [timestamp, latitude, longitude, elevation, comment] = line.split(',');
+    const [timestamp, latitude, longitude, elevation, comment, photo] = line.split(',');
     return {
       timestamp: Number(timestamp),
       latitude: Number(latitude),
       longitude: Number(longitude),
       elevation: elevation ? Number(elevation) : undefined,
-      comment: comment?.trim()
+      comment: comment?.trim(),
+      photo: photo?.trim()
     };
   });
   return points;
@@ -26,6 +27,7 @@ export const parseGPX = (content: string): TrackPoint[] => {
     elevation: Number(trkpt.getElementsByTagName('ele')[0]?.textContent) || undefined,
     timestamp: new Date(trkpt.getElementsByTagName('time')[0]?.textContent || '').getTime(),
     comment: trkpt.getElementsByTagName('cmt')[0]?.textContent || undefined
+    
   }));
 };
 

@@ -114,9 +114,9 @@ export interface Photo {
 }
 export type Result = { 'ok' : bigint } |
   { 'err' : string };
-export type Result_1 = { 'ok' : Trail } |
+export type Result_1 = { 'ok' : Track } |
   { 'err' : string };
-export type Result_2 = { 'ok' : Track } |
+export type Result_2 = { 'ok' : Trail } |
   { 'err' : string };
 export type Result_3 = { 'ok' : Group } |
   { 'err' : string };
@@ -186,8 +186,8 @@ export interface _SERVICE {
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result>,
   'createGroup' : ActorMethod<[NewGroup], Result_3>,
   'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result>,
-  'createTrack' : ActorMethod<[NewTrack], Result_2>,
-  'createTrail' : ActorMethod<[NewTrail], Result_1>,
+  'createTrack' : ActorMethod<[NewTrack], Result_1>,
+  'createTrail' : ActorMethod<[NewTrail], Result_2>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpoints' : ActorMethod<
     [CheckpointFilter, Time, Time],
@@ -206,6 +206,16 @@ export interface _SERVICE {
     Array<IncidentPoint>
   >,
   'getIncidentPointsByTrack' : ActorMethod<[string], Array<IncidentPoint>>,
+  'getListCounts' : ActorMethod<
+    [],
+    {
+      'incidentPoints' : bigint,
+      'tracks' : bigint,
+      'trails' : bigint,
+      'checkpoints' : bigint,
+      'photos' : bigint,
+    }
+  >,
   'getMyGroups' : ActorMethod<[], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,
@@ -215,11 +225,7 @@ export interface _SERVICE {
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
-  'migrateCheckpoints' : ActorMethod<[Array<CheckPoint>], undefined>,
-  'migratePhotos' : ActorMethod<[Array<Photo>], undefined>,
-  'migrateTracks' : ActorMethod<[Array<Track>], undefined>,
-  'migrateTrails' : ActorMethod<[Array<Trail>], undefined>,
-  'migrateUserstats' : ActorMethod<[UserStats], undefined>,
+  'migrateTrack' : ActorMethod<[NewTrack], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result>,
