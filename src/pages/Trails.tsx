@@ -14,7 +14,7 @@ export const Trails = () => {
   const alltracks = useAlltracks();
   const [trails, setTrails] = useState<Trail[]>([]);
   
-  const DEFAULT_TRAIL_IMAGE = 'https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io/logos/alltracks_hero.png';
+  const DEFAULT_TRAIL_IMAGE = '/alltracks_hero.png';
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 

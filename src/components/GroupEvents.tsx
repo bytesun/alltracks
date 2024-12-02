@@ -37,11 +37,20 @@ export const GroupEvents: React.FC<GroupEventsProps> = ({ groupId }) => {
                 {events.map(event => (
                     <div key={event.id} className="event-list-item">
                         <div className="event-info">
- 
-                            <h3> {moment.unix(parseInt(event.start)).format("YYYY-MM-DD hh:mm")} - {event.title}</h3>
+                            <div className="event-title-row">
+                                <h3> {moment.unix(parseInt(event.start)).format("YYYY-MM-DD hh:mm")} - {event.title}</h3>
 
-                            <p>{event.description}</p>
-                            
+                            </div>
+                            <div className="event-details">
+                                <div className="event-location">
+                                    <span className="material-icons">place</span>
+                                    {event.location["url"] ? event.location["url"] : event.location["address"]}
+                                </div>
+                            </div>
+                            <div className="event-details">
+                                <p>{event.description}</p>
+
+                            </div>
                         </div>
 
                     </div>
