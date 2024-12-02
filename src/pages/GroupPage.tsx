@@ -10,9 +10,10 @@ import '../styles/GroupPage.css';
 import { Group } from '../types/Group';
 import { useICEvent, useAlltracks } from '../components/Store';
 import { UserStats } from '../types/UserStats';
-import { TrackAchievements } from '../components/TrackAchievements';
+
 import { GroupTracks } from '../components/GroupTracks';
-import { parseTracks } from '../utils/trackUtils';
+
+import { GroupEvents } from '../components/GroupEvents';
 
 interface TrackData {
     id: string;
@@ -26,10 +27,11 @@ interface TrackData {
 export const GroupPage: React.FC = () => {
     const { groupId } = useParams();
     const alltracks = useAlltracks();
-    const [group, setGroup] = useState<Group | null>(null);
     
+    const [group, setGroup] = useState<Group | null>(null);
+
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'tracks' | 'timeline' | 'photos'>('timeline');
+    const [activeTab, setActiveTab] = useState<'tracks' | 'timeline' | 'photos' | 'events'>('timeline');
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
     const [groupStats, setGroupStats] = useState<UserStats>(null);
     const [startDate, setStartDate] = useState<string>(
@@ -88,8 +90,8 @@ export const GroupPage: React.FC = () => {
 
     const loadTrackPoints = async () => {
         setIsLoading(true);
-        const start = BigInt(new Date(startDate).getTime() );
-        const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() );
+        const start = BigInt(new Date(startDate).getTime());
+        const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime());
 
         // const result = await listDocs({
         //     collection: "live_tracks",
@@ -144,6 +146,12 @@ export const GroupPage: React.FC = () => {
 
                 <div className="tab-controls">
                     <button
+                        className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('events')}
+                    >
+                        Events
+                    </button>
+                    <button
                         className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
                         onClick={() => setActiveTab('timeline')}
                     >
@@ -166,7 +174,7 @@ export const GroupPage: React.FC = () => {
 
 
                 {activeTab === 'tracks' && (
-                    <GroupTracks groupId={groupId}/>
+                    <GroupTracks groupId={groupId} />
                 )}
                 {activeTab === 'timeline' && (
                     <TimelineMapView
@@ -185,6 +193,9 @@ export const GroupPage: React.FC = () => {
                     </section>
                 )}
 
+                {activeTab === 'events' && (
+                    <GroupEvents groupId={groupId} />
+                )}
 
             </div>
         </div>

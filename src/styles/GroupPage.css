@@ -156,3 +156,70 @@
 .track-stat .material-icons {
   font-size: 16px;
 }
+
+.events-list {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.event-list-item {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.event-list-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.event-info {
+    flex: 1;
+}
+.event-datetime {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+}
+
+.event-time {
+    color: #2196F3;
+}
+
+.event-timezone {
+    color: #999;
+    font-size: 0.8em;
+}
+.event-info h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.event-info p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.view-event-btn {
+    color: #2196F3;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.view-event-btn:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+}
