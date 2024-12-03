@@ -13,9 +13,15 @@ import "../styles/Status.css";
 const locationIcon = icon({
     iconUrl: '/marker-icon.png',
     iconSize: [24, 35],
-    iconAnchor: [12, 12]
+    iconAnchor: [12, 12],
+    className: 'incident-marker'
 });
-
+const selectedLocationIcon = icon({
+    iconUrl: '/marker-selected-icon.png',
+    iconSize: [32, 42],
+    iconAnchor: [16, 16],
+    className: 'selected-marker'
+});
 
 export const Status: React.FC = () => {
 
@@ -54,8 +60,10 @@ export const Status: React.FC = () => {
         const fetchTrackPoints = async () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
-           const checkpoints = await alltracks.getIncidentCheckpoints(today.getTime() * 1_000_000- 24 * 60 * 60 * 1_000_000, today.getTime() * 1_000_000 + 24 * 60 * 60 * 1_000_000)
+            const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+            const endDate = new Date(Date.now())
+
+            const checkpoints = await alltracks.getIncidentCheckpoints(BigInt(startDate.getTime()), BigInt(endDate.getTime()))
             console.log(checkpoints)
             // const tracks = await listDocs({
             //     collection: "incidents",
@@ -80,7 +88,7 @@ export const Status: React.FC = () => {
                     photo: p.photo.length > 0 ? p.photo[0] : undefined,
                 } as TrackPoint;
             });
-            
+
 
             const filteredPoints = userLocation ? points.filter(point => {
                 const distance = calculateDistance(
@@ -149,19 +157,19 @@ export const Status: React.FC = () => {
 
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
         const R = 6371e3; // Earth's radius in meters
-        const φ1 = lat1 * Math.PI/180;
-        const φ2 = lat2 * Math.PI/180;
-        const Δφ = (lat2-lat1) * Math.PI/180;
-        const Δλ = (lon2-lon1) * Math.PI/180;
-    
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ/2) * Math.sin(Δλ/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
         return R * c;
     };
-    
+
     return (
         <div className="event-page">
             <Navbar />
@@ -191,87 +199,113 @@ export const Status: React.FC = () => {
                     Showing tracking important points of interest or hazards from today within 10km of your location
                     {trackPoints.length > 0 && ` (${trackPoints.length} points found)`}
                 </p>
-                <MapContainer
-                    center={getMapCenter() as [number, number]}
-                    zoom={13}
-                    style={{ height: '400px', width: '100%' }}
-                >
-                    <RecenterOnLoad />
-                    <CenterMapOnPoint />
 
-                    {trackPoints.map((point) => (
-                        <Marker
-                            key={point.timestamp}
-                            position={[point.latitude, point.longitude]}
-                            icon={locationIcon}
-                        >
-                            <Popup>
-                                <div>
-                                    <p>Time: {new Date(point.timestamp).toLocaleString()}</p>
-                                    {point.comment && <p>Note: {point.comment}</p>}
-                                    {point.elevation && <p>Elevation: {point.elevation.toFixed(1)}m</p>}
-                                </div>
-                            </Popup>
-                        </Marker>
-                    ))}
+                <div className="status-content">
+                    {/* Left Column - Points List */}
+                    <div className="points-list-column">
+                        <div className="list-panel">
+                        {trackPoints.length > 0 ? (
+                            <div className="points-feed">
+                                {[...trackPoints]
+                                    .sort((a, b) => b.timestamp - a.timestamp)
+                                    .map((point) => (
+                                        <div
+                                            key={point.timestamp}
+                                            className={`feed-item ${selectedPoint?.timestamp === point.timestamp ? 'feed-selected' : ''}`}
+                                            onClick={() => setSelectedPoint(point)}
+                                        >
+                                            <div className="feed-time">
+                                                <span className="feed-date">
+                                                    {new Date(point.timestamp).toLocaleDateString('en-US', {
+                                                        weekday: 'short',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
+                                                </span>
+                                                <span className="feed-clock">
+                                                    {new Date(point.timestamp).toLocaleTimeString('en-US', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </span>
+                                            </div>
 
-                    <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+                                            <div className="feed-content">
 
-
-                </MapContainer>
-                <div className="track-points-list">
-
-                    <table className="points-table">
-                        <tbody>
-                            {[...trackPoints]
-                                .sort((a, b) => b.timestamp - a.timestamp)
-                                .map((point) => (
-                                    <tr
-                                        key={point.timestamp}
-                                        onClick={() => setSelectedPoint(point)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
-                                        <td>{point.latitude.toFixed(6)}</td>
-                                        <td>{point.longitude.toFixed(6)}</td>
-                                        <td>{point.elevation?.toFixed(1) || '-'} m</td>
-                                        <td>{point.comment} </td>
-                                        <td>
-                                            {point.photo && (
-                                                <img
-                                                    src={point.photo}
-                                                    alt="Point photo"
-                                                    style={{
-                                                        width: '50px',
-                                                        height: '50px',
-                                                        objectFit: 'cover',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (point.photo) {
+                                                {point.comment && <div className="feed-comment">{point.comment}</div>}
+                                                {point.photo && (
+                                                    <img
+                                                        src={point.photo}
+                                                        alt="Point photo"
+                                                        className="feed-photo"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setModalPhoto(point.photo);
-                                                        }
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                            ) : (
+                                <div className="empty-state">
+                                  <span className="material-icons">info</span>
+                                  <h3>No Incidents Reported</h3>
+                                </div>
+                              )}
+                        </div>
 
-                                                    }}
+                        {modalPhoto && (
+                            <div className="modal-overlay" onClick={() => setModalPhoto(null)}>
+                                <div className="modal-content">
+                                    <img src={modalPhoto} alt="Full size" />
+                                    <button className="modal-close" onClick={() => setModalPhoto(null)}>×</button>
+                                </div>
+                            </div>
+                        )}
+
+
+                    </div>
+
+                    {/* Right Column - Map */}
+                    <div className="map-column">
+                        <MapContainer
+                            center={selectedPoint ? [selectedPoint.latitude, selectedPoint.longitude] : getMapCenter()}
+                            zoom={13}
+                            className="map-container"
+                        >
+                            <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+
+                            {selectedPoint && (
+                                <Marker
+                                    position={[selectedPoint.latitude, selectedPoint.longitude]}
+                                    icon={locationIcon}
+                                >
+                                    <Popup>
+                                        <div className="point-popup">
+                                            <p>Time: {new Date(selectedPoint.timestamp).toLocaleString()}</p>
+                                            {selectedPoint.comment && <p>Note: {selectedPoint.comment}</p>}
+                                            {selectedPoint.elevation && <p>Elevation: {selectedPoint.elevation.toFixed(1)}m</p>}
+                                            {selectedPoint.photo && (
+                                                <img
+                                                    src={selectedPoint.photo}
+                                                    alt="Location"
+                                                    className="popup-photo"
                                                 />
                                             )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            {modalPhoto && (
-                                <div className="modal-overlay" onClick={() => setModalPhoto(null)}>
-                                    <div className="modal-content">
-                                        <img src={modalPhoto} alt="Full size" />
-                                        <button className="modal-close" onClick={() => setModalPhoto(null)}>×</button>
-                                    </div>
-                                </div>
+                                        </div>
+                                    </Popup>
+                                </Marker>
                             )}
 
-                        </tbody>
-                    </table>
+                            <CenterMapOnPoint />
+                        </MapContainer>
+
+                    </div>
                 </div>
             </div>
+
         </div>
     );
 };

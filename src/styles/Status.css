@@ -69,3 +69,118 @@
     justify-content: space-between;
     margin-bottom: 1rem;
 }
+
+.status-content {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 120px);
+}
+
+.points-list-column,
+.map-column {
+  flex: 1;
+  width: 50%;
+}
+
+.points-list-column {
+  overflow-y: auto;
+}
+.map-column {
+  position: sticky;
+  top: 0;
+}
+
+.points-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.feed-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feed-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.feed-selected {
+  border-left: 4px solid #1976d2;
+  background: #e3f2fd;
+}
+.feed-time {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #666;
+}
+
+.feed-date {
+  font-weight: 500;
+}
+
+.feed-clock {
+  color: #888;
+}
+.feed-location {
+  font-size: 0.9rem;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.feed-elevation {
+  margin-left: 1rem;
+  color: #666;
+}
+
+.feed-comment {
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+.feed-photo {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.selected-marker {
+  filter: drop-shadow(0 0 6px #1976d2);
+  animation: bounce 0.5s ease;
+  z-index: 1000;
+}
+
+@keyframes bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.incident-marker {
+  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-state .material-icons {
+  font-size: 48px;
+  margin-bottom: 1rem;
+  color: #999;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+}
