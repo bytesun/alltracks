@@ -61,13 +61,22 @@ export const Navbar = () => {
 
   };
 
-
+  let windowFeatures = undefined
+  const isDesktop = window.innerWidth > 768
+  if (isDesktop) {
+    const width = 500
+    const height = 600
+    const left = window.screenX + (window.innerWidth - width) / 2
+    const top = window.screenY + (window.innerHeight - height) / 2
+    windowFeatures = `left=${left},top=${top},width=${width},height=${height}`
+  }
   const handleIILogin = async () => {
     console.log("login II with " + derivationOrigin)
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
+      windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
         const identity = authClient.getIdentity();
         setAgent({
