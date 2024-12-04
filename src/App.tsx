@@ -17,28 +17,34 @@ import { EventPage } from './pages/EventPage';
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
 import Store from './components/Store';
-export const App: React.FC = () => {
+import { BrowserRouter as Router } from 'react-router-dom';
+import { Layout } from './components/Layout';
 
+function App() {
   return (
     <NotificationProvider>
       <StatsProvider>
         <Store>
-        <Routes >
-          <Route path="/" element={<MainApp/>} />
-          <Route path="/trails" element={<Trails />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/track/:trackId" element={<TrackPage />} />
-          <Route path="/event/:eventId" element={<EventPage />} />
-          <Route path="/live/:liveId" element={<Live />} />
-          <Route path="/status" element={<Status />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/guide" element={<Guide />} />
-          <Route path="/group/:groupId" element={<GroupPage />} />
-          <Route path="/user/:userKey" element={<UserPage />} />
-        </Routes>
+          
+            <Layout>
+              <Routes>
+                <Route path="/" element={<MainApp />} />
+                <Route path="/trails" element={<Trails />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/track/:trackId" element={<TrackPage />} />
+                <Route path="/event/:eventId" element={<EventPage />} />
+                <Route path="/live/:liveId" element={<Live />} />
+                <Route path="/status" element={<Status />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/guide" element={<Guide />} />
+                <Route path="/group/:groupId" element={<GroupPage />} />
+                <Route path="/user/:userKey" element={<UserPage />} />
+              </Routes>
+            </Layout>
+          
         </Store>
       </StatsProvider>
     </NotificationProvider>
   );
-};
+}
 export default App;

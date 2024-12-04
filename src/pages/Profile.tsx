@@ -62,7 +62,7 @@ export const Profile: React.FC = () => {
 
   return (
     <>
-      <Navbar />
+
       <div className="profile-container">
         <div className="profile-layout">
           <div className="profile-sidebar">

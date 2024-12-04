@@ -128,7 +128,7 @@ export const GroupPage: React.FC = () => {
     };
     return (
         <div>
-            <Navbar />
+            
             <div className="group-container">
 
                 <section className="group-header">

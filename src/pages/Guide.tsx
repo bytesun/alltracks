@@ -5,7 +5,7 @@ import './Guide.css';
 export const Guide = () => {
   return (
     <div>
-      <Navbar />
+
       <div className="guide-container">
         <h1>AllTracks User Guide</h1>
         

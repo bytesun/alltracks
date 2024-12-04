@@ -1,29 +1,22 @@
-import React,{useEffect,useState} from 'react';
-import {Navigate, useNavigate } from 'react-router-dom';
+import React,{useState,useEffect} from 'react';
+import { Navbar } from './Navbar';
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
-import '../styles/Navbar.css';
-
-import { DropdownMenu } from './DropdownMenu';
-import { Link } from 'react-router-dom';
-
-import { useGlobalContext, useSetLoginModal, useSetAgent } from "./Store";
+import { LoginModal } from './LoginModal';
+import { useGlobalContext,useSetAgent,useSetLoginModal } from './Store';
 
 import { HOST, IDENTITY_PROVIDER, derivationOrigin } from "../lib/canisters";
 import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
 
-export const Navbar = () => {
-  const navigate = useNavigate();
-
-  const {
-    state: { isAuthed },
-  } = useGlobalContext();
-  const setAgent = useSetAgent();
-  const [loginModal, setLoginModal] = useSetLoginModal();
-
-  const [authClient, setAuthClient] = useState<AuthClient>(null);
-
-
+export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const {
+        state: { isAuthed },
+      } = useGlobalContext();
+      const setAgent = useSetAgent();
+      const [loginModal, setLoginModal] = useSetLoginModal();
+    
+      const [authClient, setAuthClient] = useState<AuthClient>(null);
+    
   // Auth on refresh
   useEffect(() => {
     (async () => {
@@ -133,65 +126,15 @@ export const Navbar = () => {
     setLoginModal(false);
   };
 
-  // useEffect(() => {
-  //   const loadUserSettings = async () => {
-  //     if (user?.key) {
-  //       const statDoc = await getDoc<ProfileSettings>({
-  //         collection: "profiles",
-  //         key: user.key,
-  //       });
-        
-  //       if (statDoc?.data) {
-  //         updateSettings(statDoc.data);
-  //       }
-  //     }
-  //   };
-
-  //   loadUserSettings();
-  // }, [user]);
-
-
-    // if (user) {
-    //   await signOut();
-    // } else {
-    //   await signIn({
-    //     derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app", 
-    //     maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
-    //   });
-    //   //navigate('/profile');
-    // }
-  // };
-
   return (
     <>
-    <nav className="navbar">
-      <div className="navbar-brand" onClick={() => navigate('/')}> 
-        <img src="/192x192.png" alt="AllTracks Logo" className="brand-logo" />       
-        <span className="brand-text">AllTracks</span>
-      </div>
-      
-      <div className="nav-items">
-        
-        {/* Desktop menu items */}
-        <div className="desktop-menu">
-          <Link to="/trails" className="nav-link"><span className="material-icons">terrain</span>Trails</Link>
-          <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
-          <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
-          {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
-          {isAuthed && <button className="auth-button" onClick={handleAuth}>
-             Sign Out
-          </button>}
-          {!isAuthed && <button className="auth-button" onClick={handleAuth}>
-             Sign In
-          </button>}
-        </div>
-
-        <div className="mobile-menu">
-          <DropdownMenu isAuthed={isAuthed} onAuth={handleAuth} />
-        </div>
-      </div>
-    </nav>
-   
-      </>
+      <Navbar />
+      {children}
+      <LoginModal 
+        isOpen={loginModal}
+        onClose={() => setLoginModal(false)}
+        onLogin={handleLogin}
+      />
+    </>
   );
 };

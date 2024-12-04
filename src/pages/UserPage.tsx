@@ -92,7 +92,7 @@ export const UserPage: React.FC = () => {
 
     return (
         <div>
-            <Navbar />
+
             <TrackAchievements stats={userStats} />
             <TimelineMapView
                 trackPoints={trackPoints}

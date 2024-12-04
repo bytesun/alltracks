@@ -130,7 +130,7 @@ export const Live: React.FC = () => {
 
     return (
         <div className="event-page">
-            <Navbar />
+
             <div className="live-container">
                 <h3>Live Track Points</h3>
                 <MapContainer

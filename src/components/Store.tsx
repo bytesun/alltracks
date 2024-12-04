@@ -117,7 +117,7 @@ export const useGlobalContext = () => {
   return context
 }
 
-export const useLoginModal = () => {
+export const useSetLoginModal = () => {
   const context = useGlobalContext()
   return [
     context.state.showLoginModal,

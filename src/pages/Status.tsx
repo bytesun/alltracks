@@ -172,7 +172,7 @@ export const Status: React.FC = () => {
 
     return (
         <div className="event-page">
-            <Navbar />
+
             <div className="status-container">
                 <div className="status-header">
                     <h3>Live Report Points</h3>

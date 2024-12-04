@@ -38,7 +38,7 @@ export const Trails = () => {
   
   return (
     <div>
-      <Navbar />
+
       <div className="trails-container">
         <header className="trails-header">
           <h1>Hiking Trails</h1>

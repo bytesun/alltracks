@@ -65,7 +65,7 @@ export const TrackView = () => {
   
   return (
     <div>
-      <Navbar  />
+
       <div className="track-view">
         <div className="stats">
           {trackPoints.length > 0 && (

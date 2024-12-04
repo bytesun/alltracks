@@ -100,7 +100,7 @@ export const TrackPage: React.FC = () => {
   return (
 
     <>
-      <Navbar />
+  
       <div className="track-page">
         {track ? (
           <>

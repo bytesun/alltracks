@@ -49,7 +49,7 @@ export const EventPage: React.FC = () => {
 
     return (
         <div>
-            <Navbar />
+            
             <TimelineMapView 
                 
                 trackPoints={trackPoints}

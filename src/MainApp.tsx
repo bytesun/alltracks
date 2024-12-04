@@ -37,6 +37,7 @@ import { useGlobalContext } from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
 import { SavedPoint } from './types/SavedPoint';
+import { LoginModal } from './components/LoginModal';
 
 interface ProfileSettings {
   storageId: string;
@@ -735,7 +736,7 @@ function MainApp() {
   };
   return (
     <div className="App">
-      <Navbar />
+
       <header className="App-header">
 
         {locationError && (
@@ -1036,6 +1037,7 @@ function MainApp() {
           onSelect={handleTrailSelect}
           onClose={() => setShowTrailList(false)}
         />}
+
     </div>
   );
 }
