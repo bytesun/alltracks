@@ -4,7 +4,13 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-
+  server: {
+    headers: {
+      'Cache-Control': 'no-store',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
+  },
   build: {
     rollupOptions: {
       output: {
@@ -13,9 +19,9 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'maps': ['leaflet', 'react-leaflet'],
         },
-        entryFileNames: '[name].[hash].js',
-        chunkFileNames: '[name].[hash].js',
-        assetFileNames: '[name].[hash].[ext]'
+        entryFileNames: `assets/[name].[timestamp].js`,
+        chunkFileNames: `assets/[name].[timestamp].js`,
+        assetFileNames: `assets/[name].[timestamp].[ext]`
       }
     },
     chunkSizeWarningLimit: 1000
