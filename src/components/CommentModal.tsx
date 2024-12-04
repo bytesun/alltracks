@@ -69,30 +69,20 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
             placeholder="Enter your inscription  (optional)"
             rows={2}
           />
+
           <div className="category-selector">
-            <label>Category:</label>
-            <div className="category-options">
+            <div className="category-tags">
               {categories.map((cat) => (
-                <label key={cat} className={`category-label ${category === cat ? 'selected' : ''}`}>
-                  <input
-                    type="radio"
-                    name="category"
-                    value={cat}
-                    checked={category === cat}
-                    onChange={(e) => setCategory(e.target.value)}
-                  />
-                  <span className="material-icons">
-                    {cat === 'view' && 'visibility'}
-                    {cat === 'scenic' && 'photo_camera'}
-                    {cat === 'rest' && 'chair'}
-                    {cat === 'water' && 'water_drop'}
-                    {cat === 'camp' && 'camping'}
-                  </span>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </label>
+                <div
+                  key={cat}
+                  className={`category-tag ${category === cat ? 'selected' : ''}`}
+                  onClick={() => setCategory(cat)}
+                >{cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </div>
               ))}
             </div>
           </div>
+
           <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
               <span className="material-icons">photo_camera</span>

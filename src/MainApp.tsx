@@ -662,8 +662,8 @@ function MainApp() {
 
           });
 
-          await alltracks.savePoints(savedPoints);
-          
+          if(savedPoints.length > 0) await alltracks.savePoints(savedPoints);
+
           if (result.error) {
             showNotification(`Error creating track record: ${result.error}`, 'error');
           } else {

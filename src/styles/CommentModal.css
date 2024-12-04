@@ -2,33 +2,32 @@
   margin: 1rem 0;
 }
 
-.category-options {
+.category-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
 }
 
-.category-label {
+.category-tag {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 20px;
+  background: #f5f5f5;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.category-label input {
-  display: none;
+.category-tag:hover {
+  background: #e0e0e0;
 }
 
-.category-label.selected {
+.category-tag.selected {
   background: #4CAF50;
   color: white;
-  border-color: #4CAF50;
 }
 
-.category-label .material-icons {
+.category-tag .material-icons {
   font-size: 18px;
 }
