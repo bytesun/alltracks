@@ -36,6 +36,7 @@ import { CheckPoint } from './types/CheckPoint';
 import { useGlobalContext } from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
+import { SavedPoint } from './types/SavedPoint';
 
 interface ProfileSettings {
   storageId: string;
@@ -72,6 +73,7 @@ function MainApp() {
   const alltracks = useAlltracks();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
+  const [savedPoints, setSavedPoints] = useState<SavedPoint[]>([]);
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
   const [recordingMode, setRecordingMode] = useState<'' | 'manual' | 'auto'>('manual');
@@ -395,6 +397,7 @@ function MainApp() {
 
   const savePointWithComment = async (data: {
     comment: string,
+    category: string,
     cloudEnabled: boolean,
     isIncident: boolean,
     isPrivate: boolean,
@@ -482,6 +485,16 @@ function MainApp() {
 
         //--save to local first
         setTrackPoints((prev) => [...prev, newPoint]);
+
+        if (data.category) {
+          setSavedPoints((prev) => [...prev, {
+            latitude: pendingPosition.coords.latitude,
+            longitude: pendingPosition.coords.longitude,
+            category: data.category,
+            description: data.comment
+
+          }]);
+        }
         //save to  IndexDB
         const updatedPoints = [...trackPoints, newPoint];
         await saveTrackPointsToIndexDB(trackId, updatedPoints);
@@ -504,7 +517,7 @@ function MainApp() {
             groupId: groupId ? [groupId] : [],
             trackId: trackId
           });
-          if(data.isIncident) {
+          if (data.isIncident) {
             await alltracks.createIncident({
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
@@ -512,11 +525,11 @@ function MainApp() {
               elevation: pendingPosition.coords.altitude || undefined,
               note: data.comment?.trim() || '',
               photo: photoUrl ? [photoUrl] : [],
-              
+
               groupId: groupId ? [groupId] : [],
               trackId: trackId,
-              severity: {"low": null},
-              category: {"hazard": null}
+              severity: { "low": null },
+              category: { "hazard": null }
             });
           }
 
@@ -649,13 +662,15 @@ function MainApp() {
 
           });
 
+          await alltracks.savePoints(savedPoints);
+          
           if (result.error) {
             showNotification(`Error creating track record: ${result.error}`, 'error');
           } else {
             showNotification(`Track record created: ${result.id}`, 'success');
           }
 
-          
+
 
           clearTrackFromIndexDB(trackId);
           clearPoints();
@@ -728,7 +743,7 @@ function MainApp() {
             {locationError}
           </div>
         )}
-        { message && (
+        {message && (
           <div className="location-error">
             {message}
           </div>

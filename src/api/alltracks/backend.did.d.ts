@@ -79,6 +79,12 @@ export interface NewIncidentPoint {
   'severity' : Severity,
   'photo' : [] | [string],
 }
+export interface NewSavedPoint {
+  'latitude' : number,
+  'description' : string,
+  'longitude' : number,
+  'category' : string,
+}
 export interface NewTrack {
   'id' : string,
   'duration' : number,
@@ -118,8 +124,18 @@ export type Result_1 = { 'ok' : Trail } |
   { 'err' : string };
 export type Result_2 = { 'ok' : Track } |
   { 'err' : string };
-export type Result_3 = { 'ok' : Group } |
+export type Result_3 = { 'ok' : SavedPoint } |
   { 'err' : string };
+export type Result_4 = { 'ok' : Group } |
+  { 'err' : string };
+export interface SavedPoint {
+  'latitude' : number,
+  'createdAt' : Time,
+  'createdBy' : Principal,
+  'description' : string,
+  'longitude' : number,
+  'category' : string,
+}
 export type Severity = { 'low' : null } |
   { 'high' : null } |
   { 'critical' : null } |
@@ -185,8 +201,9 @@ export interface _SERVICE {
     Result
   >,
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result>,
-  'createGroup' : ActorMethod<[NewGroup], Result_3>,
+  'createGroup' : ActorMethod<[NewGroup], Result_4>,
   'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result>,
+  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_3>,
   'createTrack' : ActorMethod<[NewTrack], Result_2>,
   'createTrail' : ActorMethod<[NewTrail], Result_1>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
@@ -196,7 +213,7 @@ export interface _SERVICE {
   >,
   'getGroup' : ActorMethod<[string], [] | [Group]>,
   'getGroupPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
-  'getIncidentCheckpoints' : ActorMethod<[Time, Time], Array<CheckPoint>>,
+  'getIncidentCheckpoints' : ActorMethod<[Time, Time], Array<IncidentPoint>>,
   'getIncidentPointsByCategory' : ActorMethod<
     [IncidentCategory],
     Array<IncidentPoint>
@@ -219,13 +236,16 @@ export interface _SERVICE {
   >,
   'getMyGroups' : ActorMethod<[], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
+  'getMySavedPoints' : ActorMethod<[], Array<SavedPoint>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,
+  'getSavedPointsByCategory' : ActorMethod<[string], Array<SavedPoint>>,
   'getTrack' : ActorMethod<[string], [] | [Track]>,
   'getTrackPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
+  'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result>,

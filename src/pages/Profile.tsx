@@ -13,6 +13,7 @@ import { Settings } from '../components/Settings';
 import { useNotification } from '../context/NotificationContext';
 import { TrackAchievements } from '../components/TrackAchievements';
 import { ArStorage } from '../components/ArStorage';
+import { SavedPoints } from '../components/SavedPoints';
 
 import { UserStats } from '../types/UserStats';
 import { useGlobalContext, useAlltracks } from '../components/Store';
@@ -46,7 +47,7 @@ export const Profile: React.FC = () => {
           totalHours: uss.totalHours,
           totalElevation: uss.totalElevation,
           completedTrails: Number(uss.completedTrails),
-          firstHikeDate: new Date(Number(uss.firstHikeDate)/1000000).toLocaleDateString(),
+          firstHikeDate: new Date(Number(uss.firstHikeDate) / 1000000).toLocaleDateString(),
         });
       };
 
@@ -110,6 +111,13 @@ export const Profile: React.FC = () => {
               <span className="material-icons">cloud_upload</span>
               ArStorage
             </div>
+            <div
+              className={`sidebar-item ${activeTab === 'savedpoints' ? 'active' : ''}`}
+              onClick={() => setActiveTab('savedpoints')}
+            >
+              <span className="material-icons">bookmark</span>
+              Saved Points
+            </div>
 
           </div>
           <div className="profile-content">
@@ -136,6 +144,14 @@ export const Profile: React.FC = () => {
             {activeTab === 'arstorage' && (
               <ArStorage
               />
+            )}
+            {activeTab === 'savedpoints' && (
+              <>
+                <h2>Saved Points</h2>
+                <div className="saved-points-container">
+                 <SavedPoints />
+                </div>
+              </>
             )}
           </div>
         </div>

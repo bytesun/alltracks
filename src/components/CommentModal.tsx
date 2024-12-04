@@ -4,6 +4,7 @@ import { useGlobalContext } from './Store';
 interface CommentModalProps {
   onSave: (data: {
     comment: string;
+    category: string;
     cloudEnabled: boolean;
     isIncident: boolean;
     isPrivate: boolean;
@@ -13,9 +14,9 @@ interface CommentModalProps {
 }
 export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) => {
 
-  const { state:{
+  const { state: {
     isAuthed, principal
-  }} = useGlobalContext();
+  } } = useGlobalContext();
   const [comment, setComment] = useState('');
   const [showCloudOptions, setShowCloudOptions] = useState(false);
 
@@ -26,6 +27,10 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
   // Add new state
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
+
+  const [category, setCategory] = useState(null);
+  const categories = ['view', 'scenic', 'rest', 'water', 'camp'];
+
 
   // Add handler for photo capture
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +45,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
     e.preventDefault();
     onSave({
       comment,
+      category,
       cloudEnabled: enableCloud,
       isIncident: reportIncident,
       isPrivate: isPrivate,
@@ -63,7 +69,30 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
             placeholder="Enter your inscription  (optional)"
             rows={2}
           />
-
+          <div className="category-selector">
+            <label>Category:</label>
+            <div className="category-options">
+              {categories.map((cat) => (
+                <label key={cat} className={`category-label ${category === cat ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="category"
+                    value={cat}
+                    checked={category === cat}
+                    onChange={(e) => setCategory(e.target.value)}
+                  />
+                  <span className="material-icons">
+                    {cat === 'view' && 'visibility'}
+                    {cat === 'scenic' && 'photo_camera'}
+                    {cat === 'rest' && 'chair'}
+                    {cat === 'water' && 'water_drop'}
+                    {cat === 'camp' && 'camping'}
+                  </span>
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
               <span className="material-icons">photo_camera</span>
@@ -74,7 +103,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
                 capture="environment"
                 onChange={handlePhotoCapture}
                 style={{ display: 'none' }}
-                // disabled={!enableCloud}
+              // disabled={!enableCloud}
               />
             </label>
             {photoPreview && (
@@ -134,7 +163,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
                   onChange={(e) => setIsPrivate(e.target.checked)}
                   disabled={!enableCloud}
                 />
-                Private Point (storage configured required)
+                Private Point
               </label>
 
             </div>

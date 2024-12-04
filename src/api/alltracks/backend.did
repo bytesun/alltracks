@@ -72,10 +72,24 @@ type Severity =
    low;
    medium;
  };
-type Result_3 = 
+type SavedPoint = 
+ record {
+   category: text;
+   createdAt: Time;
+   createdBy: principal;
+   description: text;
+   latitude: float64;
+   longitude: float64;
+ };
+type Result_4 = 
  variant {
    err: text;
    ok: Group;
+ };
+type Result_3 = 
+ variant {
+   err: text;
+   ok: SavedPoint;
  };
 type Result_2 = 
  variant {
@@ -127,6 +141,13 @@ type NewTrack =
    name: text;
    startime: Time;
    trackfile: TrackFile;
+ };
+type NewSavedPoint = 
+ record {
+   category: text;
+   description: text;
+   latitude: float64;
+   longitude: float64;
  };
 type NewIncidentPoint = 
  record {
@@ -230,15 +251,16 @@ service : {
       trackId: text;
     }) -> (Result);
   createCheckpoint: (NewCheckPoint) -> (Result);
-  createGroup: (NewGroup) -> (Result_3);
+  createGroup: (NewGroup) -> (Result_4);
   createIncidentPoint: (NewIncidentPoint) -> (Result);
+  createSavedPoint: (NewSavedPoint) -> (Result_3);
   createTrack: (NewTrack) -> (Result_2);
   createTrail: (NewTrail) -> (Result_1);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
   getGroupPhotos: (text, Time, Time) -> (vec Photo) query;
-  getIncidentCheckpoints: (Time, Time) -> (vec CheckPoint) query;
+  getIncidentCheckpoints: (Time, Time) -> (vec IncidentPoint) query;
   getIncidentPointsByCategory: (IncidentCategory) ->
    (vec IncidentPoint) query;
   getIncidentPointsBySeverity: (Severity) -> (vec IncidentPoint) query;
@@ -254,13 +276,16 @@ service : {
     }) query;
   getMyGroups: () -> (vec Group) query;
   getMyPhotos: (Time, Time) -> (vec Photo) query;
+  getMySavedPoints: () -> (vec SavedPoint) query;
   getMyTrails: () -> (vec Trail) query;
+  getSavedPointsByCategory: (text) -> (vec SavedPoint) query;
   getTrack: (text) -> (opt Track) query;
   getTrackPhotos: (text, Time, Time) -> (vec Photo) query;
   getTracks: (TrackFilter) -> (vec Track) query;
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
   getUserstats: (text) -> (opt UserStats) query;
+  savePoints: (vec NewSavedPoint) -> (Result);
   searchPhotosByTags: (vec text) -> (vec Photo) query;
   searchTrails: (text) -> (vec Trail) query;
   updateGroup: (text, NewGroup) -> (Result);
