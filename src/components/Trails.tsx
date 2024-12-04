@@ -96,6 +96,7 @@ export const Trails: React.FC = () => {
             const response = await arweave.transactions.post(transaction);
 
             if (response.status === 200) {
+                const startPoint = await getStartPoint(file);
                 const fileUrl = `${arweaveGateway}/${transaction.id}`;
                 const newtrail = {
                     name: trailData.name,
@@ -112,6 +113,7 @@ export const Trails: React.FC = () => {
                         url: fileUrl
                     },
                     photos: trailData.imageUrl?[trailData.imageUrl]:[],
+                    startPoint: startPoint
                 };
                 console.log(newtrail);
                 const result = await alltracks.createTrail(newtrail);
@@ -137,7 +139,45 @@ export const Trails: React.FC = () => {
         }
     };
 
-
+    const getStartPoint = async (file: File) => {
+        const text = await file.text();
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        let firstPoint = { latitude: 0, longitude: 0 };
+      
+        switch(extension) {
+          case 'gpx':
+            const parser = new DOMParser();
+            const gpx = parser.parseFromString(text, "text/xml");
+            const trkpt = gpx.querySelector('trkpt');
+            if (trkpt) {
+              firstPoint = {
+                latitude: Number(trkpt.getAttribute('lat')),
+                longitude: Number(trkpt.getAttribute('lon'))
+              };
+            }
+            break;
+          
+          case 'json':
+            const json = JSON.parse(text);
+            if (json.features?.[0]?.geometry?.coordinates?.[0]) {
+              const [lon, lat] = json.features[0].geometry.coordinates[0];
+              firstPoint = { latitude: lat, longitude: lon };
+            }
+            break;
+            
+          case 'kml':
+            const kml = parser.parseFromString(text, "text/xml");
+            const coordinates = kml.querySelector('coordinates')?.textContent?.trim().split(' ')[0];
+            if (coordinates) {
+              const [lon, lat] = coordinates.split(',');
+              firstPoint = { latitude: Number(lat), longitude: Number(lon) };
+            }
+            break;
+        }
+        
+        return firstPoint;
+      };
+      
 
     const loadTrails = async () => {
         setIsLoading(true);

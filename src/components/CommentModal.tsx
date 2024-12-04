@@ -70,7 +70,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
             rows={2}
           />
 
-          <div className="category-selector">
+          {/* <div className="category-selector">
             <div className="category-tags">
               {categories.map((cat) => (
                 <div
@@ -81,7 +81,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>

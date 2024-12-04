@@ -96,6 +96,7 @@ export interface NewTrack {
   'groupId' : [] | [string],
   'length' : number,
   'isPublic' : boolean,
+  'startPoint' : Point,
 }
 export interface NewTrail {
   'duration' : number,
@@ -108,6 +109,7 @@ export interface NewTrail {
   'description' : string,
   'distance' : number,
   'elevationGain' : number,
+  'startPoint' : Point,
   'photos' : Array<string>,
 }
 export interface Photo {
@@ -118,6 +120,7 @@ export interface Photo {
   'trackId' : string,
   'timestamp' : Time,
 }
+export interface Point { 'latitude' : number, 'longitude' : number }
 export type Result = { 'ok' : bigint } |
   { 'err' : string };
 export type Result_1 = { 'ok' : Trail } |
@@ -153,6 +156,7 @@ export interface Track {
   'groupId' : [] | [string],
   'length' : number,
   'isPublic' : boolean,
+  'startPoint' : Point,
 }
 export interface TrackFile { 'url' : string, 'fileType' : string }
 export type TrackFilter = { 'user' : Principal } |
@@ -171,6 +175,7 @@ export interface Trail {
   'description' : string,
   'distance' : number,
   'elevationGain' : number,
+  'startPoint' : Point,
   'photos' : Array<string>,
 }
 export interface TrailFile { 'url' : string, 'fileType' : string }

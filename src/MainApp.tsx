@@ -38,6 +38,7 @@ import { useGlobalContext } from './components/Store';
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
 import { SavedPoint } from './types/SavedPoint';
 import { LoginModal } from './components/LoginModal';
+import { start } from 'repl';
 
 interface ProfileSettings {
   storageId: string;
@@ -346,6 +347,7 @@ function MainApp() {
 
   const recordPoint = async () => {
     setShowNotice(false);
+    setShowCommentModal(true);
     // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
@@ -487,15 +489,15 @@ function MainApp() {
         //--save to local first
         setTrackPoints((prev) => [...prev, newPoint]);
 
-        if (data.category) {
-          setSavedPoints((prev) => [...prev, {
-            latitude: pendingPosition.coords.latitude,
-            longitude: pendingPosition.coords.longitude,
-            category: data.category,
-            description: data.comment
+        // if (data.category) {
+        //   setSavedPoints((prev) => [...prev, {
+        //     latitude: pendingPosition.coords.latitude,
+        //     longitude: pendingPosition.coords.longitude,
+        //     category: data.category,
+        //     description: data.comment
 
-          }]);
-        }
+        //   }]);
+        // }
         //save to  IndexDB
         const updatedPoints = [...trackPoints, newPoint];
         await saveTrackPointsToIndexDB(trackId, updatedPoints);
@@ -660,10 +662,14 @@ function MainApp() {
               url: arweaveGateway + "/" + transaction.id
             },
             isPublic: !isPrivateStorage,
+            startingPoint: {
+              latitude: trackPoints[0].latitude,
+              longitude: trackPoints[0].longitude              
+            }
 
           });
 
-          if(savedPoints.length > 0) await alltracks.savePoints(savedPoints);
+          //if(savedPoints.length > 0) await alltracks.savePoints(savedPoints);
 
           if (result.error) {
             showNotification(`Error creating track record: ${result.error}`, 'error');

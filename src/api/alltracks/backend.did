@@ -36,6 +36,7 @@ type Trail =
    name: text;
    photos: vec text;
    rate: float64;
+   startPoint: Point;
    tags: vec text;
    trailfile: TrailFile;
    ttype: TrailType;
@@ -61,6 +62,7 @@ type Track =
    isPublic: bool;
    length: float64;
    name: text;
+   startPoint: Point;
    startime: Time;
    trackfile: TrackFile;
  };
@@ -106,6 +108,11 @@ type Result =
    err: text;
    ok: nat;
  };
+type Point = 
+ record {
+   latitude: float64;
+   longitude: float64;
+ };
 type Photo = 
  record {
    createdBy: principal;
@@ -125,6 +132,7 @@ type NewTrail =
    name: text;
    photos: vec text;
    rate: float64;
+   startPoint: Point;
    tags: vec text;
    trailfile: TrailFile;
    ttype: TrailType;
@@ -139,6 +147,7 @@ type NewTrack =
    isPublic: bool;
    length: float64;
    name: text;
+   startPoint: Point;
    startime: Time;
    trackfile: TrackFile;
  };

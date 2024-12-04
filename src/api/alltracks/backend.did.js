@@ -72,6 +72,10 @@ export const idlFactory = ({ IDL }) => {
   });
   const Result_3 = IDL.Variant({ 'ok' : SavedPoint, 'err' : IDL.Text });
   const TrackFile = IDL.Record({ 'url' : IDL.Text, 'fileType' : IDL.Text });
+  const Point = IDL.Record({
+    'latitude' : IDL.Float64,
+    'longitude' : IDL.Float64,
+  });
   const NewTrack = IDL.Record({
     'id' : IDL.Text,
     'duration' : IDL.Float64,
@@ -83,6 +87,7 @@ export const idlFactory = ({ IDL }) => {
     'groupId' : IDL.Opt(IDL.Text),
     'length' : IDL.Float64,
     'isPublic' : IDL.Bool,
+    'startPoint' : Point,
   });
   const Track = IDL.Record({
     'id' : IDL.Text,
@@ -96,6 +101,7 @@ export const idlFactory = ({ IDL }) => {
     'groupId' : IDL.Opt(IDL.Text),
     'length' : IDL.Float64,
     'isPublic' : IDL.Bool,
+    'startPoint' : Point,
   });
   const Result_2 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
   const TrailType = IDL.Variant({
@@ -121,6 +127,7 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'distance' : IDL.Float64,
     'elevationGain' : IDL.Float64,
+    'startPoint' : Point,
     'photos' : IDL.Vec(IDL.Text),
   });
   const Trail = IDL.Record({
@@ -137,6 +144,7 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'distance' : IDL.Float64,
     'elevationGain' : IDL.Float64,
+    'startPoint' : Point,
     'photos' : IDL.Vec(IDL.Text),
   });
   const Result_1 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
