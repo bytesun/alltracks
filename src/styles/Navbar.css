@@ -108,7 +108,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2500;
+  z-index: 9999;
 }
 
 .login-modal {
@@ -118,6 +118,7 @@
   width: 90%;
   max-width: 400px;
   position: relative;
+  z-index: 10000;
 }
 
 .login-options {
