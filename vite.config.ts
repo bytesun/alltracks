@@ -19,9 +19,9 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'maps': ['leaflet', 'react-leaflet'],
         },
-        entryFileNames: `assets/[name].[timestamp].js`,
-        chunkFileNames: `assets/[name].[timestamp].js`,
-        assetFileNames: `assets/[name].[timestamp].[ext]`
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
       }
     },
     chunkSizeWarningLimit: 1000
