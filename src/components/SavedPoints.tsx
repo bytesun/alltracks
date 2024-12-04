@@ -65,16 +65,16 @@ export const SavedPoints: React.FC = () => {
                     url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                     attribution='Map data: © OpenTopoMap contributors'
                 />
-                {filteredPoints.map(point => (
+                {filteredPoints.map((point,i )=> (
                     <Marker
-                        key={point.id}
+                        key={i}
                         position={[point.latitude, point.longitude]}
                     >
                         <Popup>
                             <div className="point-popup">
                                 <h3>{point.category}</h3>
                                 <p>{point.description}</p>
-                                <small>{new Date(point.timestamp).toLocaleDateString()}</small>
+                                
                             </div>
                         </Popup>
                     </Marker>
