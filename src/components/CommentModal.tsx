@@ -29,7 +29,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
   const [photoPreview, setPhotoPreview] = useState<string>('');
 
   const [category, setCategory] = useState(null);
-  const categories = ['view', 'scenic', 'rest', 'water', 'camp'];
+  const categories = ['view', 'scenic', 'rest',  'camp'];
 
 
   // Add handler for photo capture
