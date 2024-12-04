@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './CommentModal.css';
+import '../styles/CommentModal.css';
 import { useGlobalContext } from './Store';
 interface CommentModalProps {
   onSave: (data: {
