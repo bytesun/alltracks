@@ -501,10 +501,24 @@ function MainApp() {
             note: data.comment?.trim() || '',
             photo: photoUrl ? [photoUrl] : [],
             isPublic: data.isPrivate ? false : true,
-            isIncident: data.isIncident ? true : false,
             groupId: groupId ? [groupId] : [],
             trackId: trackId
           });
+          if(data.isIncident) {
+            await alltracks.createIncident({
+              latitude: pendingPosition.coords.latitude,
+              longitude: pendingPosition.coords.longitude,
+              timestamp: BigInt(pendingPosition.timestamp),
+              elevation: pendingPosition.coords.altitude || undefined,
+              note: data.comment?.trim() || '',
+              photo: photoUrl ? [photoUrl] : [],
+              
+              groupId: groupId ? [groupId] : [],
+              trackId: trackId,
+              severity: {"low": null},
+              category: {"hazard": null}
+            });
+          }
 
           setHasCloudPoints(true);
         }

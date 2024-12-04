@@ -58,10 +58,8 @@ export const Live: React.FC = () => {
 
     useEffect(() => {
         const fetchTrackPoints = async () => {   
-            const start = BigInt((new Date().getTime() - 24 *60 *60 *1000)* 1000000);
-            const end = BigInt(new Date().getTime() * 1000000);
-            
-            const result = await alltracks.getIncidentCheckpoints(start, end)   
+      
+            const result = await alltracks.getCheckPointsByTrackId(liveId)   
             console.log(result);
             let tps = [];
             result.forEach(t => {

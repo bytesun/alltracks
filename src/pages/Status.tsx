@@ -59,11 +59,11 @@ export const Status: React.FC = () => {
     useEffect(() => {
         const fetchTrackPoints = async () => {
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(23, 59, 59, 0);
             const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
             const endDate = new Date(Date.now())
 
-            const checkpoints = await alltracks.getIncidentCheckpoints(BigInt(startDate.getTime()), BigInt(endDate.getTime()))
+            const checkpoints = await alltracks.getIncidentCheckpoints(BigInt(startDate.getTime()), BigInt(today.getTime()))
             console.log(checkpoints)
             // const tracks = await listDocs({
             //     collection: "incidents",
