@@ -99,7 +99,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     authClient.login({
       identityProvider: "https://nfid.one" + AUTH_PATH,
       maxTimeToLive: ONE_WEEK_NS,
-      // derivationOrigin: DERIVATION_ORIGION,
+      derivationOrigin: DERIVATION_ORIGION,
       windowOpenerFeatures:
         `left=${window.screen.width / 2 - 525}, ` +
         `top=${window.screen.height / 2 - 705},` +
