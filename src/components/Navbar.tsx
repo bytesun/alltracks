@@ -15,11 +15,13 @@ import { useGlobalContext, useLoginModal, useSetAgent } from "./Store";
 
 import { HOST, IDENTITY_PROVIDER, derivationOrigin } from "../lib/canisters";
 import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
+import { LoginModal } from './LoginModal';
 
 export const Navbar = () => {
   const navigate = useNavigate();
   
   const { settings, updateSettings } = useStats();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const {
     state: { isAuthed },
@@ -95,7 +97,47 @@ export const Navbar = () => {
     setAgent({ agent: null });
   };
 
- 
+  const handleAuth = async () => {
+    if (isAuthed) {
+      handleIILogout();
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+  const APPLICATION_NAME = "AllTracks";
+  const APPLICATION_LOGO_URL = "/192x192.png";
+
+  const AUTH_PATH = "/authenticate/?applicationName=" + APPLICATION_NAME + "&applicationLogo=" + APPLICATION_LOGO_URL + "#authorize";
+  const handleNFIDLogin = async () => {
+    authClient.login({
+      identityProvider: "https://nfid.one" + AUTH_PATH,
+      maxTimeToLive: ONE_WEEK_NS,
+      derivationOrigin: DERIVATION_ORIGION,
+      windowOpenerFeatures:
+        `left=${window.screen.width / 2 - 525}, ` +
+        `top=${window.screen.height / 2 - 705},` +
+        `toolbar=0,location=0,menubar=0,width=525,height=705`,
+      onSuccess: () => {
+        const identity = authClient.getIdentity();
+        setAgent({
+          agent: new HttpAgent({
+            identity,
+            host: HOST,
+          }),
+          isAuthed: true,
+        });
+      }
+    });
+  };
+  const handleLogin = (method: string) => {
+    if (method === 'ii') {
+      handleIILogin();
+    } else if (method === 'google') {
+      // Implement Google login
+      handleNFIDLogin();
+    }
+    setShowLoginModal(false);
+  };
 
   // useEffect(() => {
   //   const loadUserSettings = async () => {
@@ -114,12 +156,6 @@ export const Navbar = () => {
   //   loadUserSettings();
   // }, [user]);
 
-  const handleAuth = async () => {
-    if(isAuthed) {
-      handleIILogout();
-    } else {
-      handleIILogin();
-    }
 
     // if (user) {
     //   await signOut();
@@ -130,8 +166,10 @@ export const Navbar = () => {
     //   });
     //   //navigate('/profile');
     // }
-  };
+  // };
+
   return (
+    <>
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate('/')}> 
         <img src="/192x192.png" alt="AllTracks Logo" className="brand-logo" />       
@@ -146,10 +184,10 @@ export const Navbar = () => {
           <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
           {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
-          {isAuthed && <button className="auth-button" onClick={handleIILogout}>
+          {isAuthed && <button className="auth-button" onClick={handleAuth}>
              Sign Out
           </button>}
-          {!isAuthed && <button className="auth-button" onClick={handleIILogin}>
+          {!isAuthed && <button className="auth-button" onClick={handleAuth}>
              Sign In
           </button>}
         </div>
@@ -160,5 +198,11 @@ export const Navbar = () => {
         </div>
       </div>
     </nav>
+    <LoginModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleLogin}
+      />
+      </>
   );
 };

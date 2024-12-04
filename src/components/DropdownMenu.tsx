@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './DropdownMenu.css';
 import { User } from "@junobuild/core";
 
-
 interface DropdownMenuProps {
-  isAuthed: Boolean;
+  isAuthed: boolean;
   onAuth: () => Promise<void>;
 }
 
