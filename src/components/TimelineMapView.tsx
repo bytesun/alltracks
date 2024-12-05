@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, Marker, TileLayer, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
-import { listDocs } from "@junobuild/core";
+
 import { TrackPoint } from '../types/TrackPoint';
 import 'leaflet/dist/leaflet.css';
 import '../styles/TimelineMapView.css';
-
+import { useGlobalContext, useAlltracks } from './Store';
 
 interface TimelineMapViewProps {
     trackPoints: TrackPoint[];
@@ -51,7 +51,16 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
     onEndDateChange,
     onLoadPoints
 }) => {
+    const { state: { isAuthed, principal } } = useGlobalContext();
+    const alltracks = useAlltracks();
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
+    const [showSaveModal, setShowSaveModal] = useState(false);
+    const [selectedPointToSave, setSelectedPointToSave] = useState<TrackPoint | null>(null);
+
+    const handleSaveClick = (point: TrackPoint) => {
+        setSelectedPointToSave(point);
+        setShowSaveModal(true);
+    };
 
     useEffect(() => {
         if (trackPoints.length > 0) {
@@ -59,6 +68,50 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
         }
 
     }, [trackPoints]);
+
+    const handleSavePoint = async (point: TrackPoint, data: any) => {
+        const result = await alltracks.createSavedPoint({
+            latitude: point.latitude,
+            longitude: point.longitude,
+            description: data.description,
+            category: data.category,
+        });
+
+    };
+    const SavePointModal = ({ point, onSave, onClose }) => {
+        const [description, setDescription] = useState('');
+        const [category, setCategory] = useState('');
+        const categories = ['view', 'rest', 'scenic', 'camp', 'other'];
+
+        return (
+            <div className="modal-overlay">
+                <div className="modal-content">
+                    <h3>Save My Favorite Point</h3>
+                    <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Add description..."
+                        rows={3}
+                    />
+                    <div className="category-list">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                className={`category-tag ${category === cat ? 'selected' : ''}`}
+                                onClick={() => setCategory(cat)}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="modal-buttons">
+                        <button onClick={() => onSave({ description, category })}>Save</button>
+                        <button onClick={onClose}>Cancel</button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="timeline-map-view">
@@ -80,7 +133,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                             position={[selectedPoint.latitude, selectedPoint.longitude]}
                             icon={highlightedIcon}
                         >
-                            {(selectedPoint.photo || selectedPoint.comment) && <Popup autoPan={true}>
+                            <Popup autoPan={true}>
                                 <div className="marker-popup">
                                     <div className="marker-details">
                                         {selectedPoint.photo && (
@@ -106,12 +159,21 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                                                         if (placeholder) placeholder.textContent = 'Failed to load image';
                                                     }}
                                                 />
+
                                             </div>
                                         )}
-                                        <p>{selectedPoint.comment?selectedPoint.comment:"no info"}</p>
+                                        <p>{selectedPoint.comment ? selectedPoint.comment : "no info"}</p>
+                                        {isAuthed && <button
+                                            className="favorite-btn"
+                                            onClick={() => handleSaveClick(selectedPoint)}
+                                        >
+                                            <span className="material-icons">
+                                                bookmark
+                                            </span>
+                                        </button>}
                                     </div>
                                 </div>
-                            </Popup>}
+                            </Popup>
                         </Marker>
                     )}
 
@@ -156,10 +218,22 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                             <div>Lat: {point.latitude.toFixed(4)}</div>
                             <div>Lng: {point.longitude.toFixed(4)}</div>
                             <div>Elevation: {point.elevation.toFixed(2)}m</div>
+
+
                         </div>
                     </div>
                 ))}
             </div>
+            {showSaveModal && selectedPointToSave && (
+                <SavePointModal
+                    point={selectedPointToSave}
+                    onSave={(data) => {
+                        handleSavePoint(selectedPointToSave, data);
+                        setShowSaveModal(false);
+                    }}
+                    onClose={() => setShowSaveModal(false)}
+                />
+            )}
         </div>
     );
 };
