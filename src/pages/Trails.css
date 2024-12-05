@@ -51,7 +51,7 @@
   display: inline-block;
   margin-top: 10px;
   padding: 5px 10px;
-  background: #007AFF;
+  background: #d6d9dc;
   color: white;
   border-radius: 4px;
   text-decoration: none;
@@ -134,4 +134,42 @@
   justify-content: center;
   align-items: center;
   min-height: 300px;
+}
+
+.show-trail-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.show-trail-btn:hover {
+  background: #0056b3;
+}
+
+.trail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.icon-button {
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #007AFF;
+}
+
+.icon-button:hover {
+  color: #0056b3;
+}
+.icon-button.active {
+  color: #ff4400;
 }

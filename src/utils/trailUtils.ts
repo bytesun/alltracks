@@ -1,3 +1,4 @@
+import { defaultStrategy } from '@dfinity/agent';
 import { Trail as TrailType } from '../api/alltracks/backend.did';
 import { Trail } from '../types/Trail';
 
@@ -28,7 +29,8 @@ export const parseTrails = (trails: [TrailType]): any => {
       rate,
       tags,
       trailfile,
-      photos
+      photos,
+      startPoint
     } = trail;
 
     return {
@@ -43,7 +45,8 @@ export const parseTrails = (trails: [TrailType]): any => {
       rating: Number(rate.toFixed(2)),
       tags,
       trailfile,
-      photos
+      photos,
+      startPoint
     };
   }
   );
