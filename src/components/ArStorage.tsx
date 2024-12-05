@@ -15,6 +15,7 @@ interface UploadFormData {
   tags: string;
   filename: string;
   date: string;
+  photoUrl: string | undefined;
 }
 
 export const ArStorage: React.FC = () => {
@@ -123,7 +124,7 @@ export const ArStorage: React.FC = () => {
 
   const filteredPhotos = photos.filter(photo => {
     if (!selectedGroupId) return true;
-    if(!photo.groupId) return false;
+    if (!photo.groupId) return false;
     else return photo.groupId[0] === selectedGroupId;
   });
 
@@ -131,56 +132,63 @@ export const ArStorage: React.FC = () => {
   const handleUpload = async (formData: UploadFormData, file: File) => {
     if (!isAuthed) return;
     setUploading(true);
-
+    var photoUrl = formData.photoUrl;
     try {
-      const fileBuffer = await file.arrayBuffer();
-      const transaction = await arweave.createTransaction({
-        data: fileBuffer
-      });
 
-      transaction.addTag('Content-Type', file.type);
-      transaction.addTag('App-Name', 'AllTracks');
-      transaction.addTag('User-Key', principal.toText());
-      transaction.addTag('Track-ID', formData.trackId);
-      transaction.addTag('Group-ID', formData.groupId);
-      transaction.addTag('Tags', formData.tags);
-      transaction.addTag('File-Type', 'photo');
+      if (file) {
 
-      if (wallet) {
-        await arweave.transactions.sign(transaction, wallet);
-      } else {
-        await arweave.transactions.sign(transaction);
+        const fileBuffer = await file.arrayBuffer();
+        const transaction = await arweave.createTransaction({
+          data: fileBuffer
+        });
+
+        transaction.addTag('Content-Type', file.type);
+        transaction.addTag('App-Name', 'AllTracks');
+        transaction.addTag('User-Key', principal.toText());
+        transaction.addTag('Track-ID', formData.trackId);
+        transaction.addTag('Group-ID', formData.groupId);
+        transaction.addTag('Tags', formData.tags);
+        transaction.addTag('File-Type', 'photo');
+
+        if (wallet) {
+          await arweave.transactions.sign(transaction, wallet);
+        } else {
+          await arweave.transactions.sign(transaction);
+        }
+
+        const response = await arweave.transactions.post(transaction);
+
+        if (response.status === 200) {
+          setTransactionId(transaction.id);
+          photoUrl = arweaveGateway + "/" + transaction.id;
+        }
       }
-
-      const response = await arweave.transactions.post(transaction);
-
-      if (response.status === 200) {
-        setTransactionId(transaction.id);
-
-        // await setDoc({
-        //   collection: "photos",
-        //   doc: {
-        //     key: `${formData.trackId}_${formData.groupId}_${Date.now()}`,
-        //     data: {
-        //       artxid: transaction.id,
-        //       filename: formData.filename,
-        //       contentype: file.type
-        //     },
-        //     description: formData.tags
-        //   }
-        // })'
+      // await setDoc({
+      //   collection: "photos",
+      //   doc: {
+      //     key: `${formData.trackId}_${formData.groupId}_${Date.now()}`,
+      //     data: {
+      //       artxid: transaction.id,
+      //       filename: formData.filename,
+      //       contentype: file.type
+      //     },
+      //     description: formData.tags
+      //   }
+      // })'
+      if (photoUrl) {
         const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         const photo = {
           groupId: [formData.groupId],
-          photoUrl: arweaveGateway + "/" + transaction.id,
+          photoUrl: photoUrl,
           tags: tagsArray,
-          timestamp: new Date(formData.date).getTime()*1000000,
+          timestamp: new Date(formData.date).getTime() * 1000000,
           trackId: formData.trackId,
         };
         console.log(photo);
         await alltracks.addPhoto(photo);
+
+        loadPhotos();
       }
-      loadPhotos();
       setShowUploadForm(false)
     } catch (error) {
       console.error('Upload error:', error.message);
@@ -207,8 +215,8 @@ export const ArStorage: React.FC = () => {
 
       {showUploadForm && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-body">
+          <div className="modal-backdrop">
+            <div className="ar-storage-modal">
               <UploadARForm
                 onSubmit={handleUpload}
                 isUploading={uploading}
@@ -220,7 +228,7 @@ export const ArStorage: React.FC = () => {
       )}
 
       <div className="photos-list">
-        
+
         <div className="filters-row">
           <div className="year-navigation">
             <button
@@ -257,8 +265,8 @@ export const ArStorage: React.FC = () => {
           <div>Loading photos...</div>
         ) : (
           <div className="photo-grid">
-            {filteredPhotos.map((photo,i) => {
-       
+            {filteredPhotos.map((photo, i) => {
+
               return (
                 <div key={i} className="photo-item">
                   <img
@@ -269,7 +277,7 @@ export const ArStorage: React.FC = () => {
                     <h4>{photo.tags.toString()}</h4>
                     <div className="photo-meta">
                       <span>Track: {photo.trackId}</span>,
-                      <span>Group: {photo.groupId? photo.groupId[0]:''}</span>
+                      <span>Group: {photo.groupId ? photo.groupId[0] : ''}</span>
                     </div>
                   </div>
                 </div>

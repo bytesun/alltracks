@@ -13,6 +13,7 @@ interface UploadFormData {
   tags: string;
   filename: string;
   date: string;
+  photoUrl: string | undefined;
 }
 
 export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isUploading }) => {
@@ -23,7 +24,8 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
     groupId: '',
     tags: '',
     filename: '',
-    date: new Date().toISOString().split('T')[0] 
+    date: new Date().toISOString().split('T')[0],
+    photoUrl: null
   });
 
   React.useEffect(() => {
@@ -150,13 +152,23 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
           <span>Photo</span>
         </div>
         <div className="setting-control">
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="file-input"
-            accept="image/*"
-
-          />
+        <input
+      type="text"
+      name="photoUrl"
+      value={formData.photoUrl}
+      onChange={handleInputChange}
+      placeholder="Enter photo URL"
+      className="photo-input"
+    />
+    <div className="input-separator">
+      <span>OR</span>
+    </div>
+    <input
+      type="file"
+      onChange={handleFileChange}
+      className="file-input"
+      accept="image/*"
+    />
         </div>
       </div>
       <div className="setting-control actions-row">

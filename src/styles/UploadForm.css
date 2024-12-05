@@ -1,0 +1,70 @@
+.upload-form {
+  width: 100%;
+  max-width: 600px;
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+}
+
+.setting-row {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.setting-label {
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.setting-control {
+  display: flex;
+  flex-direction: column;
+}
+
+.photo-input {
+  margin-bottom: 8px;
+}
+
+.input-separator {
+  text-align: center;
+  margin: 12px 0;
+  color: #6c757d;
+}
+.setting-control input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.upload-button, .cancel-button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.upload-button {
+  background: #0d6efd;
+  color: white;
+  border: none;
+}
+
+.upload-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.file-input {
+  padding: 8px 0;
+}
