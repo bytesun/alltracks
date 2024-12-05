@@ -55,7 +55,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (file) {
+    if (file || formData.photoUrl) {
       onSubmit(formData, file);
     }
   };
