@@ -8,6 +8,7 @@ import { parseTracks } from '../utils/trackUtils';
 import { Track } from "../api/alltracks/backend.did"
 import { Link } from 'react-router-dom';
 import { CreateTrackModal } from './CreateTrackModal';
+import { arweaveGateway } from '../utils/arweave';
 
 export const Tracks: React.FC = () => {
 
@@ -25,16 +26,71 @@ export const Tracks: React.FC = () => {
   }, [isAuthed, trackVisibility]);
 
 
+  // const fetchTracks = async () => {
+  //   let items = [];
+  //   const tks = await alltracks.getTracks({ user: principal })
+
+
+  //   const formattedTracks = parseTracks(tks);
+  //   console.log(formattedTracks)
+  //   setTracks(formattedTracks);
+  // };
+
   const fetchTracks = async () => {
-    let items = [];
-    const tks = await alltracks.getTracks({ user: principal })
-
-
-    const formattedTracks = parseTracks(tks);
-    console.log(formattedTracks)
+    // Query Arweave for tracks
+    const query = {
+      query: `
+        query {
+          transactions(
+            tags: [
+              {name: "App-Name", values: ["AllTracks"]},
+              {name: "File-Type", values: ["track"]},
+              {name: "User-Key", values: ["${principal.toText()}"]}
+            ]
+          ) {
+            edges {
+              node {
+                id
+                tags {
+                  name
+                  value
+                }
+              }
+            }
+          }
+        }
+      `
+    };
+  
+    const response = await fetch('https://arweave.net/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(query)
+    });
+  
+    const result = await response.json();
+    const trackTransactions = result.data.transactions.edges;
+  
+    // Process and format tracks
+    const formattedTracks = await Promise.all(trackTransactions.map(async (edge) => {
+      const trackData = await fetch(`${arweaveGateway}/${edge.node.id}`).then(res => res.json());
+      const tags = edge.node.tags.reduce((acc, tag) => ({...acc, [tag.name]: tag.value}), {});
+      
+      return {
+        id: edge.node.id,
+        name: tags['Track-Name'] || 'Unnamed Track',
+        startime: tags['Start-Time'],
+        length: trackData.distance || 0,
+        duration: trackData.duration || 0,
+        elevation: trackData.elevation || 0
+      };
+    }));
+  
     setTracks(formattedTracks);
   };
-
+  
   return (
     <div className="tracks-section">
       <div className="settings-header">

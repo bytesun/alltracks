@@ -561,6 +561,9 @@ function MainApp() {
     }
 
     setImportPoints(points);
+
+    //manually import track
+    setTrackPoints(points);
   };
 
   const clearPoints = () => {
