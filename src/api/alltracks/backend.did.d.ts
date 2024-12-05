@@ -249,6 +249,10 @@ export interface _SERVICE {
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
+  'getTrailsInBounds' : ActorMethod<
+    [{ 'east' : number, 'west' : number, 'south' : number, 'north' : number }],
+    Array<Trail>
+  >,
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
   'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,

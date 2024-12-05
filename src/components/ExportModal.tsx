@@ -32,7 +32,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  tr
           onExport(format, storage, filename, description, eventId, isPrivateStorage);
           onClose();
         }}>
-          <div className="option-group">
+          {/* <div className="option-group">
             <label>Event ID:</label>
             <input
               type="text"
@@ -41,7 +41,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  tr
               placeholder="Enter event ID"
               className="eventid-input"
             />
-          </div>
+          </div> */}
           <div className="export-options">
             <div className="option-group">
               <label>Filename:</label>

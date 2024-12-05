@@ -13,4 +13,8 @@ interface Trail {
     fileType: string;
     url: string;
   };
+  startPoint: {
+    latitude: number;
+    longitude: number;
+  }
 }

@@ -30,3 +30,4 @@ export const icUrl = "https://icp0.io";
 export const FILETYPE_GPX = "application/gpx+xml";
 export const FILETYPE_KML = "application/vnd.google-earth.kml+xml";
 export const FILETYPE_CSV = "text/csv";
+export const LOCATION_VANCOUVER = [ 49.2827,  -123.1207 ];

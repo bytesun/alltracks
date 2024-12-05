@@ -293,6 +293,18 @@ export const idlFactory = ({ IDL }) => {
     'getTracks' : IDL.Func([TrackFilter], [IDL.Vec(Track)], ['query']),
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
     'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
+    'getTrailsInBounds' : IDL.Func(
+        [
+          IDL.Record({
+            'east' : IDL.Float64,
+            'west' : IDL.Float64,
+            'south' : IDL.Float64,
+            'north' : IDL.Float64,
+          }),
+        ],
+        [IDL.Vec(Trail)],
+        ['query'],
+      ),
     'getUserstats' : IDL.Func([IDL.Text], [IDL.Opt(UserStats)], ['query']),
     'savePoints' : IDL.Func([IDL.Vec(NewSavedPoint)], [Result], []),
     'searchPhotosByTags' : IDL.Func(

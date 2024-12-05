@@ -293,6 +293,13 @@ service : {
   getTracks: (TrackFilter) -> (vec Track) query;
   getTrail: (nat) -> (opt Trail) query;
   getTrails: (TrailFilter) -> (vec Trail) query;
+  getTrailsInBounds:
+   (record {
+      east: float64;
+      north: float64;
+      south: float64;
+      west: float64;
+    }) -> (vec Trail) query;
   getUserstats: (text) -> (opt UserStats) query;
   savePoints: (vec NewSavedPoint) -> (Result);
   searchPhotosByTags: (vec text) -> (vec Photo) query;
