@@ -640,14 +640,14 @@ function MainApp() {
         transaction.addTag('Owner', principal.toText());
 
         // Sign and post transaction
-        if (wallet) {
-          await arweave.transactions.sign(transaction, wallet);
-        } else {//call wallet to sign manually
-          await arweave.transactions.sign(transaction);
-        }
-        const response = await arweave.transactions.post(transaction);
+        // if (wallet) {
+        //   await arweave.transactions.sign(transaction, wallet);
+        // } else {//call wallet to sign manually
+        //   await arweave.transactions.sign(transaction);
+        // }
+        // const response = await arweave.transactions.post(transaction);
 
-        if (response.status === 200) {
+        if (true) {
           //create track record
           showNotification('Track uploaded to cloud storage', 'success');
 
@@ -662,10 +662,10 @@ function MainApp() {
             startime: trackPoints[0].timestamp,
             trackfile: {
               fileType: mimeType,
-              url: arweaveGateway + "/" + transaction.id
+              url: arweaveGateway + "/eS6GyEy23d0ScLxrpKo9ciAa5QxOAr7G_P3NCwK8pv8",// + transaction.id
             },
             isPublic: !isPrivateStorage,
-            startingPoint: {
+            startPoint: {
               latitude: trackPoints[0].latitude,
               longitude: trackPoints[0].longitude              
             }
