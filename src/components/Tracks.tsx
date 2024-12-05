@@ -27,10 +27,9 @@ export const Tracks: React.FC = () => {
 
 
   const fetchTracks = async () => {
-    let items = [];
+
     const tks = await alltracks.getTracks({ user: principal })
-
-
+    console.log(tks)
     const formattedTracks = parseTracks(tks);
     console.log(formattedTracks)
     setTracks(formattedTracks);
