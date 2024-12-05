@@ -220,7 +220,7 @@ export const ArStorage: React.FC = () => {
       )}
 
       <div className="photos-list">
-        <h3>My Photos</h3>
+        
         <div className="filters-row">
           <div className="year-navigation">
             <button

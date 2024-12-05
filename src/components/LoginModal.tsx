@@ -1,3 +1,4 @@
+import '../styles/LoginModal.css';
 export const LoginModal: React.FC<{ isOpen: boolean; onClose: () => void; onLogin: (method: string) => void }> = ({ 
   isOpen, 
   onClose, 
@@ -16,7 +17,7 @@ export const LoginModal: React.FC<{ isOpen: boolean; onClose: () => void; onLogi
           </button>
           <button className="login-button google" onClick={() => onLogin('google')}>
           <img src="/google.png" alt="Google" />
-            Continue with Google
+           Google
           </button>
         </div>
         <button className="close-button" onClick={onClose}>

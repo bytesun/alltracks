@@ -5,9 +5,11 @@
   padding: 1rem 2rem;
   height: 20px;
   color:rgb(4, 114, 4);
-  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  
   font-weight: 800;
   margin-bottom: 10px;
 }

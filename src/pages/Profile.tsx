@@ -109,7 +109,7 @@ export const Profile: React.FC = () => {
               onClick={() => setActiveTab('arstorage')}
             >
               <span className="material-icons">cloud_upload</span>
-              ArStorage
+              Photos
             </div>
             <div
               className={`sidebar-item ${activeTab === 'savedpoints' ? 'active' : ''}`}
@@ -121,6 +121,7 @@ export const Profile: React.FC = () => {
 
           </div>
           <div className="profile-content">
+            
             {activeTab === 'profile' && (
               <>
                 <h2>Proof Of Hiking </h2>
