@@ -79,7 +79,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
   };
   return (
     <form onSubmit={handleSubmit} className="upload-form">
-      
+
       <div className="setting-row">
         <div className="setting-label">
           <span className="material-icons">calendar_today</span>
@@ -152,27 +152,27 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
           <span>Photo</span>
         </div>
         <div className="setting-control">
-        <input
-      type="text"
-      name="photoUrl"
-      value={formData.photoUrl}
-      onChange={handleInputChange}
-      placeholder="Enter photo URL"
-      className="photo-input"
-    />
-    <div className="input-separator">
-      <span>OR</span>
-    </div>
-    <input
-      type="file"
-      onChange={handleFileChange}
-      className="file-input"
-      accept="image/*"
-    />
+          <input
+            type="text"
+            name="photoUrl"
+            value={formData.photoUrl}
+            onChange={handleInputChange}
+            placeholder="Enter photo URL"
+            className="photo-input"
+          />
+          <div className="input-separator">
+            <span>OR</span>
+          </div>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="file-input"
+            accept="image/*"
+          />
         </div>
       </div>
       <div className="setting-control actions-row">
-      {/* <div className="wallet-section">
+        {/* <div className="wallet-section">
         <input
           type="file"
           accept=".json"
@@ -203,7 +203,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
       </div> */}
         <button
           type="submit"
-          disabled={!file || isUploading}
+          disabled={(!formData.photoUrl && !file) || isUploading}
           className="upload-button"
         >
 
