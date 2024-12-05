@@ -560,7 +560,7 @@ function MainApp() {
       points = parseKML(content);
     }
 
-    setImportPoints(points);
+    // setImportPoints(points);
 
     //manually import track
     setTrackPoints(points);
