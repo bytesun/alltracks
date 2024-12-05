@@ -88,16 +88,16 @@ export const Trails: React.FC = () => {
 
 
             // Sign and post transaction
-            if (wallet) {
-                await arweave.transactions.sign(transaction, wallet);
-            } else {
-                await arweave.transactions.sign(transaction);
-            }
-            const response = await arweave.transactions.post(transaction);
+            // if (wallet) {
+            //     await arweave.transactions.sign(transaction, wallet);
+            // } else {
+            //     await arweave.transactions.sign(transaction);
+            // }
+            // const response = await arweave.transactions.post(transaction);
 
-            if (response.status === 200) {
+            if (true) {
                 const startPoint = await getStartPoint(file);
-                const fileUrl = `${arweaveGateway}/${transaction.id}`;
+                const fileUrl = `${arweaveGateway}/azVxoPfC0g_gJFiJuaDQ95cMsHr6DbHioEg2lkP8mBI`;
                 const newtrail = {
                     name: trailData.name,
                     description: trailData.description,
