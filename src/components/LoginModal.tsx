@@ -8,7 +8,7 @@ export const LoginModal: React.FC<{ isOpen: boolean; onClose: () => void; onLogi
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className="login-modal-content">
         <h2>Sign In with </h2>
         <div className="login-options">
           <button className="login-button ii" onClick={() => onLogin('ii')}>
