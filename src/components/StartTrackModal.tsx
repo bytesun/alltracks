@@ -94,11 +94,13 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-body">
+          <button className="modal-close-btn" onClick={onClose}>
+            <span className="material-icons">close</span>
+          </button>
           <section className="track-selection">
             {existingTracks.length > 0 && (
               <div className="setting-row">
                 <div className="setting-label">
-                  <span className="material-icons">playlist_add</span>
                   <span>Select Track</span>
                 </div>
                 <div className="setting-control">
@@ -253,7 +255,6 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             )}
           </section>
           <button
-            className="primary-button"
             disabled={!trackId || !recordingMode || trackId === ''}
             onClick={() => onStart({
               trackId,
@@ -263,15 +264,10 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
               autoRecordingSettings
             })}
           >
-            <span className="material-icons">play_circle</span>
+
             Start
           </button>
-          <button
-            className="secondary-button"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
+         
 
         </footer>
       </div>
