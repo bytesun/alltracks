@@ -136,7 +136,7 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                             <Popup autoPan={true}>
                                 <div className="marker-popup">
                                     <div className="marker-details">
-                                        {selectedPoint.photo && (
+                                        {selectedPoint.photo ? (
                                             <div className="image-container">
                                                 <div className="image-placeholder">
                                                     <span className="material-icons">image</span>
@@ -161,8 +161,13 @@ export const TimelineMapView: React.FC<TimelineMapViewProps> = ({
                                                 />
 
                                             </div>
+                                        ) : (
+                                            <div className="image-placeholder no-image">
+                                                <span className="material-icons">photo_camera_back</span>
+                                                <span>No photo available</span>
+                                            </div>
                                         )}
-                                        <p>{selectedPoint.comment ? selectedPoint.comment : "no info"}</p>
+                                        <p>{selectedPoint.comment ? selectedPoint.comment : ""}</p>
                                         {isAuthed && <button
                                             className="favorite-btn"
                                             onClick={() => handleSaveClick(selectedPoint)}
