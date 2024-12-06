@@ -50,3 +50,11 @@
       color: #666;
   }
   
+  .update-notice {
+      padding: 8px;
+      color: #666;
+      font-size: 0.9em;
+      text-align: right;
+      margin-bottom: 8px;
+  }
+  

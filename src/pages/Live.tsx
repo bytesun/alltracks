@@ -39,6 +39,8 @@ export const Live: React.FC = () => {
         [49.2835, -123.1215],
         // Add more trail coordinates as needed
     ]);
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
     const [modalPhoto, setModalPhoto] = useState<string | null>(null);
 
@@ -55,31 +57,42 @@ export const Live: React.FC = () => {
         return null;
     }
 
+    const RELOAD_INTERVAL = 10000; // 60 seconds = 1 minute
 
     useEffect(() => {
-        const fetchTrackPoints = async () => {   
-      
-            const result = await alltracks.getCheckPointsByTrackId(liveId)   
-            console.log(result);
-            let tps = [];
-            result.forEach(t => {
-                tps.push(
-                    {
-                        latitude: t.latitude,
-                        longitude: t.longitude,
-                        elevation: t.elevation,
-                        timestamp: Number(t.timestamp),
-                        comment: t.note[0],
-                        photo: t.photo.length > 0? t.photo[0] : undefined, 
-                    }
-                )
-            })
-
-            setTrackPoints(tps);            
-        };
+        // Initial load
         fetchTrackPoints();
+
+        // Set up interval
+        const intervalId = setInterval(() => {
+            fetchTrackPoints();
+        }, RELOAD_INTERVAL);
+
+        // Cleanup interval on component unmount
+        return () => clearInterval(intervalId);
     }, [liveId]);
 
+    const fetchTrackPoints = async () => {
+
+        const result = await alltracks.getCheckPointsByTrackId(liveId)
+        console.log(result);
+        let tps = [];
+        result.forEach(t => {
+            tps.push(
+                {
+                    latitude: t.latitude,
+                    longitude: t.longitude,
+                    elevation: t.elevation,
+                    timestamp: Number(t.timestamp),
+                    comment: t.note[0],
+                    photo: t.photo.length > 0 ? t.photo[0] : undefined,
+                }
+            )
+        })
+
+        setTrackPoints(tps);
+        setLastUpdate(new Date()); 
+    };
     const getMapCenter = () => {
         if (trailPoints.length > 0) {
             return trailPoints[0];
@@ -133,6 +146,9 @@ export const Live: React.FC = () => {
 
             <div className="live-container">
                 <h3>Live Track Points</h3>
+                <div className="update-notice">
+                    Last updated: {lastUpdate.toLocaleTimeString()}
+                </div>
                 <MapContainer
                     center={getMapCenter() as [number, number]}
                     zoom={13}
