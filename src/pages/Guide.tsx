@@ -26,7 +26,6 @@ export const Guide = () => {
             </div>
           </div>
         </section>
-
         <section className="guide-section">
           <h2>Track Recording</h2>
           <div className="guide-content">
@@ -52,6 +51,19 @@ export const Guide = () => {
                   <li>Add comments to points</li>
                   <li>Record elevation data</li>
                   <li>View full-size photos</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="guide-item">
+              <span className="material-icons">update</span>
+              <div>
+                <h3>Live Updates</h3>
+                <ul>
+                  <li>Auto-refresh every 30-60 seconds</li>
+                  <li>See last update timestamp</li>
+                  <li>Track points update automatically</li>
+                  <li>Real-time incident reports</li>
                 </ul>
               </div>
             </div>
@@ -86,9 +98,21 @@ export const Guide = () => {
                 </ul>
               </div>
             </div>
+
+            <div className="guide-item">
+              <span className="material-icons">photo_library</span>
+              <div>
+                <h3>Photo Management</h3>
+                <ul>
+                  <li>View photo placeholders</li>
+                  <li>Click to expand images</li>
+                  <li>Save favorite locations</li>
+                  <li>Add location categories</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
-
         <section className="guide-section">
           <h2>Profile Features</h2>
           <div className="guide-content">

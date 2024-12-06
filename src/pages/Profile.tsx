@@ -116,7 +116,7 @@ export const Profile: React.FC = () => {
               onClick={() => setActiveTab('savedpoints')}
             >
               <span className="material-icons">bookmark</span>
-              Saved Points
+              Saved 
             </div>
 
           </div>
