@@ -3,21 +3,22 @@ import './ExportModal.css';
 import { useGlobalContext } from './Store';
 interface ExportModalProps {
   onExport: (
-    format: string, 
-    storage: 'local' | 'cloud', 
-    filename: string, 
-    description: string, 
+    format: string,
+    storage: 'local' | 'cloud',
+    filename: string,
+    description: string,
     eventId: string,
     isPrivateStorage: boolean
   ) => void;
   onClose: () => void;
   trackId: string;
+  groupId: string;
 }
-export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  trackId }) => {
-  const { state:{ isAuthed } } = useGlobalContext();
+export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, trackId, groupId }) => {
+  const { state: { isAuthed } } = useGlobalContext();
   const [format, setFormat] = useState('gpx');
   const [storage, setStorage] = useState<'local' | 'cloud'>('local');
-  const [filename, setFilename] = useState('');
+  const [filename, setFilename] = useState(`${trackId}_${groupId}`);
   const [description, setDescription] = useState('');
   const [eventId, setEventId] = useState(trackId);
   // Add new state
@@ -32,6 +33,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  tr
           onExport(format, storage, filename, description, eventId, isPrivateStorage);
           onClose();
         }}>
+          <button className="modal-close-btn" onClick={onClose}>
+            <span className="material-icons">close</span>
+          </button>
           {/* <div className="option-group">
             <label>Event ID:</label>
             <input
@@ -75,11 +79,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  tr
               <label>Storage:</label>
               <select value={storage} onChange={(e) => setStorage(e.target.value as 'local' | 'cloud')}>
                 <option value="local">Local Download</option>
-                <option disabled={!isAuthed} value="cloud">Cloud Storage{!isAuthed && ' (login required)'}</option>
+                <option disabled={!isAuthed} value="cloud">Upload to Cloud{!isAuthed && ' (login required)'}</option>
               </select>
             </div>
           </div>
-          {storage === 'cloud' && isAuthed && (
+          {/* {storage === 'cloud' && isAuthed && (
             <div className="storage-options">
               <label>
                 <input
@@ -91,10 +95,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose,  tr
               </label>
             </div>
           )}
-          
+           */}
           <div className="modal-actions">
             <button type="submit">Export</button>
-            <button type="button" onClick={onClose}>Cancel</button>
           </div>
         </form>
       </div>

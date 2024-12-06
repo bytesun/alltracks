@@ -1018,6 +1018,7 @@ function MainApp() {
           onExport={handleExport}
           onClose={() => setShowExportModal(false)}
           trackId={trackId}
+          groupId={groupId}
         />
       )}
       {showPointsModal && (

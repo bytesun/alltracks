@@ -68,3 +68,27 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.modal-close-btn .material-icons {
+    font-size: 20px;
+    color: #666;
+}
+
+.modal-close-btn:hover .material-icons {
+    color: #333;
+}
+
+/* Add positioning context */
+.modal-content {
+    position: relative;
+}
