@@ -56,7 +56,7 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
     //   key: edge.node.tags.find(t => t.name === 'Original-Name')?.value || '',
     //   description: edge.node.tags.find(t => t.name === 'Description')?.value || ''
     // }));
-    const start  = BigInt(new Date(currentYear, 0, 1).getTime() * 1000000);
+    const start = BigInt(new Date(currentYear, 0, 1).getTime() * 1000000);
     const end = BigInt(new Date(currentYear, 11, 31, 23, 59, 59).getTime() * 1000000);
     const result = await alltracks.getGroupPhotos(groupId, start, end);
 
@@ -89,28 +89,27 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
         {arphotos.map((photo, index) => (
           <div key={index} className="photo-item" onClick={() => setSelectedPhoto(photo)}>
             <img src={`${photo.photoUrl}`} alt={`Photo ${index + 1}`} />
-            <div className="photo-description">  {photo.tags.toString()}  on  {new Date(Number(photo.timestamp)/1000000).toLocaleDateString()}</div>
+            <div className="photo-description">  {photo.tags.toString()}  on  {new Date(Number(photo.timestamp) / 1000000).toLocaleDateString()}</div>
           </div>
         ))}
 
       </div>
       {selectedPhoto && (
         <div className="modal-overlay" onClick={() => setSelectedPhoto(null)}>
-          <div className="modal-content photo-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              
-              <button className="close-button" onClick={() => setSelectedPhoto(null)}>
-                <span className="material-icons">close</span>
-              </button>
-            </div>
+          <div className=" photo-modal" onClick={e => e.stopPropagation()}>
 
-            <div className="modal-body">
-              <img
-                src={`${selectedPhoto.photoUrl}`}
-                alt={selectedPhoto.trackId}
-                className="full-size-photo"
-              />
-            </div>
+
+            <button className="close-button" onClick={() => setSelectedPhoto(null)}>
+              <span className="material-icons">close</span>
+            </button>
+
+
+            <img
+              src={`${selectedPhoto.photoUrl}`}
+              alt={selectedPhoto.trackId}
+              className="full-size-photo"
+            />
+
           </div>
         </div>
       )}
