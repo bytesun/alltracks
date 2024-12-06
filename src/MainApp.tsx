@@ -347,7 +347,7 @@ function MainApp() {
 
   const recordPoint = async () => {
     setShowNotice(false);
-    setShowCommentModal(true);
+ 
     // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
