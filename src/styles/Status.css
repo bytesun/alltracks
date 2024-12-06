@@ -184,3 +184,10 @@
 .empty-state h3 {
   margin-bottom: 0.5rem;
 }
+
+.update-notice {
+    color: #666;
+    font-size: 0.9em;
+    text-align: right;
+    margin-top: 4px;
+}

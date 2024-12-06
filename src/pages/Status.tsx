@@ -31,8 +31,8 @@ export const Status: React.FC = () => {
 
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
     const [modalPhoto, setModalPhoto] = useState<string | null>(null);
-    const [showIncidents, setShowIncidents] = useState(true);
-    const [showInscriptions, setShowInscriptions] = useState(false);
+    const RELOAD_INTERVAL = 30000; // 30 seconds
+    const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
     function CenterMapOnPoint() {
         const map = useMap();
@@ -57,54 +57,62 @@ export const Status: React.FC = () => {
 
 
     useEffect(() => {
-        const fetchTrackPoints = async () => {
-            const today = new Date();
-            today.setHours(23, 59, 59, 0);
-            const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-            const endDate = new Date(Date.now())
-
-            const checkpoints = await alltracks.getIncidentCheckpoints(BigInt(startDate.getTime()), BigInt(today.getTime()))
-            console.log(checkpoints)
-            // const tracks = await listDocs({
-            //     collection: "incidents",
-            //     filter: {
-            //         matcher: {
-            //             createdAt: {
-            //                 matcher: "greaterThan",
-            //                 timestamp: BigInt(today.getTime()* 1_000_000)
-            //             },
-            //         },
-
-            //     }
-            // });
-
-            const points = checkpoints.map(p => {
-                return {
-                    latitude: p.latitude,
-                    longitude: p.longitude,
-                    elevation: p.elevation,
-                    timestamp: Number(p.timestamp),
-                    comment: p.note[0],
-                    photo: p.photo.length > 0 ? p.photo[0] : undefined,
-                } as TrackPoint;
-            });
-
-
-            const filteredPoints = userLocation ? points.filter(point => {
-                const distance = calculateDistance(
-                    point.latitude,
-                    point.longitude,
-                    userLocation[0],
-                    userLocation[1]
-                );
-                return distance <= 10000;
-            }) : [];
-
-            setTrackPoints(filteredPoints);
-        };
+        // Initial load
         fetchTrackPoints();
-    }, []);
 
+        // Set up interval
+        const intervalId = setInterval(fetchTrackPoints, RELOAD_INTERVAL);
+
+        // Cleanup on unmount
+        return () => clearInterval(intervalId);
+    }, [userLocation]); // Depend on userLocation
+
+    const fetchTrackPoints = async () => {
+        const today = new Date();
+        today.setHours(23, 59, 59, 0);
+        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        const endDate = new Date(Date.now())
+
+        const checkpoints = await alltracks.getIncidentCheckpoints(BigInt(startDate.getTime()), BigInt(today.getTime()))
+        console.log(checkpoints)
+        // const tracks = await listDocs({
+        //     collection: "incidents",
+        //     filter: {
+        //         matcher: {
+        //             createdAt: {
+        //                 matcher: "greaterThan",
+        //                 timestamp: BigInt(today.getTime()* 1_000_000)
+        //             },
+        //         },
+
+        //     }
+        // });
+
+        const points = checkpoints.map(p => {
+            return {
+                latitude: p.latitude,
+                longitude: p.longitude,
+                elevation: p.elevation,
+                timestamp: Number(p.timestamp),
+                comment: p.note[0],
+                photo: p.photo.length > 0 ? p.photo[0] : undefined,
+            } as TrackPoint;
+        });
+
+
+        const filteredPoints = userLocation ? points.filter(point => {
+            const distance = calculateDistance(
+                point.latitude,
+                point.longitude,
+                userLocation[0],
+                userLocation[1]
+            );
+            return distance <= 10000;
+        }) : [];
+
+        setTrackPoints(filteredPoints);
+        setLastUpdate(new Date());
+    };
     const getMapCenter = (): [number, number] => {
         if (trackPoints.length > 0) {
             const lastPoint = trackPoints[trackPoints.length - 1];
@@ -176,6 +184,9 @@ export const Status: React.FC = () => {
             <div className="status-container">
                 <div className="status-header">
                     <h3>Live Report Points</h3>
+                    <div className="update-notice">
+                        Last updated: {lastUpdate.toLocaleTimeString()}
+                    </div>
                     {/* <div className="status-filters">
                         <label>
                             <input 
@@ -204,56 +215,56 @@ export const Status: React.FC = () => {
                     {/* Left Column - Points List */}
                     <div className="points-list-column">
                         <div className="list-panel">
-                        {trackPoints.length > 0 ? (
-                            <div className="points-feed">
-                                {[...trackPoints]
-                                    .sort((a, b) => b.timestamp - a.timestamp)
-                                    .map((point) => (
-                                        <div
-                                            key={point.timestamp}
-                                            className={`feed-item ${selectedPoint?.timestamp === point.timestamp ? 'feed-selected' : ''}`}
-                                            onClick={() => setSelectedPoint(point)}
-                                        >
-                                            <div className="feed-time">
-                                                <span className="feed-date">
-                                                    {new Date(point.timestamp).toLocaleDateString('en-US', {
-                                                        weekday: 'short',
-                                                        month: 'short',
-                                                        day: 'numeric'
-                                                    })}
-                                                </span>
-                                                <span className="feed-clock">
-                                                    {new Date(point.timestamp).toLocaleTimeString('en-US', {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
-                                                </span>
-                                            </div>
+                            {trackPoints.length > 0 ? (
+                                <div className="points-feed">
+                                    {[...trackPoints]
+                                        .sort((a, b) => b.timestamp - a.timestamp)
+                                        .map((point) => (
+                                            <div
+                                                key={point.timestamp}
+                                                className={`feed-item ${selectedPoint?.timestamp === point.timestamp ? 'feed-selected' : ''}`}
+                                                onClick={() => setSelectedPoint(point)}
+                                            >
+                                                <div className="feed-time">
+                                                    <span className="feed-date">
+                                                        {new Date(point.timestamp).toLocaleDateString('en-US', {
+                                                            weekday: 'short',
+                                                            month: 'short',
+                                                            day: 'numeric'
+                                                        })}
+                                                    </span>
+                                                    <span className="feed-clock">
+                                                        {new Date(point.timestamp).toLocaleTimeString('en-US', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </span>
+                                                </div>
 
-                                            <div className="feed-content">
+                                                <div className="feed-content">
 
-                                                {point.comment && <div className="feed-comment">{point.comment}</div>}
-                                                {point.photo && (
-                                                    <img
-                                                        src={point.photo}
-                                                        alt="Point photo"
-                                                        className="feed-photo"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setModalPhoto(point.photo);
-                                                        }}
-                                                    />
-                                                )}
+                                                    {point.comment && <div className="feed-comment">{point.comment}</div>}
+                                                    {point.photo && (
+                                                        <img
+                                                            src={point.photo}
+                                                            alt="Point photo"
+                                                            className="feed-photo"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setModalPhoto(point.photo);
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
-                            </div>
+                                        ))}
+                                </div>
                             ) : (
                                 <div className="empty-state">
-                                  <span className="material-icons">info</span>
-                                  <h3>No Incidents Reported</h3>
+                                    <span className="material-icons">info</span>
+                                    <h3>No Incidents Reported</h3>
                                 </div>
-                              )}
+                            )}
                         </div>
 
                         {modalPhoto && (
