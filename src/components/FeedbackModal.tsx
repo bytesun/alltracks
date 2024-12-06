@@ -60,7 +60,7 @@ export const FeedbackModal = ({ isOpen, onClose, user ,showNotification }: Feedb
                         onChange={(e) => setFeedback({ ...feedback, message: e.target.value })}
                         placeholder="Tell us your thoughts..."
                     />
-                      <button disabled={isSubmitting} onClick={handleSubmit}>
+                      <button className='feedback-submit' disabled={isSubmitting} onClick={handleSubmit}>
                         {isSubmitting ? (
                           <span className="material-icons spinning">refresh</span>
                         ) : (

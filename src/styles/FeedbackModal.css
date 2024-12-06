@@ -28,7 +28,6 @@
   resize: vertical;
   font-family: inherit;
 }
-
 .feedback-submit {
   background: #007bff;
   color: white;
@@ -38,8 +37,10 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  width: fit-content;
+  margin: 0 auto;
+  display: block;
 }
-
 .feedback-submit:hover {
   background: #0056b3;
 }

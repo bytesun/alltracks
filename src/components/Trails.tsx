@@ -249,18 +249,9 @@ export const Trails: React.FC = () => {
 
             {showCreateModal && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h3>Create New Trail</h3>
-                            <button
-                                className="close-button"
-                                onClick={() => setShowCreateModal(false)}
-                            >
-                                <span className="material-icons">close</span>
-                            </button>
-                        </div>
+                  
                         <CreateTrail onClose={() => setShowCreateModal(false)} onSubmit={handleTrailSubmit} />
-                    </div>
+                    
                 </div>
             )}
         </div>

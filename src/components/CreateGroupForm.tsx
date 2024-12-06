@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Group } from '../types/Group';
 interface CreateGroupFormProps {
-  onSubmit: (data: Group) => void;
-  onClose: () => void;
+    onSubmit: (data: Group) => void;
+    onClose: () => void;
 }
 
 export const CreateGroupForm = ({ onSubmit, onClose }: CreateGroupFormProps) => {
@@ -61,35 +61,18 @@ export const CreateGroupForm = ({ onSubmit, onClose }: CreateGroupFormProps) => 
                 />
             </div>
 
-            <div className="setting-row">
-                <div className="setting-control actions-row">
-                    <button 
-                        type="button" 
-                        onClick={onClose}
-                        className="cancel-button"
-                        style={{
-                            background: '#e9ecef',
-                            border: '1px solid #ced4da',
-                            color: '#495057'
-                        }}
-                    >
-                        <span className="material-icons">close</span>
-                        Cancel
-                    </button>
-                    <button 
-                        type="submit" 
-                        className="submit-button"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? (
-                            <span className="material-icons spinning">refresh</span>
-                        ) : (
-                            <span className="material-icons">add</span>
-                        )}
-                        {isSubmitting ? 'Creating...' : 'Create Group'}
-                    </button>
-                </div>
-            </div>
+
+            <button
+                type="submit"
+                className="submit-button"
+                disabled={isSubmitting}
+            >
+                {isSubmitting && (
+                    <span className="material-icons spinning">refresh</span>
+                ) }
+                {isSubmitting ? 'Creating...' : 'Create '}
+            </button>
+
         </form>
     );
 };

@@ -205,7 +205,6 @@
     display: flex;
     gap: 12px;
   }
-  
   .submit-button {
     background: #007bff;
     color: white;
@@ -216,7 +215,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1;
+    width: fit-content;
+    margin: 0 auto;
   }
   
   .submit-button:disabled {
@@ -245,4 +245,23 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #666;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #333;
 }
