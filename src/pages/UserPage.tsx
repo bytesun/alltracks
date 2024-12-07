@@ -19,7 +19,7 @@ export const UserPage: React.FC = () => {
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [startDate, setStartDate] = useState<string>(
-        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     );
     const [endDate, setEndDate] = useState<string>(
         new Date(Date.now()).toISOString().split('T')[0]
@@ -68,14 +68,14 @@ export const UserPage: React.FC = () => {
         const end = BigInt(new Date(endDate + ' ' + new Date(Date.now()).toISOString().split('T')[1]).getTime() );
 
         const result = await alltracks.getCheckpoints({ user: Principal.fromText(userKey) }, start, end);
-
+        console.log(result)
         if (result.length > 0) {
             const points = result.map(point => ({
                 latitude: point.latitude,
                 longitude: point.longitude,
                 timestamp: Number(point.timestamp)  ,
                 elevation: point.elevation,
-                comment: point.note.length ? point.note[0] : undefined,
+                comment: point.note ? point.note : undefined,
                 photo: point.photo.length > 0 ? point.photo[0] : undefined,
             })).sort((a, b) => b.timestamp - a.timestamp);
             
