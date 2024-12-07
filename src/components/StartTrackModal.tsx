@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { openDB } from 'idb';
 import "../styles/StartTrackModal.css";
 import Cookies from 'js-cookie';
+import { Group } from '../api/alltracks/backend.did';
+import { useGlobalContext, useAlltracks } from './Store';
 
 interface StartTrackModalProps {
   onClose: () => void;
@@ -22,16 +24,27 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   onClose,
   onStart
 }) => {
+
+  const { state: { isAuthed } } = useGlobalContext();
+  const alltracks = useAlltracks();
+
   const [trackId, setTrackId] = React.useState<string>(uuidv4());
   const [groupId, setGroupId] = React.useState<string>(Cookies.get('groupId') || '0');
   const [recordingMode, setRecordingMode] = React.useState<'manual' | 'auto'>('manual');
   const [existingTracks, setExistingTracks] = React.useState<{ id: string, timestamp: number }[]>([]);
   const [selectedTrack, setSelectedTrack] = React.useState<string>('');
   const [wallet, setWallet] = React.useState<any>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [autoRecordingSettings, setAutoRecordingSettings] = React.useState({
     minTime: 10,
     minDistance: 10,
   });
+
+  useEffect(() => {
+    if (isAuthed) {
+      fetchGroups();
+    }
+  }, [isAuthed]);
 
   React.useEffect(() => {
     if (groupId) {
@@ -61,6 +74,11 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
     }
     loadTracks();
   }, []);
+
+  const fetchGroups = async () => {
+    const groups = await alltracks.getMyGroups();
+    setGroups(groups);
+  };
 
   const handleTrackSelection = (value: string) => {
     setSelectedTrack(value);
@@ -137,19 +155,27 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
               </div>
             )}
 
-            <div className="setting-row">
-              <div className="setting-label">
-                <span>Group ID</span>
+            {isAuthed && groups.length > 0 && (
+              <div className="setting-row">
+                <div className="setting-label">
+                  <span>Group</span>
+                </div>
+                <div className="setting-control">
+                  <select
+                    value={groupId}
+                    onChange={(e) => setGroupId(e.target.value)}
+                    className="group-select"
+                  >
+                    <option value="0">No Group</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="setting-control">
-                <input
-                  type="text"
-                  value={groupId}
-                  onChange={(e) => setGroupId(e.target.value)}
-                  placeholder="Enter group identifier"
-                />
-              </div>
-            </div>
+            )}
           </section>
 
           <section className="recording-settings">
@@ -267,7 +293,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
 
             Start
           </button>
-         
+
 
         </footer>
       </div>

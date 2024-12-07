@@ -33,6 +33,7 @@ import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
 import { CheckPoint } from './types/CheckPoint';
+
 import { useGlobalContext } from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
@@ -107,7 +108,11 @@ function MainApp() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [showImportOptions, setShowImportOptions] = useState(false);
   const [message, setMessage] = useState<String | undefined>(undefined);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { showNotification } = useNotification();
+  const [wallet, setWallet] = useState<any>(null);
+  const [showTrailList, setShowTrailList] = useState(false);
 
 
   useEffect(() => {
@@ -120,12 +125,7 @@ function MainApp() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  const { showNotification } = useNotification();
 
-  const [wallet, setWallet] = useState<any>(null);
-
-
-  const [showTrailList, setShowTrailList] = useState(false);
 
   useEffect(() => {
     setupIndexedDB();
@@ -209,6 +209,7 @@ function MainApp() {
       );
     }
   }, []);
+
 
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -521,7 +522,7 @@ function MainApp() {
             trackId: trackId
           });
           if (data.isIncident) {
-            await alltracks.createIncident({
+            await alltracks.createIncidentPoint({
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
               timestamp: BigInt(pendingPosition.timestamp),

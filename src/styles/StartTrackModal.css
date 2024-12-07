@@ -96,89 +96,137 @@
 .controls {
     width: 100%;
 }
-
-.recording-mode-toggle {
+   .recording-mode-toggle {
     display: flex;
-    gap: 16px;
-    margin: 20px 0;
+    gap: 12px;
+    margin: 16px 0;
+    flex-wrap: wrap;
 }
 
 .mode-option {
     flex: 1;
+    min-width: 140px;
     padding: 12px;
-    border: 2px solid #eee;
+    border: 1px solid #ccc;
     border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .mode-option.active {
-    border-color: #007bff;
-    background: #f0f7ff;
+      border-color: #007bff;
+      background: #f0f7ff;
 }
-   .auto-settings {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
+
+.auto-settings {
     margin-top: 16px;
 }
 
+@media (max-width: 480px) {
+    .mode-option {
+      flex: 1 0 100%;
+      justify-content: center;
+    }
+  
+    .value-display {
+      min-width: 60px;
+      text-align: right;
+      }
+}
 .setting-row {
     display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-bottom: 16px;
+    flex-direction: column;
+    gap: 4px; /* Reduced from 8px */
+    margin-bottom: 12px; /* Reduced from 16px */
+    width: 100%;
 }
 
-.setting-row:last-child {
-    margin-bottom: 0;
+@media (min-width: 768px) {
+      .setting-row {
+        flex-direction: row;
+        align-items: center;
+      }
 }
 
 .setting-label {
+    flex: 0 0 auto; /* Changed from fixed width */
+    font-size: 14px;
+    color: #666;
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 140px;
-    color: #444;
 }
 
 .setting-label .material-icons {
-    color: #666;
+        color: #666;
 }
 
 .setting-control {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 16px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+}
+
+.setting-control input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
 }
 
 .setting-control input[type="range"] {
-    flex: 1;
-    height: 4px;
-    background: #ddd;
-    border-radius: 2px;
-    accent-color: #007bff;
+        width: 100%;
+        max-width: 200px;
+        margin: 0;
+        padding: 8px 0;
+}
+
+@media (max-width: 480px) {
+        .setting-control input[type="range"] {
+          max-width: 100%;
+        }
+      
+        .setting-row {
+          margin-bottom: 8px;
+        }
+      
+        .setting-control input {
+          padding: 6px 8px;
+          height: 36px;
+        }
+      
+        .track-select {
+          padding: 6px 8px;
+          height: 36px;
+        }
 }
 
 .value-display {
-    min-width: 80px;
-    padding: 4px 8px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-align: center;
+        min-width: 80px;
+        padding: 4px 8px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
 }
 
 .value-display .unit {
-    color: #666;
-    margin-left: 4px;
-    font-size: 0.9em;
+        color: #666;
+        margin-left: 4px;
+        font-size: 0.9em;
 }
-.wallet-button {
+
+.track-select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+}.wallet-button {
     width: 100%;
     padding: 12px;
     display: flex;
@@ -226,29 +274,38 @@
     }
 }
 
-@media screen and (max-width: 480px) {
-    .modal-content {
-      padding: 15px;
-      margin: 10px;
-    }
+@media (max-width: 480px) {
+  .modal-content {
+    width: 90%;
+    margin: 20px auto;
+    padding: 16px;
+  }
   
-    .recording-mode {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+  .modal-body {
+    padding: 8px 0;
+  }
   
-    .modal-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+  .setting-control input,
+  .track-select {
+    font-size: 16px; /* Better for mobile tapping */
+  }
   
-    .modal-buttons button {
-      width: 100%;
-    }
+  .recording-mode {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .modal-buttons button {
+    width: 100%;
+  }
 }
-
 .input-row {
   display: flex;
   align-items: center;
