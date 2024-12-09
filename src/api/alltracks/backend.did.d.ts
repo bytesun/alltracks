@@ -211,6 +211,7 @@ export interface _SERVICE {
   'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_3>,
   'createTrack' : ActorMethod<[NewTrack], Result_2>,
   'createTrail' : ActorMethod<[NewTrail], Result_1>,
+  'deleteTrail' : ActorMethod<[bigint], Result>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpoints' : ActorMethod<
     [CheckpointFilter, Time, Time],

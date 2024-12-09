@@ -38,6 +38,7 @@ export const Trails: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [wallet, setWallet] = useState<any>(null);
     const { showNotification } = useNotification();
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<bigint | null>(null);
 
 
     useEffect(() => {
@@ -112,7 +113,7 @@ export const Trails: React.FC = () => {
                         fileType: contentType,
                         url: fileUrl
                     },
-                    photos: trailData.imageUrl?[trailData.imageUrl]:[],
+                    photos: trailData.imageUrl ? [trailData.imageUrl] : [],
                     startPoint: startPoint
                 };
                 console.log(newtrail);
@@ -143,41 +144,41 @@ export const Trails: React.FC = () => {
         const text = await file.text();
         const extension = file.name.split('.').pop()?.toLowerCase();
         let firstPoint = { latitude: 0, longitude: 0 };
-      
-        switch(extension) {
-          case 'gpx':
-            const parser = new DOMParser();
-            const gpx = parser.parseFromString(text, "text/xml");
-            const trkpt = gpx.querySelector('trkpt');
-            if (trkpt) {
-              firstPoint = {
-                latitude: Number(trkpt.getAttribute('lat')),
-                longitude: Number(trkpt.getAttribute('lon'))
-              };
-            }
-            break;
-          
-          case 'json':
-            const json = JSON.parse(text);
-            if (json.features?.[0]?.geometry?.coordinates?.[0]) {
-              const [lon, lat] = json.features[0].geometry.coordinates[0];
-              firstPoint = { latitude: lat, longitude: lon };
-            }
-            break;
-            
-          case 'kml':
-            const kml = parser.parseFromString(text, "text/xml");
-            const coordinates = kml.querySelector('coordinates')?.textContent?.trim().split(' ')[0];
-            if (coordinates) {
-              const [lon, lat] = coordinates.split(',');
-              firstPoint = { latitude: Number(lat), longitude: Number(lon) };
-            }
-            break;
+
+        switch (extension) {
+            case 'gpx':
+                const parser = new DOMParser();
+                const gpx = parser.parseFromString(text, "text/xml");
+                const trkpt = gpx.querySelector('trkpt');
+                if (trkpt) {
+                    firstPoint = {
+                        latitude: Number(trkpt.getAttribute('lat')),
+                        longitude: Number(trkpt.getAttribute('lon'))
+                    };
+                }
+                break;
+
+            case 'json':
+                const json = JSON.parse(text);
+                if (json.features?.[0]?.geometry?.coordinates?.[0]) {
+                    const [lon, lat] = json.features[0].geometry.coordinates[0];
+                    firstPoint = { latitude: lat, longitude: lon };
+                }
+                break;
+
+            case 'kml':
+                const kml = parser.parseFromString(text, "text/xml");
+                const coordinates = kml.querySelector('coordinates')?.textContent?.trim().split(' ')[0];
+                if (coordinates) {
+                    const [lon, lat] = coordinates.split(',');
+                    firstPoint = { latitude: Number(lat), longitude: Number(lon) };
+                }
+                break;
         }
-        
+
         return firstPoint;
-      };
-      
+    };
+
 
     const loadTrails = async () => {
         setIsLoading(true);
@@ -188,6 +189,25 @@ export const Trails: React.FC = () => {
             setTrails(formatTrails);
         } catch (error) {
             console.error('Error loading trails:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const deleteTrail = async (trailId: bigint) => {
+        setIsLoading(true);
+        try {
+            const result = await alltracks.deleteTrail(trailId);
+            if (result.success) {
+                showNotification('Trail deleted successfully', 'success');
+                // Refresh trails list after deletion
+                loadTrails();
+            } else {
+                showNotification('Error deleting trail', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting trail:', error);
+            showNotification('Error deleting trail', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -237,6 +257,12 @@ export const Trails: React.FC = () => {
 
                                 </button>
                             </div> */}
+                            <button
+                                className="trail-button delete"
+                                onClick={() => setShowDeleteConfirm(BigInt(trail.id))}
+                            >
+                                <span className="material-icons">delete</span>
+                            </button>
                         </div>
                     ))
                 ) : (
@@ -249,11 +275,33 @@ export const Trails: React.FC = () => {
 
             {showCreateModal && (
                 <div className="modal-overlay">
-                  
-                        <CreateTrail onClose={() => setShowCreateModal(false)} onSubmit={handleTrailSubmit} />
-                    
+
+                    <CreateTrail onClose={() => setShowCreateModal(false)} onSubmit={handleTrailSubmit} />
+
                 </div>
             )}
+            {showDeleteConfirm !== null && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Delete Trail</h3>
+                        <p>Are you sure you want to delete this trail ({String(showDeleteConfirm)}) ?</p>
+                        <div className="modal-buttons">
+                            <button
+                                onClick={() => {
+                                    deleteTrail(showDeleteConfirm);
+                                    setShowDeleteConfirm(null);
+                                }}
+                            >
+                                Delete
+                            </button>
+                            <button onClick={() => setShowDeleteConfirm(null)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

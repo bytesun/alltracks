@@ -265,6 +265,7 @@ service : {
   createSavedPoint: (NewSavedPoint) -> (Result_3);
   createTrack: (NewTrack) -> (Result_2);
   createTrail: (NewTrail) -> (Result_1);
+  deleteTrail: (nat) -> (Result);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;

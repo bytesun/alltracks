@@ -221,6 +221,7 @@ export const idlFactory = ({ IDL }) => {
     'createSavedPoint' : IDL.Func([NewSavedPoint], [Result_3], []),
     'createTrack' : IDL.Func([NewTrack], [Result_2], []),
     'createTrail' : IDL.Func([NewTrail], [Result_1], []),
+    'deleteTrail' : IDL.Func([IDL.Nat], [Result], []),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(CheckPoint)],
