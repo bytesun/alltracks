@@ -10,7 +10,7 @@ export const routeTypeMap = {
 
 export const difficultyMap = {
   'easy': { easy: null },
-  'moderate': { medium: null },
+  'moderate': { moderate: null },
   'hard': { hard: null },
   'expert': { expert: null }
 };

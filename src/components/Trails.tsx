@@ -258,10 +258,10 @@ export const Trails: React.FC = () => {
                                 </button>
                             </div> */}
                             <button
-                                className="trail-button delete"
+
                                 onClick={() => setShowDeleteConfirm(BigInt(trail.id))}
                             >
-                                <span className="material-icons">delete</span>
+                                Delete
                             </button>
                         </div>
                     ))

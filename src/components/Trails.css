@@ -123,10 +123,6 @@
   color: white;
 }
 
-.trail-button.delete {
-  background-color: #dc3545;
-  color: white;
-}
 
 .trail-button:hover {
   opacity: 0.9;
