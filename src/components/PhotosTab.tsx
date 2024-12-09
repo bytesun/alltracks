@@ -56,7 +56,7 @@ export const PhotosTab: React.FC<PhotosTabProps> = ({ groupId }) => {
     //   key: edge.node.tags.find(t => t.name === 'Original-Name')?.value || '',
     //   description: edge.node.tags.find(t => t.name === 'Description')?.value || ''
     // }));
-    const start = BigInt(new Date(currentYear, 10, 1).getTime() * 1000000);
+    const start = BigInt(new Date(currentYear, 0, 1).getTime() * 1000000);
     const end = BigInt(new Date().getTime() * 1000000);
     const result = await alltracks.getGroupPhotos(groupId, start, end);
 
