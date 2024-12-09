@@ -8,7 +8,7 @@ import Cookies from 'js-cookie';
 import { arweave, arweaveGateway } from '../utils/arweave';
 import { useNotification } from '../context/NotificationContext';
 import { useGlobalContext, useAlltracks } from './Store';
-import { Trail as TrailType } from '../api/alltracks/backend.did';
+
 import { routeTypeMap, difficultyMap, parseTrails } from '../utils/trailUtils';
 
 interface Trail {

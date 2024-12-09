@@ -410,6 +410,10 @@ function MainApp() {
     let photoUrl: string | undefined;
     try {
       if (pendingPosition) {
+        const latitude = pendingPosition.coords.latitude;
+        const longitude = pendingPosition.coords.longitude;
+        const elevation = pendingPosition.coords.altitude || undefined;
+
         const timestamp = pendingPosition.timestamp;
         if (data.photo) {
           // if (data.cloudEnabled) {
@@ -470,10 +474,10 @@ function MainApp() {
 
 
         const newPoint: TrackPoint = {
-          latitude: pendingPosition.coords.latitude,
-          longitude: pendingPosition.coords.longitude,
+          latitude: latitude,
+          longitude: longitude,
           timestamp: timestamp,
-          elevation: pendingPosition.coords.altitude || undefined,
+          elevation: elevation || undefined,
           comment: data.comment.trim() || undefined,
           photo: photoUrl || undefined,
         };
@@ -503,10 +507,10 @@ function MainApp() {
         if (data.cloudEnabled) {
 
           await alltracks.createCheckpoint({
-            latitude: pendingPosition.coords.latitude,
-            longitude: pendingPosition.coords.longitude,
+            latitude: latitude,
+            longitude: longitude,
             timestamp: BigInt(timestamp),
-            elevation: pendingPosition.coords.altitude || undefined,
+            elevation: elevation || undefined,
             note: data.comment?.trim() || '',
             photo: photoUrl ? [photoUrl] : [],
             isPublic: data.isPrivate ? false : true,
@@ -515,10 +519,10 @@ function MainApp() {
           });
           if (data.isIncident) {
             await alltracks.createIncidentPoint({
-              latitude: pendingPosition.coords.latitude,
-              longitude: pendingPosition.coords.longitude,
+              latitude: latitude,
+              longitude: longitude,
               timestamp: BigInt(timestamp),
-              elevation: pendingPosition.coords.altitude || undefined,
+              elevation: elevation || undefined,
               note: data.comment?.trim() || '',
               photo: photoUrl ? [photoUrl] : [],
 

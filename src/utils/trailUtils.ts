@@ -12,7 +12,7 @@ export const difficultyMap = {
   'easy': { easy: null },
   'moderate': { medium: null },
   'hard': { hard: null },
-  'expert': { extreme: null }
+  'expert': { expert: null }
 };
 
 export const parseTrails = (trails: [TrailType]): any => {

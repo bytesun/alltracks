@@ -169,6 +169,7 @@ export const Trails = () => {
             <option value="easy">Easy</option>
             <option value="moderate">Moderate</option>
             <option value="hard">Hard</option>
+            <option value="expert">Expert</option>
           </select>
         </div>
       </header>
