@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
-
+import { Group } from '../api/alltracks/backend.did.d';
 interface UploadFormProps {
+  groups: Group[];
   onSubmit: (formData: UploadFormData, file: File) => void;
   onClose: () => void;
   isUploading: boolean;
@@ -16,9 +17,10 @@ interface UploadFormData {
   photoUrl: string | undefined;
 }
 
-export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isUploading }) => {
+export const UploadARForm: React.FC<UploadFormProps> = ({ groups, onClose, onSubmit, isUploading }) => {
   const [file, setFile] = useState<File | null>(null);
   const [wallet, setWallet] = useState<any>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [formData, setFormData] = useState<UploadFormData>({
     trackId: '',
     groupId: '',
@@ -82,7 +84,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
 
       <div className="setting-row">
         <div className="setting-label">
-          <span className="material-icons">calendar_today</span>
+          
           <span>Date</span>
         </div>
         <div className="setting-control">
@@ -97,7 +99,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
       </div>
       <div className="setting-row">
         <div className="setting-label">
-          <span className="material-icons">fingerprint</span>
+
           <span>Track ID</span>
         </div>
         <div className="setting-control">
@@ -111,27 +113,31 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
           />
         </div>
       </div>
-
       <div className="setting-row">
         <div className="setting-label">
-          <span className="material-icons">group</span>
-          <span>Group ID</span>
+
+          <span>Group</span>
         </div>
         <div className="setting-control">
-          <input
-            type="text"
-            name="groupId"
-            value={formData.groupId}
-            onChange={handleInputChange}
-            placeholder="Enter group ID"
-
-          />
+          <select
+            value={selectedGroupId}
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            className="group-filter"
+          >
+            <option value="">All Groups</option>
+            {groups.map(group => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
+
       <div className="setting-row">
         <div className="setting-label">
-          <span className="material-icons">label</span>
+          
           <span>Tags</span>
         </div>
         <div className="setting-control">
@@ -148,7 +154,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ onClose, onSubmit, isU
 
       <div className="setting-row">
         <div className="setting-label">
-          <span className="material-icons">upload_file</span>
+          
           <span>Photo</span>
         </div>
         <div className="setting-control">

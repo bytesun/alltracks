@@ -6,8 +6,8 @@ import '../styles/ArStorage.css'
 import { useNotification } from '../context/NotificationContext';
 import Cookies from 'js-cookie';
 import { useGlobalContext, useAlltracks } from './Store';
-import { Photo } from '../api/alltracks/backend.did'
-import { PhotosTab } from './PhotosTab';
+import { Photo } from '../api/alltracks/backend.did.d'
+import { Group } from '../api/alltracks/backend.did.d';
 
 interface UploadFormData {
   trackId: string;
@@ -24,6 +24,8 @@ export const ArStorage: React.FC = () => {
   } } = useGlobalContext();
   const alltracks = useAlltracks();
   const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [userGroups, setUserGroups] = useState<Group[]>([]);
+
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,10 @@ export const ArStorage: React.FC = () => {
     loadPhotos();
   }, [isAuthed, currentYear]);
 
+  useEffect(() => {
+    loadUserGroups();
+  }, [isAuthed]);
+  
   // const loadPhotos = async () => {
   //   if (!user) return;
   //   setLoading(true);
@@ -112,7 +118,16 @@ export const ArStorage: React.FC = () => {
 
     setLoading(false);
   };
-
+const loadUserGroups = async () => {
+  if (!isAuthed) return;
+  try {
+    const groups = await alltracks.getMyGroups();
+    setUserGroups(groups);
+  } catch (error) {
+    console.error('Error loading groups:', error);
+    showNotification('Error loading groups', error.message);
+  }
+};
   const extractIds = (key: string) => {
     if (!key) return { trackId: '', groupId: '' };
     const parts = key.split('_');
@@ -218,6 +233,7 @@ export const ArStorage: React.FC = () => {
           <div className="modal-backdrop">
             <div className="ar-storage-modal">
               <UploadARForm
+                groups={userGroups}
                 onSubmit={handleUpload}
                 isUploading={uploading}
                 onClose={() => setShowUploadForm(false)}
