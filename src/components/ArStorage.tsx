@@ -34,7 +34,6 @@ export const ArStorage: React.FC = () => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
-  const [yearList, setYearList] = useState<number[]>([]);
 
 
   useEffect(() => {

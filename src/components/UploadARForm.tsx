@@ -20,7 +20,7 @@ interface UploadFormData {
 export const UploadARForm: React.FC<UploadFormProps> = ({ groups, onClose, onSubmit, isUploading }) => {
   const [file, setFile] = useState<File | null>(null);
   const [wallet, setWallet] = useState<any>(null);
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+ 
   const [formData, setFormData] = useState<UploadFormData>({
     trackId: '',
     groupId: '',
@@ -44,7 +44,13 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ groups, onClose, onSub
       [name]: value
     }));
   };
-
+  const handleSelectedGroup = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const groupId = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      groupId: groupId
+    }));
+  };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
@@ -61,6 +67,7 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ groups, onClose, onSub
       onSubmit(formData, file);
     }
   };
+
   const handleWalletUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileReader = new FileReader();
     fileReader.onloadend = async (e) => {
@@ -120,8 +127,8 @@ export const UploadARForm: React.FC<UploadFormProps> = ({ groups, onClose, onSub
         </div>
         <div className="setting-control">
           <select
-            value={selectedGroupId}
-            onChange={(e) => setSelectedGroupId(e.target.value)}
+            value={formData.groupId}
+            onChange={handleSelectedGroup}
             className="group-filter"
           >
             <option value="">All Groups</option>
