@@ -348,7 +348,7 @@ function MainApp() {
 
   const recordPoint = async () => {
     setShowNotice(false);
- 
+
     // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
       if (navigator.geolocation) {
@@ -409,78 +409,70 @@ function MainApp() {
   }) => {
     let photoUrl: string | undefined;
     try {
-      if (data.photo) {
-        // if (data.cloudEnabled) {
-        //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
-        //   photoAsset = await uploadFile({
-        //     collection: "photos",
-        //     data: photoFile
-        //   });
-        // } else {
-        if (wallet) { //save to Arweave blockchain
-          const lat = pendingPosition?.coords.latitude.toFixed(6);
-          const long = pendingPosition?.coords.longitude.toFixed(6);
-          const timestamp = Date.now();
-          const photoFileName = `${lat}_${long}_${trackId}_${groupId}_${timestamp}.jpg`;
-
-          try {
-            // Create Arweave transaction
-            const fileReader = new FileReader();
-            const photoBuffer = await data.photo.arrayBuffer();
-
-            const transaction = await arweave.createTransaction({
-              data: photoBuffer
-            }, wallet);
-
-            // Add tags
-            transaction.addTag('Content-Type', data.photo.type);
-            transaction.addTag('App-Name', 'AllTracks');
-            // transaction.addTag('File-Name', photoFileName);
-            transaction.addTag('Track-ID', trackId || '');
-            transaction.addTag('Group-ID', groupId);
-            transaction.addTag('Note', data.comment)
-            // transaction.addTag('Latitude', lat || '');
-            // transaction.addTag('Longitude', long || '');
-
-            // Sign and post transaction
-            await arweave.transactions.sign(transaction, wallet);
-            const response = await arweave.transactions.post(transaction);
-
-            if (response.status === 200) {
-              photoUrl = `${arweaveGateway}/${transaction.id}`;
-              showNotification('Photo uploaded to Arweave:', "success");
-            }
-          } catch (error) {
-            showNotification('Error uploading to Arweave:', error);
-          }
-        } else { //save local
-          const lat = pendingPosition?.coords.latitude.toFixed(6);
-          const long = pendingPosition?.coords.longitude.toFixed(6);
-          const timestamp = Date.now();
-          const photoFileName = `${lat}_${long}_${trackId}_${groupId}.jpg`;
-          // Local storage
-          const photoFile = new File([data.photo], photoFileName, { type: data.photo.type });
-          const photoUrl = URL.createObjectURL(photoFile);
-          const link = document.createElement('a');
-          link.href = photoUrl;
-          link.download = photoFileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(photoUrl);
-        }
-        // }
-      }
-    } catch (error) {
-      showNotification('Error uploading photo:', error);
-    }
-
-    try {
       if (pendingPosition) {
+        const timestamp = pendingPosition.timestamp;
+        if (data.photo) {
+          // if (data.cloudEnabled) {
+          //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
+          //   photoAsset = await uploadFile({
+          //     collection: "photos",
+          //     data: photoFile
+          //   });
+          // } else {
+
+          if (wallet) { //save to Arweave blockchain      
+            try {
+              // Create Arweave transaction            
+              const photoBuffer = await data.photo.arrayBuffer();
+              const transaction = await arweave.createTransaction({
+                data: photoBuffer
+              }, wallet);
+
+              // Add tags
+              transaction.addTag('Content-Type', data.photo.type);
+              transaction.addTag('App-Name', 'AllTracks');
+              // transaction.addTag('File-Name', photoFileName);
+              transaction.addTag('Track-ID', trackId || '');
+              transaction.addTag('Group-ID', groupId);
+              transaction.addTag('Note', data.comment)
+              // transaction.addTag('Latitude', lat || '');
+              // transaction.addTag('Longitude', long || '');
+
+              // Sign and post transaction
+              await arweave.transactions.sign(transaction, wallet);
+              const response = await arweave.transactions.post(transaction);
+
+              if (response.status === 200) {
+                photoUrl = `${arweaveGateway}/${transaction.id}`;
+                showNotification('Photo uploaded to Arweave:', "success");
+              }
+            } catch (error) {
+              showNotification('Error uploading to Arweave:', error);
+            }
+          } else { //save local
+            const lat = pendingPosition?.coords.latitude.toFixed(6);
+            const long = pendingPosition?.coords.longitude.toFixed(6);
+
+            const photoFileName = `${lat}_${long}_${trackId}_${groupId}.jpg`;
+            // Local storage
+            const photoFile = new File([data.photo], photoFileName, { type: data.photo.type });
+            const photoUrl = URL.createObjectURL(photoFile);
+            const link = document.createElement('a');
+            link.href = photoUrl;
+            link.download = photoFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(photoUrl);
+          }
+          // }
+        }
+
+
         const newPoint: TrackPoint = {
           latitude: pendingPosition.coords.latitude,
           longitude: pendingPosition.coords.longitude,
-          timestamp: pendingPosition.timestamp,
+          timestamp: timestamp,
           elevation: pendingPosition.coords.altitude || undefined,
           comment: data.comment.trim() || undefined,
           photo: photoUrl || undefined,
@@ -513,7 +505,7 @@ function MainApp() {
           await alltracks.createCheckpoint({
             latitude: pendingPosition.coords.latitude,
             longitude: pendingPosition.coords.longitude,
-            timestamp: BigInt(pendingPosition.timestamp),
+            timestamp: BigInt(timestamp),
             elevation: pendingPosition.coords.altitude || undefined,
             note: data.comment?.trim() || '',
             photo: photoUrl ? [photoUrl] : [],
@@ -525,7 +517,7 @@ function MainApp() {
             await alltracks.createIncidentPoint({
               latitude: pendingPosition.coords.latitude,
               longitude: pendingPosition.coords.longitude,
-              timestamp: BigInt(pendingPosition.timestamp),
+              timestamp: BigInt(timestamp),
               elevation: pendingPosition.coords.altitude || undefined,
               note: data.comment?.trim() || '',
               photo: photoUrl ? [photoUrl] : [],
@@ -546,6 +538,7 @@ function MainApp() {
       showNotification(`Error uploading to cloud: ${error}`, error);
     }
   };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -668,7 +661,7 @@ function MainApp() {
             isPublic: !isPrivateStorage,
             startPoint: {
               latitude: trackPoints[0].latitude,
-              longitude: trackPoints[0].longitude              
+              longitude: trackPoints[0].longitude
             }
 
           });

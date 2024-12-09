@@ -84,7 +84,7 @@ export const Live: React.FC = () => {
                     longitude: t.longitude,
                     elevation: t.elevation,
                     timestamp: Number(t.timestamp),
-                    comment: t.note[0],
+                    comment: t.note,
                     photo: t.photo.length > 0 ? t.photo[0] : undefined,
                 }
             )
