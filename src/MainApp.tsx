@@ -348,6 +348,7 @@ function MainApp() {
 
     // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
+      setShowCommentModal(true);
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -412,6 +413,32 @@ function MainApp() {
         const elevation = pendingPosition.coords.altitude || undefined;
 
         const timestamp = pendingPosition.timestamp;
+
+        const newPoint: TrackPoint = {
+          latitude: latitude,
+          longitude: longitude,
+          timestamp: timestamp,
+          elevation: elevation || undefined,
+          comment: data.comment.trim() || undefined,
+          photo: photoUrl || undefined,
+        };
+
+
+        //--save to local first
+        setTrackPoints((prev) => [...prev, newPoint]);
+
+        // if (data.category) {
+        //   setSavedPoints((prev) => [...prev, {
+        //     latitude: pendingPosition.coords.latitude,
+        //     longitude: pendingPosition.coords.longitude,
+        //     category: data.category,
+        //     description: data.comment
+
+        //   }]);
+        // }
+        //save to  IndexDB
+        const updatedPoints = [...trackPoints, newPoint];
+        await saveTrackPointsToIndexDB(trackId, updatedPoints);
         if (data.photo) {
           // if (data.cloudEnabled) {
           //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
@@ -445,6 +472,20 @@ function MainApp() {
 
               if (response.status === 200) {
                 photoUrl = `${arweaveGateway}/${transaction.id}`;
+                // Update point with photo URL using timestamp reference
+                setTrackPoints(prev => prev.map(point =>
+                  point.timestamp === pendingPosition.timestamp
+                    ? { ...point, photo: photoUrl }
+                    : point
+                ));
+
+                // Update IndexDB
+                const updatedPoints = trackPoints.map(point =>
+                  point.timestamp === pendingPosition.timestamp
+                    ? { ...point, photo: photoUrl }
+                    : point
+                );
+                await saveTrackPointsToIndexDB(trackId, updatedPoints);
                 showNotification('Photo uploaded to Arweave:', "success");
               }
             } catch (error) {
@@ -468,33 +509,7 @@ function MainApp() {
           }
           // }
         }
-
-
-        const newPoint: TrackPoint = {
-          latitude: latitude,
-          longitude: longitude,
-          timestamp: timestamp,
-          elevation: elevation || undefined,
-          comment: data.comment.trim() || undefined,
-          photo: photoUrl || undefined,
-        };
-
-
-        //--save to local first
-        setTrackPoints((prev) => [...prev, newPoint]);
-
-        // if (data.category) {
-        //   setSavedPoints((prev) => [...prev, {
-        //     latitude: pendingPosition.coords.latitude,
-        //     longitude: pendingPosition.coords.longitude,
-        //     category: data.category,
-        //     description: data.comment
-
-        //   }]);
-        // }
-        //save to  IndexDB
-        const updatedPoints = [...trackPoints, newPoint];
-        await saveTrackPointsToIndexDB(trackId, updatedPoints);
+        
         setPendingPosition(null);
         // showNotification('Point recorded successfully', 'success');
         setAutoCenter(true);

@@ -83,7 +83,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
             </div>
           </div> */}
 
-          {wallet && <div className="photo-capture">
+           <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
               <span className="material-icons">photo_camera</span>
               Take A Photo
@@ -111,7 +111,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
                 </button>
               </div>
             )}
-          </div>}
+          </div>
 
           <div className="cloud-options-header" onClick={() => setShowCloudOptions(!showCloudOptions)}>
             <span className="material-icons">
