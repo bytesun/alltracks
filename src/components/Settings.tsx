@@ -5,17 +5,9 @@ import '../styles/Settings.css';
 import { Spinner } from './Spinner';
 import { ProfileSettings } from '../types/profileSettings';
 import { useStats } from '../context/StatsContext';
+import { SecuritySettings } from './SecuritySettings';
 
-interface SettingsProps {
-    user: User;
-    showNotification: (message: string, type: 'success' | 'error' | 'info') => void;
-}
-
-export const Settings = ({ user, showNotification }: SettingsProps) => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-    const { updateSettings } = useStats();
-
+export const Settings = () => {
     const [mydoc, setMydoc] = useState<Doc<ProfileSettings> | null>(null);
     const [settings, setSettings] = useState<ProfileSettings>({
         storageId: '',
@@ -24,22 +16,22 @@ export const Settings = ({ user, showNotification }: SettingsProps) => {
         inboxCollection: '',
         inboxAttachmentCollection: ''
     });
-    useEffect(() => {
-        const loadSettings = async () => {
-            if (user?.key) {
-                const doc = await getDoc<ProfileSettings>({
-                    collection: "profiles",
-                    key: user.key
-                });
-                setMydoc(doc || null);
-                if (doc?.data) {
-                    setSettings(doc.data);
-                }
-            }
-        };
+    // useEffect(() => {
+    //     const loadSettings = async () => {
+    //         if (user?.key) {
+    //             const doc = await getDoc<ProfileSettings>({
+    //                 collection: "profiles",
+    //                 key: user.key
+    //             });
+    //             setMydoc(doc || null);
+    //             if (doc?.data) {
+    //                 setSettings(doc.data);
+    //             }
+    //         }
+    //     };
 
-        loadSettings();
-    }, [user]);
+    //     loadSettings();
+    // }, [user]);
     const handleSettingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setSettings(prev => ({
@@ -48,52 +40,52 @@ export const Settings = ({ user, showNotification }: SettingsProps) => {
         }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!settings.storageId.trim()) {
-            setSaveStatus('error');
-            return;
-        }
-        setIsSubmitting(true);
-        setSaveStatus('idle');
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     if (!settings.storageId.trim()) {
+    //         setSaveStatus('error');
+    //         return;
+    //     }
+    //     setIsSubmitting(true);
+    //     setSaveStatus('idle');
 
-        try {
-            if (mydoc?.key) {
-                await setDoc({
-                    collection: "profiles",
-                    doc: {
-                        ...mydoc,
-                        data: settings,
-                    }
-                });
-            } else {
-                await setDoc({
-                    collection: "profiles",
-                    doc: {
-                        key: user?.key || '',
-                        data: settings,
-                    }
-                });
-            }
-            updateSettings(settings);
-            showNotification('Settings saved successfully', 'success');
-        } catch (error) {
-            showNotification('Failed to save settings', 'error');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    //     try {
+    //         if (mydoc?.key) {
+    //             await setDoc({
+    //                 collection: "profiles",
+    //                 doc: {
+    //                     ...mydoc,
+    //                     data: settings,
+    //                 }
+    //             });
+    //         } else {
+    //             await setDoc({
+    //                 collection: "profiles",
+    //                 doc: {
+    //                     key: user?.key || '',
+    //                     data: settings,
+    //                 }
+    //             });
+    //         }
+    //         updateSettings(settings);
+    //         showNotification('Settings saved successfully', 'success');
+    //     } catch (error) {
+    //         showNotification('Failed to save settings', 'error');
+    //     } finally {
+    //         setIsSubmitting(false);
+    //     }
+    // };
     return (
         <div className="settings-container">
-            <h3>Private Storage Settings</h3>
+            {/* <h3>Private Storage Settings</h3>
             <div className="settings-header">
                 <a href="https://juno.build" target="_blank" rel="noopener noreferrer" className="guide-link">
                     <span className="material-icons">help_outline</span>
                     View Juno Setup Guide
                 </a>
-            </div>
+            </div> */}
 
-            <form onSubmit={handleSubmit}>
+            {/* <form onSubmit={handleSubmit}>
                 <div className="settings-section">
       
                     <div className="setting-content">
@@ -164,7 +156,11 @@ export const Settings = ({ user, showNotification }: SettingsProps) => {
                         'Save Settings'
                     )}
                 </button>
-            </form>
+            </form> */}
+
+            <div className="settings-section">
+                <SecuritySettings />
+            </div>
         </div>
     );
 };

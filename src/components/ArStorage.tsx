@@ -8,6 +8,7 @@ import Cookies from 'js-cookie';
 import { useGlobalContext, useAlltracks } from './Store';
 import { Photo } from '../api/alltracks/backend.did.d'
 import { Group } from '../api/alltracks/backend.did.d';
+import { showNotification } from '../utils/notification';
 
 interface UploadFormData {
   trackId: string;
@@ -20,7 +21,9 @@ interface UploadFormData {
 
 export const ArStorage: React.FC = () => {
   const { state: {
-    isAuthed, principal
+    isAuthed, 
+    principal,
+    wallet,
   } } = useGlobalContext();
   const alltracks = useAlltracks();
   const [transactionId, setTransactionId] = useState<string | null>(null);
@@ -30,19 +33,19 @@ export const ArStorage: React.FC = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
-  const [wallet, setWallet] = useState<any>(null);
+  // const [wallet, setWallet] = useState<any>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
 
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const savedWallet = Cookies.get('arweave_wallet');
-    if (savedWallet) {
-      setWallet(JSON.parse(savedWallet));
-    }
-  }, []);
+  //   const savedWallet = Cookies.get('arweave_wallet');
+  //   if (savedWallet) {
+  //     setWallet(JSON.parse(savedWallet));
+  //   }
+  // }, []);
 
 
   useEffect(() => {
@@ -53,6 +56,7 @@ export const ArStorage: React.FC = () => {
     loadUserGroups();
   }, [isAuthed]);
   
+
   // const loadPhotos = async () => {
   //   if (!user) return;
   //   setLoading(true);
@@ -175,6 +179,9 @@ const loadUserGroups = async () => {
         if (response.status === 200) {
           setTransactionId(transaction.id);
           photoUrl = arweaveGateway + "/" + transaction.id;
+        }else {
+          showNotification('Error uploading file: '+response.statusText, 'error');
+          console.error('Error uploading file:', response.statusText);
         }
       }
       // await setDoc({

@@ -148,6 +148,15 @@ export const idlFactory = ({ IDL }) => {
     'photos' : IDL.Vec(IDL.Text),
   });
   const Result_1 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
+  const UserCredential = IDL.Record({
+    'encryptedWallet' : IDL.Record({
+      'iv' : IDL.Vec(IDL.Nat8),
+      'data' : IDL.Vec(IDL.Nat8),
+    }),
+    'publicKey' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'credentialId' : IDL.Text,
+  });
   const CheckPoint = IDL.Record({
     'latitude' : IDL.Float64,
     'elevation' : IDL.Float64,
@@ -221,6 +230,7 @@ export const idlFactory = ({ IDL }) => {
     'createSavedPoint' : IDL.Func([NewSavedPoint], [Result_3], []),
     'createTrack' : IDL.Func([NewTrack], [Result_2], []),
     'createTrail' : IDL.Func([NewTrail], [Result_1], []),
+    'createUserCredential' : IDL.Func([UserCredential], [Result], []),
     'deleteTrail' : IDL.Func([IDL.Nat], [Result], []),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
@@ -276,6 +286,7 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'getMyCredential' : IDL.Func([], [IDL.Opt(UserCredential)], ['query']),
     'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),
     'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),
     'getMySavedPoints' : IDL.Func([], [IDL.Vec(SavedPoint)], ['query']),

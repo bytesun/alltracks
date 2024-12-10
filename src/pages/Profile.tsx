@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
-import { User } from "@junobuild/core"
 import '../styles/Profile.css';
-import { Navbar } from '../components/Navbar';
-import { Doc, setDoc, getDoc } from "@junobuild/core";
+
 import { Tracks } from '../components/Tracks';
 import { Trails } from '../components/Trails';
 import { GroupManagement } from '../components/GroupManagement';
-import { Inbox } from '../components/Inbox';
+
 import { Settings } from '../components/Settings';
 import { useNotification } from '../context/NotificationContext';
 import { TrackAchievements } from '../components/TrackAchievements';
@@ -98,13 +96,6 @@ export const Profile: React.FC = () => {
             </div>
 
             <div
-              className={`sidebar-item ${activeTab === 'timeline' ? 'active' : ''}`}
-              onClick={() => window.open(`/user/${principal}`, '_blank')}
-            >
-              <span className="material-icons">timeline</span>
-              Timeline
-            </div>
-            <div
               className={`sidebar-item ${activeTab === 'arstorage' ? 'active' : ''}`}
               onClick={() => setActiveTab('arstorage')}
             >
@@ -116,12 +107,20 @@ export const Profile: React.FC = () => {
               onClick={() => setActiveTab('savedpoints')}
             >
               <span className="material-icons">bookmark</span>
-              Saved 
+              Saved
+            </div>
+
+            <div
+              className={`sidebar-item ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              <span className="material-icons">settings</span>
+              Settings
             </div>
 
           </div>
           <div className="profile-content">
-            
+
             {activeTab === 'profile' && (
               <>
                 <h2>Proof Of Hiking </h2>
@@ -150,9 +149,13 @@ export const Profile: React.FC = () => {
               <>
                 <h2>Saved Points</h2>
                 <div className="saved-points-container">
-                 <SavedPoints />
+                  <SavedPoints />
                 </div>
               </>
+            )}
+
+            {activeTab === 'settings' && (
+                <Settings />              
             )}
           </div>
         </div>

@@ -23,8 +23,8 @@ export type State = {
   isAuthed: boolean
   principal: Principal | null
   showLoginModal: boolean
-
   loading: boolean
+  wallet: any | null;  
 }
 
 const createActors = (agent: HttpAgent = defaultAgent) => ({
@@ -41,6 +41,7 @@ const initialState: State = {
   showLoginModal: false,
   
   loading: false,
+  wallet: null
 }
 
 type Action =
@@ -63,7 +64,7 @@ type Action =
       type: "SET_LOADING"
       loading: boolean
     }
-
+  | { type: "SET_WALLET"; wallet: any }
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "SET_AGENT":
@@ -90,6 +91,11 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         loading: action.loading,
+      }
+    case "SET_WALLET":
+      return {
+        ...state,
+        wallet: action.wallet,
       }
     default:
       return { ...state }
@@ -175,6 +181,10 @@ export const useSetAgent = () => {
     }
   }
 }
+export const useSetWallet = () => {
+  const { dispatch } = useGlobalContext();
+  return (wallet: any) => dispatch({ type: "SET_WALLET", wallet });
+};
 
 export const useLoading = () => {
   const { dispatch, state } = useGlobalContext()

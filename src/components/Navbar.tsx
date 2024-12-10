@@ -16,7 +16,7 @@ export const Navbar = () => {
   const navigate = useNavigate();
 
   const {
-    state: { isAuthed },
+    state: { isAuthed, principal },
   } = useGlobalContext();
   const setAgent = useSetAgent();
   const [loginModal, setLoginModal] = useSetLoginModal();
@@ -177,6 +177,7 @@ export const Navbar = () => {
           <Link to="/trails" className="nav-link"><span className="material-icons">terrain</span>Trails</Link>
           <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
+          {principal &&<Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
           {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
           {isAuthed && <button className="auth-button" onClick={handleAuth}>
              Sign Out

@@ -7,6 +7,16 @@ type UserStats =
    totalElevation: float64;
    totalHours: float64;
  };
+type UserCredential = 
+ record {
+   createdAt: int;
+   credentialId: text;
+   encryptedWallet: record {
+                      data: vec nat8;
+                      iv: vec nat8;
+                    };
+   publicKey: text;
+ };
 type TrailType = 
  variant {
    outandback;
@@ -265,6 +275,7 @@ service : {
   createSavedPoint: (NewSavedPoint) -> (Result_3);
   createTrack: (NewTrack) -> (Result_2);
   createTrail: (NewTrail) -> (Result_1);
+  createUserCredential: (UserCredential) -> (Result);
   deleteTrail: (nat) -> (Result);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
@@ -284,6 +295,7 @@ service : {
       tracks: nat;
       trails: nat;
     }) query;
+  getMyCredential: () -> (opt UserCredential) query;
   getMyGroups: () -> (vec Group) query;
   getMyPhotos: (Time, Time) -> (vec Photo) query;
   getMySavedPoints: () -> (vec SavedPoint) query;

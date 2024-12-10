@@ -184,6 +184,15 @@ export type TrailFilter = { 'ttype' : TrailType } |
 export type TrailType = { 'tloop' : null } |
   { 'outandback' : null } |
   { 'pointto' : null };
+export interface UserCredential {
+  'encryptedWallet' : {
+    'iv' : Uint8Array | number[],
+    'data' : Uint8Array | number[],
+  },
+  'publicKey' : string,
+  'createdAt' : bigint,
+  'credentialId' : string,
+}
 export interface UserStats {
   'id' : string,
   'totalHours' : number,
@@ -211,6 +220,7 @@ export interface _SERVICE {
   'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_3>,
   'createTrack' : ActorMethod<[NewTrack], Result_2>,
   'createTrail' : ActorMethod<[NewTrail], Result_1>,
+  'createUserCredential' : ActorMethod<[UserCredential], Result>,
   'deleteTrail' : ActorMethod<[bigint], Result>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpoints' : ActorMethod<
@@ -240,6 +250,7 @@ export interface _SERVICE {
       'photos' : bigint,
     }
   >,
+  'getMyCredential' : ActorMethod<[], [] | [UserCredential]>,
   'getMyGroups' : ActorMethod<[], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMySavedPoints' : ActorMethod<[], Array<SavedPoint>>,

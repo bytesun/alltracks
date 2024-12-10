@@ -1,0 +1,27 @@
+.security-settings {
+  padding: 20px;
+}
+
+.setting-section {
+  margin-bottom: 24px;
+  border: 1px solid #eee;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.status {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 4px;
+}
