@@ -13,7 +13,7 @@ import '../styles/SecuritySettings.css';
 
 export const SecuritySettings: React.FC = () => {
 
-    const { state: { principal } } = useGlobalContext();
+    const { state: { principal, wallet } } = useGlobalContext();
     const setWallet = useSetWallet();
     const [hasArweaveWallet, setHasArweaveWallet] = useState(false);
     const alltracks = useAlltracks();
@@ -25,8 +25,22 @@ export const SecuritySettings: React.FC = () => {
     const { showNotification } = useNotification();
 
     useEffect(()=>{
-        if(!hasArweaveWallet) handleDecryptWallet();
-    },[]);
+        if(!wallet) {
+            handleDecryptWallet();
+        }else{
+            retrieveWallet(wallet)
+        }
+    },[wallet]);
+
+    const retrieveWallet = async (strwallet) =>{
+        const address = await arweave.wallets.jwkToAddress(strwallet);
+        const balance = await arweave.wallets.getBalance(address);
+
+        setWalletInfo({
+            address,
+            balance: arweave.ar.winstonToAr(balance)
+        });
+    };
 
     const handleCreateWallet = async () => {
         try {
@@ -95,14 +109,7 @@ export const SecuritySettings: React.FC = () => {
                 };
                 const decrypted = await decryptWallet(encrypted, symmetricKey);
                 setWallet(decrypted);
-                // console.log('Decrypted wallet:', decrypted);
-                const address = await arweave.wallets.jwkToAddress(decrypted);
-                const balance = await arweave.wallets.getBalance(address);
-
-                setWalletInfo({
-                    address,
-                    balance: arweave.ar.winstonToAr(balance)
-                });
+                
             } else {
                 showNotification('no credential found', 'error');
             }
