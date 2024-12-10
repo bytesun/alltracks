@@ -141,7 +141,6 @@ export const SecuritySettings: React.FC = () => {
 
                 {!wallet && <button
                     onClick={handleCreateWallet}
-                    disabled={hasArweaveWallet}
                 >
                     Create Wallet
                 </button>}
