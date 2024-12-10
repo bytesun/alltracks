@@ -88,9 +88,8 @@ export const SecuritySettings: React.FC = () => {
             if (cred) {
                 setHasArweaveWallet(true);
                 const userCredential: UserCredential = cred;
-                console.log('Raw credentialId:', userCredential.credentialId);
+
                 const base64 = userCredential.credentialId.replace(/-/g, '+').replace(/_/g, '/');
-                console.log('Converted base64:', base64);
 
                 const assertion = await navigator.credentials.get({
                     publicKey: {
@@ -134,7 +133,7 @@ export const SecuritySettings: React.FC = () => {
                 )}
                 <div className="setting-row">
 
-                   {!hasArweaveWallet && <button
+                   {(!hasArweaveWallet || wallet) && <button
                         onClick={handleCreateWallet}
                         disabled={hasArweaveWallet}
                     >

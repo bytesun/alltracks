@@ -6,8 +6,7 @@ export function bufferToBase64url(buffer: ArrayBuffer): string {
 export function base64ToBuffer(base64: string): ArrayBuffer {
     // Add padding if needed
     const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-    console.log('Padded base64:', padded);
-    
+ 
     const binaryString = window.atob(padded);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
