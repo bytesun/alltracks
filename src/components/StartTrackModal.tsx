@@ -254,7 +254,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
         </div>
 
         <footer className="modal-footer">
-          <section className="wallet-section">
+          {/* <section className="wallet-section">
             <input
               type="file"
               accept=".json"
@@ -279,7 +279,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                 Remove Wallet
               </button>
             )}
-          </section>
+          </section> */}
           <button
             disabled={!trackId || !recordingMode || trackId === ''}
             onClick={() => onStart({

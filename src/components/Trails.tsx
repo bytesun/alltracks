@@ -3,7 +3,7 @@ import { User, setDoc, listDocs, uploadFile } from "@junobuild/core";
 import { CreateTrail } from './CreateTrail';
 import './Trails.css';
 import { TrailForm } from './CreateTrail';
-import { v4 as uuidv4 } from 'uuid';
+
 import Cookies from 'js-cookie';
 import { arweave, arweaveGateway } from '../utils/arweave';
 import { useNotification } from '../context/NotificationContext';
@@ -29,14 +29,14 @@ interface Trail {
 
 export const Trails: React.FC = () => {
     const { state: {
-        isAuthed, principal
+        wallet, principal
     } } = useGlobalContext();
     const alltracks = useAlltracks();
 
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [wallet, setWallet] = useState<any>(null);
+    // const [wallet, setWallet] = useState<any>(null);
     const { showNotification } = useNotification();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<bigint | null>(null);
 
@@ -45,12 +45,12 @@ export const Trails: React.FC = () => {
         loadTrails();
     }, []);
 
-    useEffect(() => {
-        const savedWallet = Cookies.get('arweave_wallet');
-        if (savedWallet) {
-            setWallet(JSON.parse(savedWallet));
-        }
-    }, []);
+    // useEffect(() => {
+    //     const savedWallet = Cookies.get('arweave_wallet');
+    //     if (savedWallet) {
+    //         setWallet(JSON.parse(savedWallet));
+    //     }
+    // }, []);
 
     const handleTrailSubmit = async (trailData: TrailForm, file: File) => {
         setIsLoading(true);

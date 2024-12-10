@@ -32,14 +32,12 @@ import { arweave, arweaveGateway } from './utils/arweave';
 import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
-import { CheckPoint } from './types/CheckPoint';
 
 import { useGlobalContext } from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
 import { SavedPoint } from './types/SavedPoint';
-import { LoginModal } from './components/LoginModal';
-import { start } from 'repl';
+
 
 interface ProfileSettings {
   storageId: string;
@@ -70,13 +68,13 @@ function MainApp() {
     message: string;
     type: 'success' | 'error' | 'info';
   } | null>(null);
-  const { state: { isAuthed, principal } } = useGlobalContext();
+  const { state: { isAuthed, principal, wallet } } = useGlobalContext();
   const [showNotice, setShowNotice] = useState(true);
 
   const alltracks = useAlltracks();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
-  const [savedPoints, setSavedPoints] = useState<SavedPoint[]>([]);
+
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
   const [recordingMode, setRecordingMode] = useState<'' | 'manual' | 'auto'>('manual');
@@ -99,7 +97,7 @@ function MainApp() {
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId, setTrackId] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string>('0');
-  const [userSettings, setUserSettings] = useState<ProfileSettings | null>(null);
+
   const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -111,7 +109,7 @@ function MainApp() {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { showNotification } = useNotification();
-  const [wallet, setWallet] = useState<any>(null);
+  // const [wallet, setWallet] = useState<any>(null);
   const [showTrailList, setShowTrailList] = useState(false);
 
 
@@ -131,12 +129,12 @@ function MainApp() {
     setupIndexedDB();
   }, []);
 
-  useEffect(() => {
-    const savedWallet = Cookies.get('arweave_wallet');
-    if (savedWallet) {
-      setWallet(JSON.parse(savedWallet));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const savedWallet = Cookies.get('arweave_wallet');
+  //   if (savedWallet) {
+  //     setWallet(JSON.parse(savedWallet));
+  //   }
+  // }, []);
 
   useEffect(() => {
     const savedTrackId = Cookies.get('lastTrackId');
@@ -611,81 +609,79 @@ function MainApp() {
         showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
 
       } else {
-        const totalDistance = getTotalDistance();
-        const duration = getDuration();
-        const elevationGain = getElevationGain();
-        const speedKmh = totalDistance / duration;
-        //upload file to arweave
-
-
-
-
-        const transaction = await arweave.createTransaction({
-          data: content
-        }, wallet);
-
-        // Add tags
-        transaction.addTag('Content-Type', mimeType);
-        transaction.addTag('App-Name', 'AllTracks');
-        transaction.addTag('Track-ID', eventId);
-        transaction.addTag('Group-ID', groupId);
-        transaction.addTag('Description', description);
-        transaction.addTag('Distance', totalDistance.toString());
-        transaction.addTag('Duration', duration.toString());
-        transaction.addTag('Elevation-Gain', elevationGain.toString());
-        transaction.addTag('Start-Time', trackPoints[0].timestamp.toString());
-        transaction.addTag('File-Type', 'track');
-        transaction.addTag('Owner', principal.toText());
-
-        // Sign and post transaction
         if (wallet) {
-          await arweave.transactions.sign(transaction, wallet);
-        } else {//call wallet to sign manually
-          await arweave.transactions.sign(transaction);
-        }
-        const response = await arweave.transactions.post(transaction);
+          const totalDistance = getTotalDistance();
+          const duration = getDuration();
+          const elevationGain = getElevationGain();
+          const speedKmh = totalDistance / duration;
 
-        if (response.status === 200) {
-          //create track record
-          showNotification('Track uploaded to cloud storage', 'success');
+          const transaction = await arweave.createTransaction({
+            data: content
+          }, wallet);
 
-          const result = await alltracks.createTrack({
-            id: eventId,
-            groupId: [groupId],
-            name: filename,
-            description: description,
-            length: totalDistance,
-            duration: duration,
-            elevation: elevationGain,
-            startime: trackPoints[0].timestamp,
-            trackfile: {
-              fileType: mimeType,
-              url: arweaveGateway + "/" + transaction.id
-            },
-            isPublic: !isPrivateStorage,
-            startPoint: {
-              latitude: trackPoints[0].latitude,
-              longitude: trackPoints[0].longitude
+          // Add tags
+          transaction.addTag('Content-Type', mimeType);
+          transaction.addTag('App-Name', 'AllTracks');
+          transaction.addTag('Track-ID', eventId);
+          transaction.addTag('Group-ID', groupId);
+          transaction.addTag('Description', description);
+          transaction.addTag('Distance', totalDistance.toString());
+          transaction.addTag('Duration', duration.toString());
+          transaction.addTag('Elevation-Gain', elevationGain.toString());
+          transaction.addTag('Start-Time', trackPoints[0].timestamp.toString());
+          transaction.addTag('File-Type', 'track');
+          transaction.addTag('Owner', principal.toText());
+
+          // Sign and post transaction
+          if (wallet) {
+            await arweave.transactions.sign(transaction, wallet);
+          } else {//call wallet to sign manually
+            await arweave.transactions.sign(transaction);
+          }
+          const response = await arweave.transactions.post(transaction);
+
+          if (response.status === 200) {
+            //create track record
+            showNotification('Track uploaded to cloud storage', 'success');
+
+            const result = await alltracks.createTrack({
+              id: eventId,
+              groupId: [groupId],
+              name: filename,
+              description: description,
+              length: totalDistance,
+              duration: duration,
+              elevation: elevationGain,
+              startime: trackPoints[0].timestamp,
+              trackfile: {
+                fileType: mimeType,
+                url: arweaveGateway + "/" + transaction.id
+              },
+              isPublic: !isPrivateStorage,
+              startPoint: {
+                latitude: trackPoints[0].latitude,
+                longitude: trackPoints[0].longitude
+              }
+
+            });
+
+            //if(savedPoints.length > 0) await alltracks.savePoints(savedPoints);
+
+            if (result.error) {
+              showNotification(`Error creating track record: ${result.error}`, 'error');
+            } else {
+              showNotification(`Track record created: ${result.id}`, 'success');
             }
 
-          });
+            clearTrackFromIndexDB(trackId);
+            clearPoints();
 
-          //if(savedPoints.length > 0) await alltracks.savePoints(savedPoints);
-
-          if (result.error) {
-            showNotification(`Error creating track record: ${result.error}`, 'error');
-          } else {
-            showNotification(`Track record created: ${result.id}`, 'success');
           }
 
-
-
-          clearTrackFromIndexDB(trackId);
-          clearPoints();
-
+        } else {//no wallet
+          showNotification('Please connect your wallet at [Settings] to upload tracks to the cloud', 'error');
         }
-
-      }//cloud storage
+      }
     } catch (error) {
       setMessage(error.message);
       showNotification(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
@@ -712,7 +708,7 @@ function MainApp() {
 
     setTrackId(trackSettings.trackId);
     setGroupId(trackSettings.groupId);
-    setWallet(trackSettings.wallet);
+    // setWallet(trackSettings.wallet);
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);

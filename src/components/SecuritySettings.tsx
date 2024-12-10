@@ -118,7 +118,32 @@ export const SecuritySettings: React.FC = () => {
             console.error('Decryption failed:', error);
         }
     };
+    const handleWalletUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const file = event.target.files?.[0];
+            if (!file) return;
 
+            const fileReader = new FileReader();
+            fileReader.onload = async (e) => {
+                try {
+                    const walletJson = JSON.parse(e.target?.result as string);
+                    // Verify wallet format
+                    const address = await arweave.wallets.jwkToAddress(walletJson);
+                    if (!address) {
+                        throw new Error('Invalid wallet format');
+                    }
+
+                    setWallet(walletJson);
+                    showNotification('Wallet uploaded successfully', 'success');
+                } catch (error) {
+                    showNotification('Invalid wallet file', 'error');
+                }
+            };
+            fileReader.readAsText(file);
+        } catch (error) {
+            showNotification('Failed to read wallet file', 'error');
+        }
+    };
     const downloadWallet = () => {
         if (!wallet) {
             showNotification('Please decrypt wallet first', 'error');
@@ -155,6 +180,16 @@ export const SecuritySettings: React.FC = () => {
                 </div>
             )}
             <div className="setting-row">
+                <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleWalletUpload}
+                    style={{ display: 'none' }}
+                    id="wallet-upload"
+                />
+                {!wallet && <button onClick={() => document.getElementById('wallet-upload')?.click()}>
+                    Upload Wallet
+                </button>}
 
                 {!wallet && !hasArweaveWallet && <button
                     onClick={handleCreateWallet}
