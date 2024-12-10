@@ -224,6 +224,7 @@ export const Trails: React.FC = () => {
                 <h3>My Trails</h3>
                 <button
                     className="create-trail-button"
+                    disabled={!wallet}
                     onClick={() => setShowCreateModal(true)}
                 >
                     <span className="material-icons">add</span>

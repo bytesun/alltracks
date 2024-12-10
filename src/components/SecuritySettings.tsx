@@ -166,7 +166,7 @@ export const SecuritySettings: React.FC = () => {
 
 
         <div className="setting-section">
-            <h4>Storage Wallet</h4>
+            <h4>Trails,Tracks and Photos Storage Wallet</h4>
             {walletInfo && (
                 <div className="wallet-info">
                     <p>Address: <a

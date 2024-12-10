@@ -226,6 +226,7 @@ const loadUserGroups = async () => {
         <h2>Photo Gallery</h2>
         <button
           className="upload-trigger-button"
+          disabled={!wallet}
           onClick={() => setShowUploadForm(true)}
         >
           <span className="material-icons">cloud_upload</span>
