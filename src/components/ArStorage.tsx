@@ -8,7 +8,6 @@ import Cookies from 'js-cookie';
 import { useGlobalContext, useAlltracks } from './Store';
 import { Photo } from '../api/alltracks/backend.did.d'
 import { Group } from '../api/alltracks/backend.did.d';
-import { showNotification } from '../utils/notification';
 
 interface UploadFormData {
   trackId: string;
