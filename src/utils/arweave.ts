@@ -7,3 +7,4 @@ export const arweave = Arweave.init({
 });
 
 export const arweaveGateway = 'https://arweave.net';
+export const arweaveExplore = "https://viewblock.io/arweave";

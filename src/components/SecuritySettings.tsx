@@ -7,7 +7,7 @@ import { deriveKey } from '../utils/crypto';
 import { UserCredential } from '../api/alltracks/backend.did.d';
 import { Result } from '../api/alltracks/backend.did.d';
 import { bufferToBase64url, base64ToBuffer } from '../utils/base64';
-import { arweave } from '../utils/arweave';
+import { arweave, arweaveExplore } from '../utils/arweave';
 
 import '../styles/SecuritySettings.css';
 
@@ -24,15 +24,15 @@ export const SecuritySettings: React.FC = () => {
 
     const { showNotification } = useNotification();
 
-    useEffect(()=>{
-        if(!wallet) {
+    useEffect(() => {
+        if (!wallet) {
             handleDecryptWallet();
-        }else{
+        } else {
             retrieveWallet(wallet)
         }
-    },[wallet]);
+    }, [wallet]);
 
-    const retrieveWallet = async (strwallet) =>{
+    const retrieveWallet = async (strwallet) => {
         const address = await arweave.wallets.jwkToAddress(strwallet);
         const balance = await arweave.wallets.getBalance(address);
 
@@ -109,7 +109,7 @@ export const SecuritySettings: React.FC = () => {
                 };
                 const decrypted = await decryptWallet(encrypted, symmetricKey);
                 setWallet(decrypted);
-                
+
             } else {
                 showNotification('no wallet found', 'info');
             }
@@ -121,27 +121,33 @@ export const SecuritySettings: React.FC = () => {
 
 
     return (
-      
 
-            <div className="setting-section">
-                <h4>Storage Wallet</h4>
-                {walletInfo && (
-                    <div className="wallet-info">
-                        <p>Address: {walletInfo.address}</p>
-                        <p>Balance: {walletInfo.balance} AR</p>
-                    </div>
-                )}
-                <div className="setting-row">
 
-                   {(!hasArweaveWallet || wallet) && <button
-                        onClick={handleCreateWallet}
-                        disabled={hasArweaveWallet}
+        <div className="setting-section">
+            <h4>Storage Wallet</h4>
+            {walletInfo && (
+                <div className="wallet-info">
+                    <p>Address: <a
+                        href={`${arweaveExplore}/address/${walletInfo.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
-                        Create Wallet
-                    </button>} 
-                   
+                        {walletInfo.address}
+                    </a></p>
+                    <p>Balance: {walletInfo.balance} AR</p>
                 </div>
+            )}
+            <div className="setting-row">
+
+                {!wallet && <button
+                    onClick={handleCreateWallet}
+                    disabled={hasArweaveWallet}
+                >
+                    Create Wallet
+                </button>}
+
             </div>
-        
+        </div>
+
     );
 };
