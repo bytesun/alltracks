@@ -70,6 +70,7 @@ export const SecuritySettings: React.FC = () => {
 
                 if ('ok' in result) {
                     showNotification('Wallet saved successfully', 'success');
+                    handleDecryptWallet();
                 } else {
                     showNotification('Failed to save wallet' + result.err, 'error');
                 }
@@ -111,7 +112,7 @@ export const SecuritySettings: React.FC = () => {
                 setWallet(decrypted);
                 
             } else {
-                showNotification('no credential found', 'error');
+                showNotification('no wallet found', 'info');
             }
 
         } catch (error) {
