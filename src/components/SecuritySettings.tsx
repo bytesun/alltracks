@@ -119,7 +119,24 @@ export const SecuritySettings: React.FC = () => {
         }
     };
 
+    const downloadWallet = () => {
+        if (!wallet) {
+            showNotification('Please decrypt wallet first', 'error');
+            return;
+        }
 
+        const walletStr = JSON.stringify(wallet);
+        const blob = new Blob([walletStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `arweave-wallet-${new Date().toISOString()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
     return (
 
 
@@ -139,12 +156,19 @@ export const SecuritySettings: React.FC = () => {
             )}
             <div className="setting-row">
 
-                {!wallet && <button
+                {!wallet && !hasArweaveWallet && <button
                     onClick={handleCreateWallet}
                 >
                     Create Wallet
                 </button>}
-
+                {wallet && (
+                    <button
+                        onClick={downloadWallet}
+                        className="download-wallet-btn"
+                    >
+                        Download Wallet Backup
+                    </button>
+                )}
             </div>
         </div>
 
