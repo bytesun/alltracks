@@ -36,7 +36,6 @@ import { useAlltracks } from './components/Store';
 import { useGlobalContext } from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
-import { SavedPoint } from './types/SavedPoint';
 
 
 interface ProfileSettings {

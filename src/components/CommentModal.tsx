@@ -15,7 +15,7 @@ interface CommentModalProps {
 export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) => {
 
   const { state: {
-    isAuthed, principal
+    isAuthed, wallet
   } } = useGlobalContext();
   const [comment, setComment] = useState('');
   const [showCloudOptions, setShowCloudOptions] = useState(false);
@@ -83,7 +83,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
             </div>
           </div> */}
 
-          <div className="photo-capture">
+          {wallet && <div className="photo-capture">
             <label className={`photo-button ${!enableCloud ? 'disabled' : ''}`}>
               <span className="material-icons">photo_camera</span>
               Take A Photo
@@ -111,7 +111,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
                 </button>
               </div>
             )}
-          </div>
+          </div>}
 
           <div className="cloud-options-header" onClick={() => setShowCloudOptions(!showCloudOptions)}>
             <span className="material-icons">
