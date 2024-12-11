@@ -174,19 +174,7 @@
   }
 
   
-  .map-wrapper.full {
-    height: 400px;
-    width: 100%;
-  }
-  
-  .map-wrapper.track {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-  
+
   .track-point.active {
     background-color: #e3f2fd;
     border-left: 4px solid #2196f3;

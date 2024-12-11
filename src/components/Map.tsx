@@ -68,13 +68,14 @@ export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint, c
       <MapContainer
         center={currentPoint ? [currentPoint.latitude, currentPoint.longitude] : getMapCenter() as [number, number]}
         zoom={13}
-        style={{ height: '800px', width: '100%' }}
+        style={{ height: '650px', width: '100%' }}
       >
         <TileLayer
           url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
           attribution=''
           maxZoom={20}
         />
+        <RecenterMap position={currentPoint ? [currentPoint.latitude, currentPoint.longitude] : getMapCenter() as [number, number]} />
         <PlaybackController />
         <div className="leaflet-top leaflet-left custom-controls">
           <div className="leaflet-control leaflet-bar">

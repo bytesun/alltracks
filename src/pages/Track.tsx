@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Map } from '../components/Map';
 import { TrackPoint } from "../types/TrackPoint";
-import { getDoc, Doc } from "@junobuild/core";
+
 import { parseGPX, parseKML, parseCSV } from '../utils/importFormats';
 import { Track } from '../types/Track';
 import "../styles/Track.css";
-import { Navbar } from '../components/Navbar';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+
 import { useAlltracks } from '../components/Store';
 import { parseTracks } from '../utils/trackUtils';
 import { FILETYPE_GPX , FILETYPE_KML} from '../lib/constants';
@@ -15,11 +14,11 @@ import { MapWrapper } from '../components/MapWrapper';
 export const TrackPage: React.FC = () => {
 
   const alltracks = useAlltracks();
-  const [loading, setLoading] = useState(true);
+ 
   const { trackId } = useParams<{ trackId: string }>();
   const [track, setTrack] = useState<Track | null>(null);
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -32,7 +31,7 @@ export const TrackPage: React.FC = () => {
   }, [currentPointIndex, isPlaying]);
   
   useEffect(() => {
-    setLoading(true);
+ 
     const fetchTrack = async () => {
       const track = await alltracks.getTrack(trackId);
       if (track.length > 0) {
@@ -44,7 +43,7 @@ export const TrackPage: React.FC = () => {
     };
 
     fetchTrack();
-    setLoading(false);
+    
   }, [trackId]);
 
   useEffect(() => {
@@ -71,13 +70,14 @@ export const TrackPage: React.FC = () => {
     fetchTrackPoints();
   }, [track]);
 
+  
   const TrackSummary = () => (
     <div className="track-summary">
       <h2>{track?.name || 'Unnamed Track'}</h2>
       <p>{track?.description || ''}</p>
       <div className="track-stats">
         <div className="stat">
-          <label>Start</label>
+          <label>Date</label>
           <span>{(new Date(track?.startime).toLocaleDateString() || 0)} </span>
         </div>
         <div className="stat">
