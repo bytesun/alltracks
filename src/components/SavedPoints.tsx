@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useGlobalContext, useAlltracks } from './Store';
+import { SavePointModal } from './SavePointModal';
 import '../styles/SavedPoints.css';
+import { icon } from 'leaflet';
+
+const defaultIcon = icon({
+  iconUrl: '/marker-icon.png',
+  shadowUrl: '/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
 
 interface SavedPoint {
 
@@ -11,19 +20,23 @@ interface SavedPoint {
     description: string;
     
 }
-
 export const SavedPoints: React.FC = () => {
     const [points, setPoints] = useState<SavedPoint[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [categories] = useState(['all', 'view', 'scenic', 'rest', 'water', 'camp', 'other']);
     const alltracks = useAlltracks();
     const { state: { principal } } = useGlobalContext();
+    const [showSaveModal, setShowSaveModal] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [selectedPoint, setSelectedPoint] = useState<{latitude: number; longitude: number} | null>(null);
+
+
+    const loadSavedPoints = async () => {
+        const savedPoints = await alltracks.getMySavedPoints();
+        setPoints(savedPoints);
+    };
 
     useEffect(() => {
-        const loadSavedPoints = async () => {
-            const savedPoints = await alltracks.getMySavedPoints();
-            setPoints(savedPoints);
-        };
         loadSavedPoints();
     }, []);
 
@@ -31,6 +44,23 @@ export const SavedPoints: React.FC = () => {
         ? points
         : points.filter(point => point.category === selectedCategory);
 
+        function MapClickHandler() {
+            const map = useMap();
+            
+            useEffect(() => {
+              map.on('click', (e) => {
+                const location = {
+                  latitude: e.latlng.lat,
+                  longitude: e.latlng.lng
+                };
+                setSelectedLocation(location);
+                setSelectedPoint(location);
+                setShowSaveModal(true);
+              });
+            }, [map]);
+            
+            return null;
+          }
     return (
         <div className="saved-points">
             <div className="category-filter">
@@ -61,10 +91,21 @@ export const SavedPoints: React.FC = () => {
                 zoom={11}
                 style={{ height: '600px', width: '100%' }}
             >
+                <MapClickHandler />
                 <TileLayer
                     url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                     attribution='Map data: © OpenTopoMap contributors'
                 />
+                {selectedPoint && (
+                    <Marker
+                        position={[selectedPoint.latitude, selectedPoint.longitude]}
+                        icon={defaultIcon}
+                    >
+                        <Popup>
+                            Selected Location
+                        </Popup>
+                    </Marker>
+                )}
                 {filteredPoints.map((point,i )=> (
                     <Marker
                         key={i}
@@ -80,6 +121,27 @@ export const SavedPoints: React.FC = () => {
                     </Marker>
                 ))}
             </MapContainer>
+
+            {showSaveModal && (
+                <SavePointModal
+                    location={selectedLocation}
+                    onSave={async (data) => {
+                        await alltracks.createSavedPoint({
+                            latitude: selectedLocation.latitude,
+                            longitude: selectedLocation.longitude,
+                            category: data.category,
+                            description: data.description
+                        });
+                        setShowSaveModal(false);
+                        setSelectedPoint(null);
+                        loadSavedPoints();
+                    }}
+                    onClose={() => {
+                        setShowSaveModal(false);
+                        setSelectedPoint(null);
+                    }}
+                />
+            )}
         </div>
     );
 };
