@@ -11,6 +11,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAlltracks } from '../components/Store';
 import { parseTracks } from '../utils/trackUtils';
 import { FILETYPE_GPX , FILETYPE_KML} from '../lib/constants';
+import { MapWrapper } from '../components/MapWrapper';
 export const TrackPage: React.FC = () => {
 
   const alltracks = useAlltracks();
@@ -163,6 +164,7 @@ export const TrackPage: React.FC = () => {
       </div>
 
       <div className="right-column">
+      <MapWrapper layout="track">
         <Map
           trackPoints={trackPoints}
           isTracking={false}
@@ -170,6 +172,7 @@ export const TrackPage: React.FC = () => {
           currentPoint={trackPoints[currentPointIndex]}
           isPlayback={isPlaying}
         />
+        </MapWrapper>
       </div>
     </div>
   );
