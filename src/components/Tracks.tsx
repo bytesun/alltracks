@@ -1,7 +1,6 @@
 import React from 'react';
 import { Principal } from '@dfinity/principal';
-import './Tracks.css';
-
+import '../styles/Tracks.css'
 import { useGlobalContext } from './Store';
 import { useAlltracks } from './Store';
 import { parseTracks } from '../utils/trackUtils';
@@ -88,42 +87,44 @@ export const Tracks: React.FC<{ userId?: string }> = ({userId}) => {
   
   //   setTracks(formattedTracks);
   // };
-  
-  return (
-    <div className="tracks-section">
-      
-      <div className="tracks-list">
-        {tracks.length > 0 ? (
-          tracks.map((track) => (
-            <Link to={`/track/${track.id}`} key={track.startime} className="track-item">
-              <div key={track.startime} className="track-item">
-                <span className="material-icons">route</span>
-                <div className="track-info">
-                  <div className="track-title">[{new Date(Number(track.startime)).toLocaleDateString()}] {track.name}</div>
-                  <div className="track-meta">
-                    <span>{track.length} km</span>
-                    <span>{track.duration} hr</span>
-                    <span>{track.elevation} m</span>
+return (
+  <div className="tracks-section">
 
-                  </div>
-                </div>
-
-              </div>
-            </Link>
-          ))
-        ) : (
-          <div className="empty-tracks">
-            <span className="material-icons">hiking</span>
-            <p>No tracks created yet. Start by creating your first track!</p>
+    <div className="tracks-grid">
+      {tracks.map((track) => (
+        <Link to={`/track/${track.id}`} key={track.startime} className="track-card">
+          <div className="track-icon">
+            <span className="material-icons">route</span>
           </div>
-        )}
-      </div>
-      {showCreateModal && (
-        <CreateTrackModal
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => fetchTracks()}
-        />
-      )}
+          <div className="track-content">
+            <div className="track-title">
+              <h3>{track.name}</h3>
+              <span className="track-date">{new Date(Number(track.startime)).toLocaleDateString()}</span>
+            </div>
+            <div className="track-stats">
+              <div className="stat">
+                <span className="material-icons">straighten</span>
+                <span>{track.length.toFixed(1)} km</span>
+              </div>
+              <div className="stat">
+                <span className="material-icons">schedule</span>
+                <span>{track.duration.toFixed(1)} hr</span>
+              </div>
+              <div className="stat">
+                <span className="material-icons">terrain</span>
+                <span>{track.elevation.toFixed(0)} m</span>
+              </div>
+            </div>
+          </div>
+        </Link>
+      ))}
     </div>
-  );
-};
+    {showCreateModal && (
+      <CreateTrackModal
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => fetchTracks()}
+      />
+    )}
+  </div>
+);
+}
