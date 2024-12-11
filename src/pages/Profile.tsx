@@ -80,13 +80,13 @@ export const Profile: React.FC = () => {
               <span className="material-icons">group</span>
               Groups
             </div>
-            <div
+            {/* <div
               className={`sidebar-item ${activeTab === 'tracks' ? 'active' : ''}`}
               onClick={() => setActiveTab('tracks')}
             >
               <span className="material-icons">route</span>
               Tracks
-            </div>
+            </div> */}
             <div
               className={`sidebar-item ${activeTab === 'trails' ? 'active' : ''}`}
               onClick={() => setActiveTab('trails')}
@@ -138,7 +138,7 @@ export const Profile: React.FC = () => {
             {activeTab === 'group' && (
               <GroupManagement />
             )}
-            {activeTab === 'tracks' && <Tracks />}
+            {/* {activeTab === 'tracks' && <Tracks />} */}
             {activeTab === 'trails' && <Trails />}
 
             {activeTab === 'arstorage' && (

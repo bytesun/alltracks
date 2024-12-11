@@ -159,7 +159,7 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
             </div>
 
           )}
-          <div className="modal-buttons">
+          <div className="modal-buttons"> 
             <button type="submit">Save</button>
             <button type="button" onClick={onClose}>Cancel</button>
           </div>

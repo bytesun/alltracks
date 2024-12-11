@@ -14,6 +14,14 @@ export interface CheckPoint {
   'isPublic' : boolean,
   'photo' : [] | [string],
 }
+export interface CheckpointComment {
+  'checkpointCreatedBy' : Principal,
+  'createdBy' : Principal,
+  'comment' : string,
+  'checkpointTimestamp' : Time,
+  'timestamp' : Time,
+  'photo' : [] | [string],
+}
 export type CheckpointFilter = { 'user' : Principal } |
   { 'groupId' : string };
 export type Difficulty = { 'easy' : null } |
@@ -202,6 +210,14 @@ export interface UserStats {
   'totalElevation' : number,
 }
 export interface _SERVICE {
+  'addCheckpointComment' : ActorMethod<
+    [
+      Time,
+      Principal,
+      { 'comment' : string, 'timestamp' : Time, 'photo' : [] | [string] },
+    ],
+    Result
+  >,
   'addPhoto' : ActorMethod<
     [
       {
@@ -221,8 +237,13 @@ export interface _SERVICE {
   'createTrack' : ActorMethod<[NewTrack], Result_2>,
   'createTrail' : ActorMethod<[NewTrail], Result_1>,
   'createUserCredential' : ActorMethod<[UserCredential], Result>,
+  'deletePhoto' : ActorMethod<[string], Result>,
   'deleteTrail' : ActorMethod<[bigint], Result>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
+  'getCheckpointComments' : ActorMethod<
+    [Time, Principal],
+    Array<CheckpointComment>
+  >,
   'getCheckpoints' : ActorMethod<
     [CheckpointFilter, Time, Time],
     Array<CheckPoint>

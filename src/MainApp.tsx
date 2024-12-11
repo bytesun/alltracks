@@ -8,22 +8,22 @@ import './styles/MainApp.css';
 
 import { icon } from 'leaflet';
 import { useMap } from 'react-leaflet';
-import { CommentModal } from './components/CommentModal';
 
 import { generateGPX, generateKML } from "./utils/exportFormats";
 import { TrackPoint } from './types/TrackPoint';
 
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
-import { ExportModal } from './components/ExportModal';
 
-import { Navbar } from './components/Navbar';
+import { StartTrackModal } from './components/StartTrackModal';
+
+import { ExportModal } from './components/ExportModal';
+import { CommentModal } from './components/CommentModal';
 
 import { TrackPointsModal } from './components/TrackPointsModal';
 import { FeedbackModal } from './components/FeedbackModal';
 
 import { useNotification } from './context/NotificationContext';
-import { UserStats } from "./types/UserStats";
-import { StartTrackModal } from './components/StartTrackModal';
+
 
 import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
@@ -348,7 +348,7 @@ function MainApp() {
 
     // showNotification('recordingMode:'+recordingMode, "info");
     if (recordingMode === 'manual') {
-      setShowCommentModal(true);
+      // setShowCommentModal(true);
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -509,7 +509,7 @@ function MainApp() {
           }
           // }
         }
-        
+
         setPendingPosition(null);
         // showNotification('Point recorded successfully', 'success');
         setAutoCenter(true);

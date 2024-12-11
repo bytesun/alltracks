@@ -60,12 +60,15 @@
     border: none;
     cursor: pointer;
   }
-  
   .modal-buttons button[type="submit"] {
-    background: #4CAF50;
+    background-color: #4CAF50; /* Green color */
     color: white;
   }
   
+  /* Hover state */
+  .modal-buttons button[type="submit"]:hover {
+    background-color: #45a049;
+  }
   .modal-buttons button[type="button"] {
     background: #666;
     color: white;

@@ -169,6 +169,14 @@ export const idlFactory = ({ IDL }) => {
     'isPublic' : IDL.Bool,
     'photo' : IDL.Opt(IDL.Text),
   });
+  const CheckpointComment = IDL.Record({
+    'checkpointCreatedBy' : IDL.Principal,
+    'createdBy' : IDL.Principal,
+    'comment' : IDL.Text,
+    'checkpointTimestamp' : Time,
+    'timestamp' : Time,
+    'photo' : IDL.Opt(IDL.Text),
+  });
   const CheckpointFilter = IDL.Variant({
     'user' : IDL.Principal,
     'groupId' : IDL.Text,
@@ -211,6 +219,19 @@ export const idlFactory = ({ IDL }) => {
     'totalElevation' : IDL.Float64,
   });
   return IDL.Service({
+    'addCheckpointComment' : IDL.Func(
+        [
+          Time,
+          IDL.Principal,
+          IDL.Record({
+            'comment' : IDL.Text,
+            'timestamp' : Time,
+            'photo' : IDL.Opt(IDL.Text),
+          }),
+        ],
+        [Result],
+        [],
+      ),
     'addPhoto' : IDL.Func(
         [
           IDL.Record({
@@ -231,10 +252,16 @@ export const idlFactory = ({ IDL }) => {
     'createTrack' : IDL.Func([NewTrack], [Result_2], []),
     'createTrail' : IDL.Func([NewTrail], [Result_1], []),
     'createUserCredential' : IDL.Func([UserCredential], [Result], []),
+    'deletePhoto' : IDL.Func([IDL.Text], [Result], []),
     'deleteTrail' : IDL.Func([IDL.Nat], [Result], []),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(CheckPoint)],
+        ['query'],
+      ),
+    'getCheckpointComments' : IDL.Func(
+        [Time, IDL.Principal],
+        [IDL.Vec(CheckpointComment)],
         ['query'],
       ),
     'getCheckpoints' : IDL.Func(

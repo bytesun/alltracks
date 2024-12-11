@@ -247,6 +247,15 @@ type CheckpointFilter =
    groupId: text;
    user: principal;
  };
+type CheckpointComment = 
+ record {
+   checkpointCreatedBy: principal;
+   checkpointTimestamp: Time;
+   comment: text;
+   createdBy: principal;
+   photo: opt text;
+   timestamp: Time;
+ };
 type CheckPoint = 
  record {
    createdBy: principal;
@@ -261,6 +270,12 @@ type CheckPoint =
    trackId: text;
  };
 service : {
+  addCheckpointComment: (Time, principal,
+   record {
+     comment: text;
+     photo: opt text;
+     timestamp: Time;
+   }) -> (Result);
   addPhoto:
    (record {
       groupId: opt text;
@@ -276,8 +291,10 @@ service : {
   createTrack: (NewTrack) -> (Result_2);
   createTrail: (NewTrail) -> (Result_1);
   createUserCredential: (UserCredential) -> (Result);
+  deletePhoto: (text) -> (Result);
   deleteTrail: (nat) -> (Result);
   getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
+  getCheckpointComments: (Time, principal) -> (vec CheckpointComment) query;
   getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
   getGroup: (text) -> (opt Group) query;
   getGroupPhotos: (text, Time, Time) -> (vec Photo) query;

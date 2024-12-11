@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DropdownMenu.css';
-import { User } from "@junobuild/core";
-
+import { useGlobalContext } from './Store';
 interface DropdownMenuProps {
   isAuthed: boolean;
   onAuth: () => Promise<void>;
 }
 
 export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
+
+  const { state: {principal }} = useGlobalContext();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -52,6 +53,10 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
             <span className="material-icons">info</span>
             Status
           </li>
+          {isAuthed &&<li onClick={() => {
+              navigate(`/user/${principal}`);
+              setIsOpen(false);
+            }} className="nav-link"><span className="material-icons">timeline</span>Timeline</li>}
           {isAuthed && (
             <li onClick={() => {
               navigate('/profile');

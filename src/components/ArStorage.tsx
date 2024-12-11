@@ -20,7 +20,7 @@ interface UploadFormData {
 
 export const ArStorage: React.FC = () => {
   const { state: {
-    isAuthed, 
+    isAuthed,
     principal,
     wallet,
   } } = useGlobalContext();
@@ -36,6 +36,7 @@ export const ArStorage: React.FC = () => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
 
 
   // useEffect(() => {
@@ -54,7 +55,7 @@ export const ArStorage: React.FC = () => {
   useEffect(() => {
     loadUserGroups();
   }, [isAuthed]);
-  
+
 
   // const loadPhotos = async () => {
   //   if (!user) return;
@@ -120,16 +121,16 @@ export const ArStorage: React.FC = () => {
 
     setLoading(false);
   };
-const loadUserGroups = async () => {
-  if (!isAuthed) return;
-  try {
-    const groups = await alltracks.getMyGroups();
-    setUserGroups(groups);
-  } catch (error) {
-    console.error('Error loading groups:', error);
-    showNotification('Error loading groups', error.message);
-  }
-};
+  const loadUserGroups = async () => {
+    if (!isAuthed) return;
+    try {
+      const groups = await alltracks.getMyGroups();
+      setUserGroups(groups);
+    } catch (error) {
+      console.error('Error loading groups:', error);
+      showNotification('Error loading groups', error.message);
+    }
+  };
   const extractIds = (key: string) => {
     if (!key) return { trackId: '', groupId: '' };
     const parts = key.split('_');
@@ -178,8 +179,8 @@ const loadUserGroups = async () => {
         if (response.status === 200) {
           setTransactionId(transaction.id);
           photoUrl = arweaveGateway + "/" + transaction.id;
-        }else {
-          showNotification('Error uploading file: '+response.statusText, 'error');
+        } else {
+          showNotification('Error uploading file: ' + response.statusText, 'error');
           console.error('Error uploading file:', response.statusText);
         }
       }
@@ -219,6 +220,23 @@ const loadUserGroups = async () => {
   };
   const uniqueGroupIds = [...new Set(photos.map(photo => photo.groupId ? photo.groupId[0] : ''))];
 
+  const handleDeletePhoto = async (photoUrl: string) => {
+    setDeletingPhotoId(photoUrl);
+    try {
+      const res = await alltracks.deletePhoto(photoUrl);
+      if (res.ok) {
+        showNotification('Photo deleted successfully', 'success');
+        loadPhotos(); // Refresh the photos list
+      }
+
+      showNotification('Photo deleted successfully', 'success');
+      loadPhotos(); // Refresh the photos list
+    } catch (error) {
+      showNotification('Error deleting photo', 'error');
+    } finally {
+      setDeletingPhotoId(null);
+    }
+  };
 
   return (
     <div className="ar-storage">
@@ -291,15 +309,23 @@ const loadUserGroups = async () => {
 
               return (
                 <div key={i} className="photo-item">
-                  <img
-                    src={photo.photoUrl}
-                    alt={photo.tags.toString()}
-                  />
+                  <img src={photo.photoUrl} alt={photo.tags.toString()} />
                   <div className="photo-info">
                     <h4>{photo.tags.toString()}</h4>
                     <div className="photo-meta">
                       <span>Track: {photo.trackId}</span>,
                       <span>Group: {photo.groupId ? photo.groupId[0] : ''}</span>
+                      <button
+                        className="delete-photo-btn"
+                        disabled={deletingPhotoId === photo.photoUrl}
+                        onClick={() => handleDeletePhoto(photo.photoUrl)}
+                      >
+                        {deletingPhotoId === photo.photoUrl ? (
+                          <span className="material-icons rotating">sync</span>
+                        ) : (
+                          <span className="material-icons">delete</span>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
