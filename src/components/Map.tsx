@@ -1,6 +1,9 @@
 import React,{ useState, useEffect } from 'react';
 import { TrackPoint } from '../types/TrackPoint';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
+
+import L from 'leaflet';
+
 import 'leaflet/dist/leaflet.css';
 import { useMap } from 'react-leaflet';
 import { icon } from 'leaflet';
@@ -11,7 +14,9 @@ interface MapProps {
   onAddPoint: () => void;
   currentPoint?: TrackPoint;  // Add this
   isPlayback?: boolean;       // Add this
-}const defaultIcon = icon({
+}
+
+const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
   shadowUrl: '/marker-shadow.png',
   iconSize: [25, 41],
@@ -63,6 +68,31 @@ export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint, c
     return trackPoints.map(point => [point.latitude, point.longitude]);
   };
 
+  function MapClickHandler() {
+    const map = useMap();
+    
+    useEffect(() => {
+      map.on('click', async (e) => {
+
+        console.log('Map clicked!');
+        // const response = await fetch(`https://api.opentopodata.org/v1/srtm30m?locations=${e.latlng.lat},${e.latlng.lng}`);
+        // const data = await response.json();
+        // const elevation = data.results[0].elevation;
+        
+        L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`
+            Lat: ${e.latlng.lat.toFixed(6)}<br>
+            Lon: ${e.latlng.lng.toFixed(6)}<br>
+            
+          `)
+          .openOn(map);
+      });
+    }, [map]);
+    
+    return null;
+  }
+  
   return (
     <div className="map-container">
       <MapContainer
@@ -70,6 +100,7 @@ export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint, c
         zoom={13}
         style={{ height: '650px', width: '100%' }}
       >
+        <MapClickHandler />
         <TileLayer
           url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
           attribution=''

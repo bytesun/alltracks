@@ -180,7 +180,14 @@
     height: 100%;
   }
 
-  
+  .map-container {
+    height: 100%;
+  }
+
+  .leaflet-container {
+    height: 100% !important;
+    width: 100%;
+  }
 
   .track-point.active {
     background-color: #e3f2fd;

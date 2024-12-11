@@ -813,7 +813,7 @@ function MainApp() {
           </div>}
 
         {viewMode === 'map' ? (
-          <div className="map-container">
+          <div className="main-map-container">
             <MapContainer
               center={getMapCenter() as [number, number]}
               zoom={9}
