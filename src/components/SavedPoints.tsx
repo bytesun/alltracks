@@ -6,10 +6,10 @@ import '../styles/SavedPoints.css';
 import { icon } from 'leaflet';
 
 const defaultIcon = icon({
-  iconUrl: '/marker-icon.png',
-  shadowUrl: '/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
+    iconUrl: '/marker-icon.png',
+    shadowUrl: '/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
 });
 
 interface SavedPoint {
@@ -18,17 +18,17 @@ interface SavedPoint {
     longitude: number;
     category: string;
     description: string;
-    
+
 }
 export const SavedPoints: React.FC = () => {
     const [points, setPoints] = useState<SavedPoint[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const [categories] = useState(['all', 'view', 'scenic', 'rest', 'water', 'camp', 'other']);
+    const [categories] = useState(['all', 'view', 'scenic', 'rest',  'camp']);
     const alltracks = useAlltracks();
     const { state: { principal } } = useGlobalContext();
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(null);
-    const [selectedPoint, setSelectedPoint] = useState<{latitude: number; longitude: number} | null>(null);
+    const [selectedPoint, setSelectedPoint] = useState<{ latitude: number; longitude: number } | null>(null);
 
 
     const loadSavedPoints = async () => {
@@ -44,23 +44,23 @@ export const SavedPoints: React.FC = () => {
         ? points
         : points.filter(point => point.category === selectedCategory);
 
-        function MapClickHandler() {
-            const map = useMap();
-            
-            useEffect(() => {
-              map.on('click', (e) => {
+    function MapClickHandler() {
+        const map = useMap();
+
+        useEffect(() => {
+            map.on('click', (e) => {
                 const location = {
-                  latitude: e.latlng.lat,
-                  longitude: e.latlng.lng
+                    latitude: e.latlng.lat,
+                    longitude: e.latlng.lng
                 };
                 setSelectedLocation(location);
                 setSelectedPoint(location);
                 setShowSaveModal(true);
-              });
-            }, [map]);
-            
-            return null;
-          }
+            });
+        }, [map]);
+
+        return null;
+    }
     return (
         <div className="saved-points">
             <div className="category-filter">
@@ -72,7 +72,7 @@ export const SavedPoints: React.FC = () => {
                     >
                         <span className="material-icons">
                             {category === 'view' && 'visibility'}
-                            
+
                             {category === 'camp'}
                             {category === 'scenic' && 'photo_camera'}
                             {category === 'rest' && 'chair'}
@@ -106,7 +106,7 @@ export const SavedPoints: React.FC = () => {
                         </Popup>
                     </Marker>
                 )}
-                {filteredPoints.map((point,i )=> (
+                {filteredPoints.map((point, i) => (
                     <Marker
                         key={i}
                         position={[point.latitude, point.longitude]}
@@ -115,7 +115,7 @@ export const SavedPoints: React.FC = () => {
                             <div className="point-popup">
                                 <h3>{point.category}</h3>
                                 <p>{point.description}</p>
-                                
+
                             </div>
                         </Popup>
                     </Marker>

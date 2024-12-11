@@ -63,7 +63,7 @@ export const TrackPage: React.FC = () => {
         } else {
           points = parseCSV(content);
         }
-        console.log("Track points:", points);
+ 
         setTrackPoints(points);
       }
     };
