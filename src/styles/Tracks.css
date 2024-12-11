@@ -1,0 +1,74 @@
+.tracks-section {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+.tracks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.track-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  gap: 15px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.track-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.track-icon {
+  color: #2196f3;
+}
+
+.track-content {
+  flex: 1;
+}
+
+.track-title {
+  margin-bottom: 15px;
+}
+
+.track-title h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.track-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.track-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #555;
+}
+
+.stat .material-icons {
+  font-size: 18px;
+}

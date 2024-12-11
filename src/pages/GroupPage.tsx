@@ -149,7 +149,7 @@ export const GroupPage: React.FC = () => {
                         className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
                         onClick={() => setActiveTab('events')}
                     >
-                        Events
+                        Upcoming Hikings
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
