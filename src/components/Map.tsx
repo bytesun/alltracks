@@ -1,4 +1,4 @@
-import React,{ useState } from 'react';
+import React,{ useState, useEffect } from 'react';
 import { TrackPoint } from '../types/TrackPoint';
 import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -8,9 +8,10 @@ import { icon } from 'leaflet';
 interface MapProps {
   trackPoints: TrackPoint[];
   isTracking: boolean;
-  onAddPoint: (point: TrackPoint) => void;
-}
-const defaultIcon = icon({
+  onAddPoint: () => void;
+  currentPoint?: TrackPoint;  // Add this
+  isPlayback?: boolean;       // Add this
+}const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
   shadowUrl: '/marker-shadow.png',
   iconSize: [25, 41],
@@ -18,13 +19,13 @@ const defaultIcon = icon({
 });
 
 const currentLocationIcon = icon({
-  iconUrl: '/currentlocation.png',
+  iconUrl: '/marker-icon.png',
   shadowUrl: '/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41]
 });
 
-export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint }) => {
+export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint, currentPoint, isPlayback }) => {
   const [autoCenter, setAutoCenter] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
@@ -46,14 +47,27 @@ export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint })
     return null;
   }
 
+  function PlaybackController() {
+    const map = useMap();
+    
+    useEffect(() => {
+      if (isPlayback && currentPoint) {
+        map.setView([currentPoint.latitude, currentPoint.longitude], 13);
+      }
+    }, [currentPoint, isPlayback]);
+    
+    return null;
+  }
+
   const getPolylinePoints = () => {
     return trackPoints.map(point => [point.latitude, point.longitude]);
   };
+
   return (
     <div className="map-container">
       <MapContainer
-        center={getMapCenter() as [number, number]}
-        zoom={13}  // Changed from 9 to 13 for closer view
+        center={currentPoint ? [currentPoint.latitude, currentPoint.longitude] : getMapCenter() as [number, number]}
+        zoom={13}
         style={{ height: '800px', width: '100%' }}
       >
         <TileLayer
@@ -61,6 +75,7 @@ export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint })
           attribution=''
           maxZoom={20}
         />
+        <PlaybackController />
         <div className="leaflet-top leaflet-left custom-controls">
           <div className="leaflet-control leaflet-bar">
             <a
@@ -94,10 +109,12 @@ export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint })
             icon={defaultIcon}
           />
         ))}
-        {userLocation && <Marker
-          position={userLocation}
-          icon={currentLocationIcon}
-        />}
+        {currentPoint && isPlayback && (
+          <Marker
+            position={[currentPoint.latitude, currentPoint.longitude]}
+            icon={currentLocationIcon}
+          />
+        )}
 
         <Polyline
           positions={getPolylinePoints() as [number, number][]}

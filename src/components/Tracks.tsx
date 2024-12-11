@@ -1,7 +1,7 @@
 import React from 'react';
-
+import { Principal } from '@dfinity/principal';
 import './Tracks.css';
-import { useStats } from '../context/StatsContext';
+
 import { useGlobalContext } from './Store';
 import { useAlltracks } from './Store';
 import { parseTracks } from '../utils/trackUtils';
@@ -10,13 +10,13 @@ import { Link } from 'react-router-dom';
 import { CreateTrackModal } from './CreateTrackModal';
 import { arweaveGateway } from '../utils/arweave';
 
-export const Tracks: React.FC = () => {
+export const Tracks: React.FC<{ userId?: string }> = ({userId}) => {
 
   const alltracks = useAlltracks();
   const { state: { isAuthed, principal } } = useGlobalContext();
   const [tracks, setTracks] = React.useState<Track[]>([]);
   const [trackVisibility, setTrackVisibility] = React.useState<'public' | 'private'>('public');
-  const { settings } = useStats();
+
   const [showCreateModal, setShowCreateModal] = React.useState(false);
 
   React.useEffect(() => {
@@ -28,7 +28,7 @@ export const Tracks: React.FC = () => {
 
   const fetchTracks = async () => {
 
-    const tks = await alltracks.getTracks({ user: principal })
+    const tks = await alltracks.getTracks({ user: Principal.fromText(userId) })
     console.log(tks)
     const formattedTracks = parseTracks(tks);
     setTracks(formattedTracks);

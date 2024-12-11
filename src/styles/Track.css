@@ -88,3 +88,100 @@
   align-items: center;
   height: 100vh;
 }
+.track-page.two-column {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 5px;
+  height: calc(100vh - 10px);
+  max-width: 1400px;
+  margin: 5px auto;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 10px);
+}
+.left-column {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+}
+
+.track-summary {
+  flex: 0 0 auto;
+  padding: 5px;
+  margin: 0;
+}
+
+.track-summary h2 {
+  margin: 0 0 5px 0;
+}
+
+.playback-controls {
+  padding: 5px;
+}
+
+.right-column {
+  height: 100%;
+  position: relative;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.track-summary h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.playback-controls {
+  flex: 0 0 auto;
+  padding: 10px;
+  margin: 0;
+}
+
+.track-points-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* This is crucial for flex container scrolling */
+}
+.right-column {
+  height: 100%;
+}
+
+.map-container {
+  height: 100%;
+}
+
+.leaflet-container {
+  height: 100% !important;
+  width: 100%;
+}
+.track-point.active {
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+}
+.playback-controls {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.track-points-container {
+  height: calc(100vh - 250px);
+  overflow-y: auto;
+  padding-right: 10px;
+}

@@ -14,6 +14,6 @@ export const TracksPage = () => {
 
   
   return (
-    <Tracks  />
+    <Tracks userId={userId}/>
   );
 };

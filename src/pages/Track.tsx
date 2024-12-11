@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Map } from '../components/Map';
 import { TrackPoint } from "../types/TrackPoint";
@@ -11,7 +11,6 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAlltracks } from '../components/Store';
 import { parseTracks } from '../utils/trackUtils';
 import { FILETYPE_GPX , FILETYPE_KML} from '../lib/constants';
-
 export const TrackPage: React.FC = () => {
 
   const alltracks = useAlltracks();
@@ -20,20 +19,20 @@ export const TrackPage: React.FC = () => {
   const [track, setTrack] = useState<Track | null>(null);
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentPointIndex, setCurrentPointIndex] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  
+  useEffect(() => {
+    if (isPlaying) {
+      const activePoint = document.querySelector('.track-point.active');
+      activePoint?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [currentPointIndex, isPlaying]);
+  
   useEffect(() => {
     setLoading(true);
     const fetchTrack = async () => {
-      // const trackDoc = await getDoc<Track>({
-      //   collection: "tracks",
-      //   key: trackId as string
-      // });
-
-      // if (trackDoc) {
-      //   setTrack(trackDoc);
-
-
-      // }
       const track = await alltracks.getTrack(trackId);
       if (track.length > 0) {
         console.log("Track:", track[0]);
@@ -97,55 +96,81 @@ export const TrackPage: React.FC = () => {
     </div>
   );
 
-  return (
+  const startPlayback = () => {
+    setIsPlaying(true);
+    const interval = setInterval(() => {
+      setCurrentPointIndex(prev => {
+        if (prev >= trackPoints.length - 1) {
+          setIsPlaying(false);
+          clearInterval(interval);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 1000 / playbackSpeed);
+  };
+  const pausePlayback = () => {
+    setIsPlaying(false);
+  };
 
-    <>
-  
-      <div className="track-page">
-        {track ? (
-          <>
-            <TrackSummary />
-            <div className="view-controls">
-              <button
-                className={viewMode === 'map' ? 'active' : ''}
-                onClick={() => setViewMode('map')}
-              >
-                Map View
-              </button>
-              <button
-                className={viewMode === 'list' ? 'active' : ''}
-                onClick={() => setViewMode('list')}
-              >
-                List View
-              </button>
+  const resetPlayback = () => {
+    setCurrentPointIndex(0);
+    setIsPlaying(false);
+  };
+
+  // Add ref for the track points container
+  const pointsListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      const activePoint = pointsListRef.current?.querySelector('.track-point.active');
+      activePoint?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [currentPointIndex, isPlaying]);
+
+  return (
+    <div className="track-page two-column">
+      <div className="left-column">
+        <TrackSummary />
+        
+        <div className="playback-controls">
+          <button onClick={isPlaying ? pausePlayback : startPlayback}>
+            <span className="material-icons">{isPlaying ? 'pause' : 'play_arrow'}</span>
+          </button>
+          <button onClick={resetPlayback}>
+            <span className="material-icons">replay</span>
+          </button>
+          <select value={playbackSpeed} onChange={(e) => setPlaybackSpeed(Number(e.target.value))}>
+            <option value={1}>1x</option>
+            <option value={2}>2x</option>
+            <option value={4}>4x</option>
+          </select>
+        </div>
+
+        <div className="track-points-container" ref={pointsListRef}>
+          {trackPoints.map((point: TrackPoint, index: number) => (
+            <div 
+              key={index} 
+              className={`track-point ${currentPointIndex === index ? 'active' : ''}`}
+            >
+              <span>{new Date(point.timestamp).toLocaleTimeString()}</span>
+              <span>{point.latitude.toFixed(6)}, {point.longitude.toFixed(6)}</span>
+              <span>{point.elevation?.toFixed(2) || 0}m</span>
+              <span>{point.comment || " "}</span>
             </div>
-            <div className="track-view" style={{ height: 'calc(100vh - 200px)', width: '100%' }}>
-              {viewMode === 'map' && trackPoints.length > 0 ? (
-                <Map
-                  trackPoints={trackPoints}
-                  isTracking={false}
-                  onAddPoint={() => { }}
-                />
-              ) : (
-                <div className="track-points-list">
-                  {trackPoints.map((point: TrackPoint, index: number) => (
-                    <div key={index} className="track-point">
-                      <span>{new Date(point.timestamp).toLocaleTimeString()}</span>
-                      <span>{point.latitude.toFixed(6)}, {point.longitude.toFixed(6)}</span>
-                      <span>{point.elevation?.toFixed(2) || 0}m</span>
-                      <span>{point.comment || " "}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="loading-container">
-            {loading && <LoadingSpinner />}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
-    </>
+
+      <div className="right-column">
+        <Map
+          trackPoints={trackPoints}
+          isTracking={false}
+          onAddPoint={() => {}}
+          currentPoint={trackPoints[currentPointIndex]}
+          isPlayback={isPlaying}
+        />
+      </div>
+    </div>
   );
 };
