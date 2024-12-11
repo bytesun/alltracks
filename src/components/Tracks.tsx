@@ -91,39 +91,7 @@ export const Tracks: React.FC = () => {
   
   return (
     <div className="tracks-section">
-      <div className="settings-header">
-        <h3>My Tracks</h3>
-        {/* <button 
-    className="add-track-button"
-    onClick={() => setShowCreateModal(true)}
-  >
-    <span className="material-icons">add</span>
-    New Track
-  </button> */}
-      </div>
-      <div className="track-visibility-selector">
-        <label>
-          <input
-            type="radio"
-            name="trackVisibility"
-            value="private"
-            checked={trackVisibility === 'private'}
-            onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
-          />
-          Private Tracks
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="trackVisibility"
-            value="public"
-            checked={trackVisibility === 'public'}
-            onChange={(e) => setTrackVisibility(e.target.value as 'private' | 'public')}
-          />
-          Public Tracks
-        </label>
-      </div>
-
+      
       <div className="tracks-list">
         {tracks.length > 0 ? (
           tracks.map((track) => (

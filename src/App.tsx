@@ -5,6 +5,7 @@ import MainApp  from './MainApp';
 import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
 import { TrackPage } from './pages/Track';
+import { TracksPage } from './pages/TracksPage';
 
 import { Live } from './pages/Live';
 import { Status } from './pages/Status';
@@ -17,7 +18,6 @@ import { EventPage } from './pages/EventPage';
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
 import Store from './components/Store';
-import { BrowserRouter as Router } from 'react-router-dom';
 import { Layout } from './components/Layout';
 
 function App() {
@@ -39,6 +39,7 @@ function App() {
                 <Route path="/guide" element={<Guide />} />
                 <Route path="/group/:groupId" element={<GroupPage />} />
                 <Route path="/user/:userKey" element={<UserPage />} />
+                <Route path="/tracks/:userId" element={<TracksPage />} />
               </Routes>
             </Layout>
           
@@ -46,5 +47,4 @@ function App() {
       </StatsProvider>
     </NotificationProvider>
   );
-}
-export default App;
+}export default App;

@@ -226,11 +226,8 @@ export const ArStorage: React.FC = () => {
       const res = await alltracks.deletePhoto(photoUrl);
       if (res.ok) {
         showNotification('Photo deleted successfully', 'success');
-        loadPhotos(); // Refresh the photos list
+        setPhotos(prevPhotos => prevPhotos.filter(photo => photo.photoUrl !== photoUrl));
       }
-
-      showNotification('Photo deleted successfully', 'success');
-      loadPhotos(); // Refresh the photos list
     } catch (error) {
       showNotification('Error deleting photo', 'error');
     } finally {

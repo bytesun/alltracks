@@ -93,7 +93,7 @@ export const UserPage: React.FC = () => {
     return (
         <div>
 
-            <TrackAchievements stats={userStats} />
+            <TrackAchievements stats={userStats} userId={userKey} />
             <TimelineMapView
                 trackPoints={trackPoints}
                 isLoading={isLoading}

@@ -2,7 +2,8 @@ import React from 'react';
 import '../styles/TrackAchievements.css';
 import { UserStats } from "../types/UserStats";
 
-export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => {
+
+export const TrackAchievements: React.FC<{ stats: UserStats; userId: string }> = ({ stats, userId }) => {
   const { totalDistance, totalHours, totalElevation, completedTrails, firstHikeDate } = stats;
 
   const calculateScore = () => {
@@ -44,9 +45,9 @@ export const TrackAchievements: React.FC<{ stats: UserStats }> = ({ stats }) => 
           <p>{(totalDistance / (totalHours || 1)).toFixed(2)} km/h</p>
         </div>
       </div>
-      <div className="achievement-card">
+      <div className="achievement-card clickable" onClick={() => window.location.href = `/tracks/${userId}`}>
         <span className="material-icons">hiking</span>
-        <div className="achievement-content">
+        <div className="achievement-content ">
           <h4>Trails Completed</h4>
           <p>{completedTrails}</p>
         </div>

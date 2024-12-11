@@ -129,7 +129,7 @@ export const Profile: React.FC = () => {
                     <span className="material-icons">badge</span>
                     <p>{user?.key}</p>
                   </div> */}
-                  <TrackAchievements stats={userStats} />
+                  <TrackAchievements stats={userStats} userId={principal.toText()} />
                 </div>
               </>
             )}
