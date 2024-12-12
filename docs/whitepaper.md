@@ -49,15 +49,86 @@ AllTracks delivers a streamlined approach:
 
 ## Technology Stack
 
-## Market Analysis
+AllTracks leverages cutting-edge technologies to deliver a robust and secure hiking tracking platform:
 
-## Business Model
+1. Blockchain Infrastructure
+- Internet Computer Protocol (ICP)
+  - Primary service hosting
+  - Dynamic data storage
+  - Real-time location updates
+- Arweave
+  - Permanent storage for hiking tracks
+  - Trail documentation
+  - Photo preservation
+  - Immutable achievement records
 
-## Roadmap
+2. Development Framework
+- Frontend
+  - React.js for responsive user interface
+  - Progressive Web App capabilities
+  - Cross-platform compatibility
+- Backend
+  - Motoko programming language
+  - ICP canister smart contracts
+  - Secure data management
 
-## Team
+3. Mapping Integration
+- OpenStreetMap
+  - Global terrain visualization
+  - Trail mapping
+  - Location pinpointing
+  - Route planning
 
-## Token Economics 
+4. Security Architecture
+- Passkey Implementation
+  - Wallet encryption
+  - User authentication
+  - Data protection
+  - Privacy-first design
 
-## Risk Analysis
-## Conclusion
+This technology stack ensures:
+- High availability
+- Data permanence
+- User privacy
+- Seamless experience
+
+
+## Token Economics
+
+The Tracker Token (TRCK) is built on the Internet Computer Protocol following the ICRC standard, powering the AllTracks ecosystem through a robust utility model.
+
+1. Token Utility
+- Service Payments
+  - Storage fees for track data
+  - Premium feature access
+  - API usage fees
+- Data Storage Costs
+  - Arweave permanent storage fees
+  - ICP canister cycles
+  - Photo storage allocation
+
+2. Reward Mechanisms
+- Community Contributions
+  - Sharing hiking tracks
+  - Trail documentation
+  - Photo submissions
+  - Location verification
+- Achievement Incentives
+  - Milestone completions
+  - Regular activity rewards
+  - Community engagement
+
+3. Token Distribution
+- User Rewards Pool: 40%
+- Platform Development: 30%
+- Storage Reserve: 20%
+- Community Growth: 10%
+
+4. Value Drivers
+- Growing user base
+- Increased data storage needs
+- Platform service expansion
+- Community participation
+
+The TRCK token creates a sustainable ecosystem where users are incentivized to contribute while supporting the platform's operational costs and future development.
+
