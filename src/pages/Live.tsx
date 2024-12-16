@@ -2,18 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, useMap, Polyline, Marker } from 'react-leaflet';
 import { TrackPoint } from "../types/TrackPoint";
-import { parseGPX } from "../utils/importFormats";
+
 import { icon } from 'leaflet';
-import { Navbar } from '../components/Navbar';
+
 import "../styles/Live.css";
 import { useAlltracks, useICEvent } from '../components/Store';
 
-interface EventDetails {
-    date: string;
-    location: string;
-    trailName: string;
-    coordinates: [number, number];
-}
 
 const locationIcon = icon({
     iconUrl: '/marker-icon.png',
@@ -30,8 +24,7 @@ const trailHeadIcon = icon({
 export const Live: React.FC = () => {
     const { liveId } = useParams();
     const alltracks = useAlltracks();
-    const icevent = useICEvent();
-    const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
+
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
     const [trailPoints, setTrailPoints] = useState<[number, number][]>([
         [49.2827, -123.1207],
@@ -91,7 +84,7 @@ export const Live: React.FC = () => {
         })
 
         setTrackPoints(tps);
-        setLastUpdate(new Date()); 
+        setLastUpdate(new Date());
     };
     const getMapCenter = () => {
         if (trailPoints.length > 0) {
@@ -142,91 +135,55 @@ export const Live: React.FC = () => {
     }
 
     return (
-        <div className="event-page">
-
-            <div className="live-container">
-                <h3>Live Track Points</h3>
-                <div className="update-notice">
-                    Last updated: {lastUpdate.toLocaleTimeString()}
-                </div>
+        <div className="live-page">
+            <div className="map-section">
                 <MapContainer
                     center={getMapCenter() as [number, number]}
                     zoom={13}
-                    style={{ height: '400px', width: '100%' }}
+                    scrollWheelZoom={true}
                 >
+                    <TileLayer
+                        attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
                     <CenterControl />
                     <RecenterOnLoad />
                     <CenterMapOnPoint />
-                    {trailPoints.length > 0 && <RecenterMap position={trailPoints[0]} />}
-                    {trailPoints.length > 0 && (
-                        <Marker
-                            position={trailPoints[0]}
-                            icon={trailHeadIcon}
-                        />
-                    )}
                     {trackPoints.length > 0 && (
-                        <Marker
-                            position={[
-                                trackPoints[trackPoints.length - 1].latitude,
-                                trackPoints[trackPoints.length - 1].longitude
-                            ]}
-                            icon={locationIcon}
+                        <Polyline
+                            positions={trackPoints.map(p => [p.latitude, p.longitude])}
+                            color="red"
                         />
                     )}
-                    <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
-                    <Polyline
-                        positions={trackPoints.map(p => [p.latitude, p.longitude])}
-                        color="red"
-                    />
-
                 </MapContainer>
-                <div className="track-points-list">
+            </div>
 
-                    <table className="points-table">
-                        <tbody>
-                            {[...trackPoints]
-                                .sort((a, b) => b.timestamp - a.timestamp)
-                                .map((point) => (
-                                    <tr
-                                        key={point.timestamp}
-                                        onClick={() => setSelectedPoint(point)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
-                                        <td>{point.latitude.toFixed(6)}</td>
-                                        <td>{point.longitude.toFixed(6)}</td>
-                                        <td>{point.elevation?.toFixed(1) || '-'} m</td>
-                                        <td>{point.comment} </td>
-                                        <td>
-                                            {point.photo && (
-                                                <img
-                                                    src={point.photo}
-                                                    alt="Point photo"
-                                                    style={{
-                                                        width: '50px',
-                                                        height: '50px',
-                                                        objectFit: 'cover',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (point.photo) {
-                                                            setModalPhoto(point.photo);
-                                                        }
-
-                                                    }}
-                                                />
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-
-                        </tbody>
-
-                    </table>
-
+            <div className="data-section">
+                <div className="update-notice">
+                    Last updated: {lastUpdate.toLocaleTimeString()}
                 </div>
-
+                <div className="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Location</th>
+                                <th>Elevation</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {trackPoints.map(point => (
+                                <tr key={point.timestamp}>
+                                    <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
+                                    <td>{`${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`}</td>
+                                    <td>{point.elevation?.toFixed(1) || '-'} m</td>
+                                    <td>{point.comment || '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             {modalPhoto && (
                 <div className="modal-overlay" onClick={() => setModalPhoto(null)}>
@@ -236,7 +193,6 @@ export const Live: React.FC = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };
