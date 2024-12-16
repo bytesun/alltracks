@@ -9,12 +9,12 @@ import "../styles/Track.css";
 
 import { useAlltracks } from '../components/Store';
 import { parseTracks } from '../utils/trackUtils';
-import { FILETYPE_GPX , FILETYPE_KML} from '../lib/constants';
+import { FILETYPE_GPX, FILETYPE_KML } from '../lib/constants';
 import { MapWrapper } from '../components/MapWrapper';
 export const TrackPage: React.FC = () => {
 
   const alltracks = useAlltracks();
- 
+
   const { trackId } = useParams<{ trackId: string }>();
   const [track, setTrack] = useState<Track | null>(null);
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
@@ -22,16 +22,16 @@ export const TrackPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  
+
   useEffect(() => {
     if (isPlaying) {
       const activePoint = document.querySelector('.track-point.active');
       activePoint?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [currentPointIndex, isPlaying]);
-  
+
   useEffect(() => {
- 
+
     const fetchTrack = async () => {
       const track = await alltracks.getTrack(trackId);
       if (track.length > 0) {
@@ -43,7 +43,7 @@ export const TrackPage: React.FC = () => {
     };
 
     fetchTrack();
-    
+
   }, [trackId]);
 
   useEffect(() => {
@@ -59,18 +59,18 @@ export const TrackPage: React.FC = () => {
           points = parseGPX(content);
         } else if (track.trackfile.fileType === FILETYPE_KML) {
           points = parseKML(content);
-        
+
         } else {
           points = parseCSV(content);
         }
- 
+
         setTrackPoints(points);
       }
     };
     fetchTrackPoints();
   }, [track]);
 
-  
+
   const TrackSummary = () => (
     <div className="track-summary">
       <h2>{track?.name || 'Unnamed Track'}</h2>
@@ -128,12 +128,11 @@ export const TrackPage: React.FC = () => {
       activePoint?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [currentPointIndex, isPlaying]);
-
   return (
-    <div className="track-page two-column">
-      <div className="left-column">
+    <div className="track-page">
+      <div className="track-left">
         <TrackSummary />
-        
+
         <div className="playback-controls">
           <button onClick={isPlaying ? pausePlayback : startPlayback}>
             <span className="material-icons">{isPlaying ? 'pause' : 'play_arrow'}</span>
@@ -150,8 +149,8 @@ export const TrackPage: React.FC = () => {
 
         <div className="track-points-container" ref={pointsListRef}>
           {trackPoints.map((point: TrackPoint, index: number) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`track-point ${currentPointIndex === index ? 'active' : ''}`}
             >
               <span>{new Date(point.timestamp).toLocaleTimeString()}</span>
@@ -163,15 +162,15 @@ export const TrackPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="right-column">
-      <MapWrapper layout="track">
-        <Map
-          trackPoints={trackPoints}
-          isTracking={false}
-          onAddPoint={() => {}}
-          currentPoint={trackPoints[currentPointIndex]}
-          isPlayback={isPlaying}
-        />
+      <div className="track-right">
+        <MapWrapper layout="track">
+          <Map
+            trackPoints={trackPoints}
+            isTracking={false}
+            onAddPoint={() => { }}
+            currentPoint={trackPoints[currentPointIndex]}
+            isPlayback={isPlaying}
+          />
         </MapWrapper>
       </div>
     </div>
