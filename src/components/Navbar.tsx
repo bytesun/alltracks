@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 
 import { useGlobalContext, useSetLoginModal, useSetAgent } from "./Store";
 
-import { HOST, IDENTITY_PROVIDER, derivationOrigin } from "../lib/canisters";
+import { HOST, IDENTITY_PROVIDER } from "../lib/canisters";
 import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
 
 export const Navbar = () => {
@@ -67,7 +67,7 @@ export const Navbar = () => {
     windowFeatures = `left=${left},top=${top},width=${width},height=${height}`
   }
   const handleIILogin = async () => {
-    console.log("login II with " + derivationOrigin)
+
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,

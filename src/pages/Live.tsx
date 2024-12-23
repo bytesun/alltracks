@@ -68,7 +68,7 @@ export const Live: React.FC = () => {
     const fetchTrackPoints = async () => {
 
         const result = await alltracks.getCheckPointsByTrackId(liveId)
-        console.log(result);
+
         let tps = [];
         result.forEach(t => {
             tps.push(
@@ -82,7 +82,8 @@ export const Live: React.FC = () => {
                 }
             )
         })
-
+        
+        tps.sort((a, b) => a.timestamp - b.timestamp);
         setTrackPoints(tps);
         setLastUpdate(new Date());
     };
@@ -153,6 +154,15 @@ export const Live: React.FC = () => {
                         <Polyline
                             positions={trackPoints.map(p => [p.latitude, p.longitude])}
                             color="red"
+                        />
+                    )}
+                    {trackPoints.length > 0 && (
+                        <Marker
+                            position={[
+                                trackPoints[trackPoints.length - 1].latitude,
+                                trackPoints[trackPoints.length - 1].longitude
+                            ]}
+                            icon={locationIcon}
                         />
                     )}
                 </MapContainer>

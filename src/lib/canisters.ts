@@ -9,4 +9,3 @@ export const defaultAgent = new HttpAgent({
   host: HOST,
 });
 
-export const derivationOrigin = "https://znisf-eqaaa-aaaaj-aabta-cai.raw.ic0.app"

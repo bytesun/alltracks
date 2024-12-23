@@ -5,7 +5,7 @@ import { AuthClient } from "@dfinity/auth-client";
 import { LoginModal } from './LoginModal';
 import { useGlobalContext,useSetAgent,useSetLoginModal } from './Store';
 
-import { HOST, IDENTITY_PROVIDER, derivationOrigin } from "../lib/canisters";
+import { HOST, IDENTITY_PROVIDER } from "../lib/canisters";
 import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,7 +60,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     windowFeatures = `left=${left},top=${top},width=${width},height=${height}`
   }
   const handleIILogin = async () => {
-    console.log("login II with " + derivationOrigin)
+
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
