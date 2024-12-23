@@ -25,8 +25,9 @@ export const GroupEvents: React.FC<GroupEventsProps> = ({ groupId }) => {
         const end = BigInt(Math.floor(new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999).getTime() / 1000));
 
         const result = await icevent.getCalendarEvents(BigInt(groupId), start, end, BigInt(1));
+        const sortedEvents = result.sort((a, b) => Number(a.start - b.start));
 
-        setEvents(result)
+        setEvents(sortedEvents);
         setIsLoading(false);
     };
     return (
