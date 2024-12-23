@@ -82,7 +82,7 @@ export const Live: React.FC = () => {
                 }
             )
         })
-        
+
         tps.sort((a, b) => a.timestamp - b.timestamp);
         setTrackPoints(tps);
         setLastUpdate(new Date());
@@ -156,15 +156,16 @@ export const Live: React.FC = () => {
                             color="red"
                         />
                     )}
-                    {trackPoints.length > 0 && (
+                    {trackPoints.map((point, index) => (
                         <Marker
-                            position={[
-                                trackPoints[trackPoints.length - 1].latitude,
-                                trackPoints[trackPoints.length - 1].longitude
-                            ]}
+                            key={point.timestamp}
+                            position={[point.latitude, point.longitude]}
                             icon={locationIcon}
+                            eventHandlers={{
+                                click: () => setSelectedPoint(point)
+                            }}
                         />
-                    )}
+                    ))}
                 </MapContainer>
             </div>
 
