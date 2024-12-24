@@ -184,7 +184,7 @@ export const Live: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {trackPoints.map(point => (
+                            {[...trackPoints].reverse().map(point => (
                                 <tr key={point.timestamp}>
                                     <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
                                     <td>{`${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`}</td>
