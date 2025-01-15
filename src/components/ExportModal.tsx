@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './ExportModal.css';
 import { useGlobalContext } from './Store';
+import { TrackType } from '../api/alltracks/backend.did';
 interface ExportModalProps {
   onExport: (
     format: string,
@@ -8,7 +9,8 @@ interface ExportModalProps {
     filename: string,
     description: string,
     eventId: string,
-    isPrivateStorage: boolean
+    isPrivateStorage: boolean,
+    trackType: TrackType
   ) => void;
   onClose: () => void;
   trackId: string;
@@ -21,6 +23,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
   const [filename, setFilename] = useState(`${trackId}_${groupId}`);
   const [description, setDescription] = useState('');
   const [eventId, setEventId] = useState(trackId);
+  const [trackType, setTrackType] = useState<TrackType>({'hike':null});
+
   // Add new state
   const [isPrivateStorage, setIsPrivateStorage] = useState(false);
 
@@ -30,7 +34,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
         <h3>Export Track</h3>
         <form onSubmit={(e) => {
           e.preventDefault();
-          onExport(format, storage, filename, description, eventId, isPrivateStorage);
+          onExport(format, storage, filename, description, eventId, isPrivateStorage, trackType);
           onClose();
         }}>
           <button className="modal-close-btn" onClick={onClose}>
@@ -66,6 +70,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
                 className="description-input"
                 rows={3}
               />
+            </div>
+            <div className="option-group">
+              <label>Track Type:</label>
+              <select value={Object.keys(trackType)[0]} onChange={(e) => setTrackType({ [e.target.value]: null } as TrackType)}>
+                <option value="hike">Hiking</option>
+                <option value="bike">Biking</option>
+                <option value="run">Running</option>
+                <option value="drive">Driving</option>
+                <option value="fly">Flight</option>
+                <option value="other">Other</option>
+              </select>
             </div>
             <div className="option-group">
               <label>Format:</label>

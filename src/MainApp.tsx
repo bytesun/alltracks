@@ -36,6 +36,7 @@ import { useAlltracks } from './components/Store';
 import { useGlobalContext } from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
+import { TrackType } from './api/alltracks/backend.did';
 
 
 interface ProfileSettings {
@@ -592,7 +593,8 @@ function MainApp() {
     filename: string,
     description: string,
     eventId: string,
-    isPrivateStorage: boolean
+    isPrivateStorage: boolean,
+    trackType: TrackType
   ) => {
     let content: string;
     let mimeType: string;
@@ -675,7 +677,8 @@ function MainApp() {
               startPoint: {
                 latitude: trackPoints[0].latitude,
                 longitude: trackPoints[0].longitude
-              }
+              },
+              trackType: trackType,
 
             });
 

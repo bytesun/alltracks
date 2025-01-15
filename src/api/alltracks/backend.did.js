@@ -71,6 +71,19 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
   });
   const Result_3 = IDL.Variant({ 'ok' : SavedPoint, 'err' : IDL.Text });
+  const TrackType = IDL.Variant({
+    'fly' : IDL.Null,
+    'run' : IDL.Null,
+    'ski' : IDL.Null,
+    'other' : IDL.Null,
+    'bike' : IDL.Null,
+    'hike' : IDL.Null,
+    'climb' : IDL.Null,
+    'snowboard' : IDL.Null,
+    'snowshoe' : IDL.Null,
+    'drive' : IDL.Null,
+    'paddle' : IDL.Null,
+  });
   const TrackFile = IDL.Record({ 'url' : IDL.Text, 'fileType' : IDL.Text });
   const Point = IDL.Record({
     'latitude' : IDL.Float64,
@@ -80,6 +93,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Text,
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
+    'trackType' : TrackType,
     'startime' : Time,
     'trackfile' : TrackFile,
     'name' : IDL.Text,
@@ -93,6 +107,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Text,
     'duration' : IDL.Float64,
     'elevation' : IDL.Float64,
+    'trackType' : TrackType,
     'startime' : Time,
     'trackfile' : TrackFile,
     'name' : IDL.Text,

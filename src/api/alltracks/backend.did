@@ -51,6 +51,20 @@ type Trail =
    trailfile: TrailFile;
    ttype: TrailType;
  };
+type TrackType = 
+ variant {
+   bike;
+   climb;
+   drive;
+   fly;
+   hike;
+   other;
+   paddle;
+   run;
+   ski;
+   snowboard;
+   snowshoe;
+ };
 type TrackFilter = 
  variant {
    group: text;
@@ -74,6 +88,7 @@ type Track =
    name: text;
    startPoint: Point;
    startime: Time;
+   trackType: TrackType;
    trackfile: TrackFile;
  };
 type Time = int;
@@ -159,6 +174,7 @@ type NewTrack =
    name: text;
    startPoint: Point;
    startime: Time;
+   trackType: TrackType;
    trackfile: TrackFile;
  };
 type NewSavedPoint = 

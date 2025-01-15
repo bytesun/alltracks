@@ -97,6 +97,7 @@ export interface NewTrack {
   'id' : string,
   'duration' : number,
   'elevation' : number,
+  'trackType' : TrackType,
   'startime' : Time,
   'trackfile' : TrackFile,
   'name' : string,
@@ -156,6 +157,7 @@ export interface Track {
   'id' : string,
   'duration' : number,
   'elevation' : number,
+  'trackType' : TrackType,
   'startime' : Time,
   'trackfile' : TrackFile,
   'name' : string,
@@ -169,6 +171,17 @@ export interface Track {
 export interface TrackFile { 'url' : string, 'fileType' : string }
 export type TrackFilter = { 'user' : Principal } |
   { 'group' : string };
+export type TrackType = { 'fly' : null } |
+  { 'run' : null } |
+  { 'ski' : null } |
+  { 'other' : null } |
+  { 'bike' : null } |
+  { 'hike' : null } |
+  { 'climb' : null } |
+  { 'snowboard' : null } |
+  { 'snowshoe' : null } |
+  { 'drive' : null } |
+  { 'paddle' : null };
 export interface Trail {
   'id' : bigint,
   'duration' : number,
