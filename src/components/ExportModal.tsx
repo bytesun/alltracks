@@ -77,8 +77,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
                 <option value="hike">Hiking</option>
                 <option value="bike">Biking</option>
                 <option value="run">Running</option>
-                <option value="drive">Driving</option>
-                <option value="fly">Flight</option>
+                <option value="drive">Roadtrip</option>
+                <option value="travel">Travel</option>
                 <option value="other">Other</option>
               </select>
             </div>

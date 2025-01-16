@@ -62,8 +62,7 @@ type TrackType =
    paddle;
    run;
    ski;
-   snowboard;
-   snowshoe;
+   travel;
  };
 type TrackFilter = 
  variant {

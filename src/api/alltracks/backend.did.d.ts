@@ -177,9 +177,8 @@ export type TrackType = { 'fly' : null } |
   { 'other' : null } |
   { 'bike' : null } |
   { 'hike' : null } |
+  { 'travel' : null } |
   { 'climb' : null } |
-  { 'snowboard' : null } |
-  { 'snowshoe' : null } |
   { 'drive' : null } |
   { 'paddle' : null };
 export interface Trail {

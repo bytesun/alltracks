@@ -78,9 +78,8 @@ export const idlFactory = ({ IDL }) => {
     'other' : IDL.Null,
     'bike' : IDL.Null,
     'hike' : IDL.Null,
+    'travel' : IDL.Null,
     'climb' : IDL.Null,
-    'snowboard' : IDL.Null,
-    'snowshoe' : IDL.Null,
     'drive' : IDL.Null,
     'paddle' : IDL.Null,
   });
