@@ -181,17 +181,51 @@ export const Live: React.FC = () => {
                                 <th>Location</th>
                                 <th>Elevation</th>
                                 <th>Notes</th>
+                                <th>Photos</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {[...trackPoints].reverse().map(point => (
-                                <tr key={point.timestamp}>
-                                    <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
-                                    <td>{`${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`}</td>
-                                    <td>{point.elevation?.toFixed(1) || '-'} m</td>
-                                    <td>{point.comment || '-'}</td>
-                                </tr>
-                            ))}
+                            {[...trackPoints].reverse().map((point, index, array) => {
+                                const currentDate = new Date(point.timestamp).toLocaleDateString();
+                                const previousDate = index > 0
+                                    ? new Date(array[index - 1].timestamp).toLocaleDateString()
+                                    : null;
+
+                                return (
+                                    <tr key={point.timestamp}>
+                                        <td>
+                                            <div>
+                                                {(index === 0 || currentDate !== previousDate) && (
+                                                    <span className="date">{new Date(point.timestamp).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}</span>
+                                                )}
+
+                                            </div>
+                                        
+                                            <div className="timestamp">
+
+                                                <span className="time">{new Date(point.timestamp).toLocaleTimeString('en-US', {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}</span>
+                                            </div>
+                                        </td>
+                                        <td>{`${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`}</td>
+                                        <td>{point.elevation?.toFixed(1) || '-'} m</td>
+                                        <td>{point.comment || '-'}</td>
+                                        {point.photo && (
+                                            <td>
+                                                <button onClick={() => setModalPhoto(point.photo)}>
+                                                    <img src={point.photo} alt="Thumbnail" />
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                );
+                            })}
+
                         </tbody>
                     </table>
                 </div>

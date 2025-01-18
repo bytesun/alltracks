@@ -14,21 +14,67 @@
     padding: 20px;
     overflow: hidden;
 }
-
 .table-container {
-    height: calc(100% - 80px);
-    overflow-y: auto;
+      height: calc(100% - 80px);
+      overflow-y: auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+.table-container table {
+      min-width: 800px; /* Minimum width before horizontal scroll */
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
 }
 
-th, td {
-    padding: 8px;
-    border: 1px solid #ddd;
-    text-align: left;
+.table-container th,
+.table-container td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+}
+
+/* For smaller screens */
+@media screen and (max-width: 768px) {
+    .data-section {
+      padding: 10px;
+    }
+  
+    .table-container {
+      margin: 0 -10px;
+      border-radius: 0;
+    }
+  
+    .table-container td, 
+    .table-container th {
+      padding: 8px;
+      font-size: 14px;
+    }
+}
+.table-container th:nth-child(1),
+.table-container td:nth-child(1) {
+  width: 10%; /* Time column */
+}
+
+.table-container th:nth-child(2),
+.table-container td:nth-child(2) {
+  width: 15%; /* Location column */
+}
+
+.table-container th:nth-child(3),
+.table-container td:nth-child(3) {
+  width: 10%; /* Elevation column */
+}
+
+.table-container th:nth-child(4),
+.table-container td:nth-child(4) {
+  width: 50%; /* Notes column */
+}
+
+.table-container th:nth-child(5),
+.table-container td:nth-child(5) {
+  width: 15%; /* Photo */
 }
 
 .modal-overlay {
@@ -110,4 +156,19 @@ th, td {
   height: 50px;
   object-fit: cover;
   cursor: pointer;
+}
+
+.timestamp {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.timestamp .date {
+    font-weight: 500;
+}
+
+.timestamp .time {
+    color: #666;
+    font-size: 0.9em;
 }
