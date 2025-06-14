@@ -7,13 +7,8 @@ import { icon } from 'leaflet';
 
 import "../styles/Live.css";
 import { useAlltracks, useICEvent } from '../components/Store';
+import { locationIcon, selectedLocationIcon } from '../lib/markerIcons';
 
-
-const locationIcon = icon({
-    iconUrl: '/marker-icon.png',
-    iconSize: [24, 35],
-    iconAnchor: [12, 12]
-});
 
 const trailHeadIcon = icon({
     iconUrl: '/marker-icon.png',
@@ -135,6 +130,8 @@ export const Live: React.FC = () => {
         );
     }
 
+    const latestPoint = trackPoints.length > 0 ? trackPoints[trackPoints.length - 1] : null;
+
     return (
         <div className="live-page">
             <div className="map-section">
@@ -160,7 +157,18 @@ export const Live: React.FC = () => {
                         <Marker
                             key={point.timestamp}
                             position={[point.latitude, point.longitude]}
-                            icon={locationIcon}
+                            icon={
+                                (selectedPoint && selectedPoint.timestamp === point.timestamp) ||
+                                (!selectedPoint && latestPoint && latestPoint.timestamp === point.timestamp)
+                                    ? selectedLocationIcon
+                                    : locationIcon
+                            }
+                            zIndexOffset={
+                                (selectedPoint && selectedPoint.timestamp === point.timestamp) ||
+                                (!selectedPoint && latestPoint && latestPoint.timestamp === point.timestamp)
+                                    ? 1000
+                                    : 0
+                            }
                             eventHandlers={{
                                 click: () => setSelectedPoint(point)
                             }}
@@ -189,34 +197,36 @@ export const Live: React.FC = () => {
                                 const previousDate = index > 0
                                     ? new Date(array[index - 1].timestamp).toLocaleDateString()
                                     : null;
-
+                                const isLatest = !selectedPoint && latestPoint && latestPoint.timestamp === point.timestamp;
+                                const isSelected = selectedPoint && selectedPoint.timestamp === point.timestamp;
                                 return (
                                     <tr key={point.timestamp}>
                                         <td>
                                             <div>
                                                 {(index === 0 || currentDate !== previousDate) && (
                                                     <span className="date">{new Date(point.timestamp).toLocaleDateString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric'
+                                                        year: 'numeric',
+                                                        month: '2-digit',
+                                                        day: '2-digit'
                                                     })}</span>
                                                 )}
-
                                             </div>
-                                        
                                             <div className="timestamp">
-
                                                 <span className="time">{new Date(point.timestamp).toLocaleTimeString('en-US', {
                                                     hour: '2-digit',
                                                     minute: '2-digit'
                                                 })}</span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td
+                                            className="location-cell"
+                                            style={{ cursor: 'pointer', background: isSelected || isLatest ? '#ffeeba' : undefined }}
+                                            onClick={() => setSelectedPoint(point)}
+                                        >
                                             <div>Lat: {point.latitude.toFixed(4)}</div>
                                             <div>Lng: {point.longitude.toFixed(4)}</div>
                                             <div>Elev: {point.elevation?.toFixed(1) || '-'} m</div>
                                         </td>
-   
                                         <td>{point.comment }
                                         {point.photo && (
                                             <img
