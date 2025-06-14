@@ -158,6 +158,13 @@
   cursor: pointer;
 }
 
+.thumbnail-photo {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
 .timestamp {
     display: flex;
     flex-direction: column;

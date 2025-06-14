@@ -217,13 +217,15 @@ export const Live: React.FC = () => {
                                             <div>Elev: {point.elevation?.toFixed(1) || '-'} m</div>
                                         </td>
    
-                                        <td>{point.comment || '-'}
+                                        <td>{point.comment }
                                         {point.photo && (
-                                            
-                                                <button onClick={() => setModalPhoto(point.photo)}>
-                                                    <img src={point.photo} alt="Thumbnail" />
-                                                </button>
-                                           
+                                            <img
+                                                src={point.photo}
+                                                alt="Thumbnail"
+                                                className="thumbnail-photo"
+                                                onClick={() => setModalPhoto(point.photo)}
+                                                style={{ cursor: 'pointer' }}
+                                            />
                                         )}
                                          </td>
                                     </tr>
