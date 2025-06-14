@@ -179,9 +179,8 @@ export const Live: React.FC = () => {
                             <tr>
                                 <th>Time</th>
                                 <th>Location</th>
-                                <th>Elevation</th>
                                 <th>Notes</th>
-                                <th>Photos</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -212,16 +211,21 @@ export const Live: React.FC = () => {
                                                 })}</span>
                                             </div>
                                         </td>
-                                        <td>{`${point.latitude.toFixed(4)}, ${point.longitude.toFixed(4)}`}</td>
-                                        <td>{point.elevation?.toFixed(1) || '-'} m</td>
-                                        <td>{point.comment || '-'}</td>
+                                        <td>
+                                            <div>Lat: {point.latitude.toFixed(4)}</div>
+                                            <div>Lng: {point.longitude.toFixed(4)}</div>
+                                            <div>Elev: {point.elevation?.toFixed(1) || '-'} m</div>
+                                        </td>
+   
+                                        <td>{point.comment || '-'}
                                         {point.photo && (
-                                            <td>
+                                            
                                                 <button onClick={() => setModalPhoto(point.photo)}>
                                                     <img src={point.photo} alt="Thumbnail" />
                                                 </button>
-                                            </td>
+                                           
                                         )}
+                                         </td>
                                     </tr>
                                 );
                             })}
