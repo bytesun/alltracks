@@ -36,7 +36,7 @@ export const FeedbackModal = ({ isOpen, onClose, user, showNotification }: Feedb
             let res = await icevent.addSystemTodo({
                 desc: feedback.message,
                 duedate: BigInt(Date.now() + 7 * 24 * 60 * 60 * 1000), // one week later
-                itodo: feedback.type,
+                itodo:"AllTracks feedback - " + feedback.type,
                 attachments: []
             });
             if ('err' in res) {
