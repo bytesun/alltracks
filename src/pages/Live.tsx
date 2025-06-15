@@ -7,7 +7,7 @@ import { icon } from 'leaflet';
 
 import "../styles/Live.css";
 import { useAlltracks, useICEvent } from '../components/Store';
-import { locationIcon, selectedLocationIcon } from '../lib/markerIcons';
+import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
 
 
 const trailHeadIcon = icon({
@@ -153,27 +153,24 @@ export const Live: React.FC = () => {
                             color="red"
                         />
                     )}
-                    {trackPoints.map((point, index) => (
-                        <Marker
-                            key={point.timestamp}
-                            position={[point.latitude, point.longitude]}
-                            icon={
-                                (selectedPoint && selectedPoint.timestamp === point.timestamp) ||
-                                (!selectedPoint && latestPoint && latestPoint.timestamp === point.timestamp)
-                                    ? selectedLocationIcon
-                                    : locationIcon
-                            }
-                            zIndexOffset={
-                                (selectedPoint && selectedPoint.timestamp === point.timestamp) ||
-                                (!selectedPoint && latestPoint && latestPoint.timestamp === point.timestamp)
-                                    ? 1000
-                                    : 0
-                            }
-                            eventHandlers={{
-                                click: () => setSelectedPoint(point)
-                            }}
-                        />
-                    ))}
+                    {trackPoints.map((point, index) => {
+                        const isLatest = !selectedPoint && latestPoint && latestPoint.timestamp === point.timestamp;
+                        const isSelected = selectedPoint && selectedPoint.timestamp === point.timestamp;
+                        let markerIcon = locationIcon;
+                        if (isSelected) markerIcon = selectedLocationIcon;
+                        else if (isLatest) markerIcon = hikingHumanIcon;
+                        return (
+                            <Marker
+                                key={point.timestamp}
+                                position={[point.latitude, point.longitude]}
+                                icon={markerIcon}
+                                zIndexOffset={isSelected || isLatest ? 1000 : 0}
+                                eventHandlers={{
+                                    click: () => setSelectedPoint(point)
+                                }}
+                            />
+                        );
+                    })}
                 </MapContainer>
             </div>
 
