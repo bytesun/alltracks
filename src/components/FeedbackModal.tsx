@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { setDoc, User } from "@junobuild/core";
 import "../styles/FeedbackModal.css";
+import { useICEvent } from './Store';
 
 interface FeedbackModalProps {
     isOpen: boolean;
@@ -14,23 +15,40 @@ export const FeedbackModal = ({ isOpen, onClose, user, showNotification }: Feedb
         type: 'general'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const icevent = useICEvent();
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
-        await setDoc({
-            satellite: { satelliteId: "ruc7a-fiaaa-aaaal-ab4ha-cai" },
-            collection: "inbox",
-            doc: {
-                key: crypto.randomUUID(),
-                data: {
-                    ...feedback,
-                    userId: user,
-                    createdAt: Date.now()
-                }
+        try {
+            // await setDoc({
+            //     satellite: { satelliteId: "ruc7a-fiaaa-aaaal-ab4ha-cai" },
+            //     collection: "inbox",
+            //     doc: {
+            //         key: crypto.randomUUID(),
+            //         data: {
+            //             ...feedback,
+            //             userId: user,
+            //             createdAt: Date.now()
+            //         }
+            //     }
+            // });
+            // Call addSystemTodo for user feedback
+            let res = await icevent.addSystemTodo({
+                desc: feedback.message,
+                duedate: BigInt(Date.now() + 7 * 24 * 60 * 60 * 1000), // one week later
+                itodo: feedback.type,
+                attachments: []
+            });
+            if ('err' in res) {
+                showNotification(res.err, 'error');
+                setIsSubmitting(false);
+                return;
             }
-        });
-        showNotification('Thank you for your feedback!', 'success');
-        setFeedback({ message: '', type: 'general' });
+            showNotification('Thank you for your feedback!', 'success');
+            setFeedback({ message: '', type: 'general' });
+        } catch (e) {
+            showNotification('Failed to submit feedback.', 'error');
+        }
         setIsSubmitting(false);
         onClose();
     };
@@ -59,7 +77,7 @@ export const FeedbackModal = ({ isOpen, onClose, user, showNotification }: Feedb
                         onChange={(e) => setFeedback({ ...feedback, message: e.target.value })}
                         placeholder="Tell us your thoughts..."
                     />
-                    <button className='feedback-submit' disabled={isSubmitting} onClick={handleSubmit}>
+                    <button className='feedback-submit' disabled={isSubmitting || !user} onClick={handleSubmit}>
                         {isSubmitting ? (
                             <span className="material-icons spinning">refresh</span>
                         ) : (
