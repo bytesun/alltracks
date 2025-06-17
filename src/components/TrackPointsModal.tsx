@@ -23,7 +23,12 @@ export const TrackPointsModal = ({ points, onClose, onRemove }: TrackPointsModal
   };
 
   return (
-    <div className="modal-overlay">
+    <div
+      className="modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="modal-content track-points-modal" style={{ position: 'relative' }}>
         <div className="modal-header" style={{ position: 'relative', paddingRight: 40 }}>
           <h3>Track Points</h3>
