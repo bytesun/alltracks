@@ -18,7 +18,17 @@ export const TrackPointsModal = ({ points, onClose, onRemove }: TrackPointsModal
         </div>
         <div className="points-list">
           {[...points].reverse().map((point, index) => (
-            <div key={point.timestamp} className="point-item">
+            <div key={point.timestamp} className="point-item" style={{ position: 'relative' }}>
+              {onRemove && (
+                <button
+                  className="remove-point-x"
+                  onClick={() => onRemove(point.timestamp)}
+                  title="Remove checkpoint"
+                  style={{ position: 'absolute', top: 4, right: 4, background: 'none', border: 'none', color: '#c00', fontSize: 18, cursor: 'pointer', padding: 0, lineHeight: 1, zIndex: 2 }}
+                >
+                  ×
+                </button>
+              )}
               <div className="point-time">
                 {new Date(point.timestamp).toLocaleString()}
               </div>
@@ -49,16 +59,6 @@ export const TrackPointsModal = ({ points, onClose, onRemove }: TrackPointsModal
                     onClick={() => window.open(point.photo, '_blank')}
                   />
                 </div>
-              )}
-              {onRemove && (
-                <button
-                  className="remove-point-x"
-                  onClick={() => onRemove(point.timestamp)}
-                  title="Remove checkpoint"
-                  style={{ position: 'absolute', top: 4, right: 4, background: 'none', border: 'none', color: '#c00', fontSize: 18, cursor: 'pointer', padding: 0, lineHeight: 1 }}
-                >
-                  ×
-                </button>
               )}
             </div>
           ))}
