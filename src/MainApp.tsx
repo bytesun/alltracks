@@ -892,6 +892,7 @@ function MainApp() {
                   <th>Longitude</th>
                   <th>Elevation</th>
                   <th>Comment</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -902,6 +903,17 @@ function MainApp() {
                     <td>{point.longitude.toFixed(6)}</td>
                     <td>{point.elevation?.toFixed(1) || '-'}</td>
                     <td>{point.comment || '-'}</td>
+                    <td>
+                      <button
+                        onClick={() => {
+                          setTrackPoints(prev => prev.filter((_, i) => i !== index));
+                        }}
+                        style={{ color: 'red', cursor: 'pointer' }}
+                        title="Remove checkpoint"
+                      >
+                        Remove
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

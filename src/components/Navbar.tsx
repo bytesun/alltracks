@@ -174,7 +174,7 @@ export const Navbar = () => {
         
         {/* Desktop menu items */}
         <div className="desktop-menu">
-          <Link to="/trails" className="nav-link"><span className="material-icons">terrain</span>Trails</Link>
+          <Link to="/checkin" className="nav-link"><span className="material-icons">check_circle</span>CheckIn</Link>
           <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
           {principal &&<Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
