@@ -52,12 +52,12 @@ export const TrackPointsModal = ({ points, onClose, onRemove }: TrackPointsModal
               )}
               {onRemove && (
                 <button
-                  className="remove-point-btn"
-                  style={{ color: 'red', marginTop: 8, cursor: 'pointer' }}
+                  className="remove-point-x"
                   onClick={() => onRemove(point.timestamp)}
                   title="Remove checkpoint"
+                  style={{ position: 'absolute', top: 4, right: 4, background: 'none', border: 'none', color: '#c00', fontSize: 18, cursor: 'pointer', padding: 0, lineHeight: 1 }}
                 >
-                  Remove
+                  ×
                 </button>
               )}
             </div>
