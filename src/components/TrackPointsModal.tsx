@@ -5,9 +5,10 @@ import './TrackPointsModal.css';
 interface TrackPointsModalProps {
   points: TrackPoint[];
   onClose: () => void;
+  onRemove?: (timestamp: number) => void; // Add optional onRemove prop
 }
 
-export const TrackPointsModal = ({ points, onClose }: TrackPointsModalProps) => {
+export const TrackPointsModal = ({ points, onClose, onRemove }: TrackPointsModalProps) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content track-points-modal">
@@ -48,6 +49,16 @@ export const TrackPointsModal = ({ points, onClose }: TrackPointsModalProps) => 
                     onClick={() => window.open(point.photo, '_blank')}
                   />
                 </div>
+              )}
+              {onRemove && (
+                <button
+                  className="remove-point-btn"
+                  style={{ color: 'red', marginTop: 8, cursor: 'pointer' }}
+                  onClick={() => onRemove(point.timestamp)}
+                  title="Remove checkpoint"
+                >
+                  Remove
+                </button>
               )}
             </div>
           ))}
