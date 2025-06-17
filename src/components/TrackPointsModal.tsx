@@ -24,10 +24,29 @@ export const TrackPointsModal = ({ points, onClose, onRemove }: TrackPointsModal
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content track-points-modal">
-        <div className="modal-header">
+      <div className="modal-content track-points-modal" style={{ position: 'relative' }}>
+        <div className="modal-header" style={{ position: 'relative', paddingRight: 40 }}>
           <h3>Track Points</h3>
-          <button className="close-icon" onClick={onClose}>×</button>
+          <button
+            className="close-icon"
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              background: 'none',
+              border: 'none',
+              color: '#333',
+              fontSize: 24,
+              cursor: 'pointer',
+              padding: 0,
+              lineHeight: 1,
+              zIndex: 10
+            }}
+            title="Close"
+          >
+            ×
+          </button>
         </div>
         <div className="points-list">
           {[...points].reverse().map((point, index) => (
