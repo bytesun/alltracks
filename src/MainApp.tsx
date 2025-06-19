@@ -45,7 +45,7 @@ interface ProfileSettings {
   trackFileCollection: string;
 }
 
-// Fix for default marker icon
+
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
   shadowUrl: '/marker-shadow.png',
