@@ -8,18 +8,18 @@
     }
   ],
   "rewrites": [
-    { "source": "/group/:id", "destination": "/" },
-    { "source": "/group/:id/*", "destination": "/" },
-    { "source": "/tracks/:id", "destination": "/" },
-    { "source": "/tracks/:id/*", "destination": "/" },
+    { "source": "/group/:groupId", "destination": "/" },
+    { "source": "/group/:groupId/*", "destination": "/" },
+    { "source": "/tracks/:userId", "destination": "/" },
+    { "source": "/track/:trackId", "destination": "/" },
     { "source": "/profile/:id", "destination": "/" },
     { "source": "/profile/:id/*", "destination": "/" },
-    { "source": "/event/:id", "destination": "/" },
-    { "source": "/event/:id/*", "destination": "/" },
-    { "source": "/user/:id", "destination": "/" },
-    { "source": "/user/:id/*", "destination": "/" },
-    { "source": "/live/:id", "destination": "/" },
-    { "source": "/live/:id/*", "destination": "/" },
+    { "source": "/event/:eventId", "destination": "/" },
+    { "source": "/event/:eventId/*", "destination": "/" },
+    { "source": "/user/:userKey", "destination": "/" },
+    { "source": "/user/:userKey/*", "destination": "/" },
+    { "source": "/live/:liveId", "destination": "/" },
+    { "source": "/live/:liveId/*", "destination": "/" },
     { "source": "/checkin", "destination": "/" },
     { "source": "/trails", "destination": "/" }
   ]
