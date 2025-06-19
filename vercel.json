@@ -6,5 +6,21 @@
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/group/:id", "destination": "/" },
+    { "source": "/group/:id/*", "destination": "/" },
+    { "source": "/tracks/:id", "destination": "/" },
+    { "source": "/tracks/:id/*", "destination": "/" },
+    { "source": "/profile/:id", "destination": "/" },
+    { "source": "/profile/:id/*", "destination": "/" },
+    { "source": "/event/:id", "destination": "/" },
+    { "source": "/event/:id/*", "destination": "/" },
+    { "source": "/user/:id", "destination": "/" },
+    { "source": "/user/:id/*", "destination": "/" },
+    { "source": "/live/:id", "destination": "/" },
+    { "source": "/live/:id/*", "destination": "/" },
+    { "source": "/checkin", "destination": "/" },
+    { "source": "/trails", "destination": "/" }
   ]
 }
