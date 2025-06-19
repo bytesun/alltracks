@@ -9,17 +9,13 @@
   ],
   "rewrites": [
     { "source": "/group/:groupId", "destination": "/" },
-    { "source": "/group/:groupId/*", "destination": "/" },
+
     { "source": "/tracks/:userId", "destination": "/" },
     { "source": "/track/:trackId", "destination": "/" },
     { "source": "/profile/:id", "destination": "/" },
-    { "source": "/profile/:id/*", "destination": "/" },
     { "source": "/event/:eventId", "destination": "/" },
-    { "source": "/event/:eventId/*", "destination": "/" },
     { "source": "/user/:userKey", "destination": "/" },
-    { "source": "/user/:userKey/*", "destination": "/" },
     { "source": "/live/:liveId", "destination": "/" },
-    { "source": "/live/:liveId/*", "destination": "/" },
     { "source": "/checkin", "destination": "/" },
     { "source": "/trails", "destination": "/" }
   ]
