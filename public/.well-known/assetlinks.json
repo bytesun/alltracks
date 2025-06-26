@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "xyz.alltracks.twa",
+        "sha256_cert_fingerprints": ["21:CB:76:6D:66:37:74:BE:6A:B9:AA:8F:C4:19:59:D2:29:D4:B3:2A:F5:5D:BF:F9:AB:59:31:31:33:27:F6:15"]
+      }
+    }]
