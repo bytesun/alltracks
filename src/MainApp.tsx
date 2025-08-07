@@ -254,6 +254,21 @@ function MainApp() {
     return durationMs / (1000 * 60 * 60); // Convert milliseconds to hours
   };
 
+  // Improved moving time calculation: only sum intervals where distance > threshold (e.g., 5 meters)
+  const getMovingTime = (distanceThreshold = 5): number => {
+    if (trackPoints.length < 2) return 0;
+    let movingTimeMs = 0;
+    for (let i = 1; i < trackPoints.length; i++) {
+      const prev = trackPoints[i - 1];
+      const curr = trackPoints[i];
+      const dist = calculateDistance(prev.latitude, prev.longitude, curr.latitude, curr.longitude) * 1000;
+      if (dist > distanceThreshold) {
+        movingTimeMs += curr.timestamp - prev.timestamp;
+      }
+    }
+    return movingTimeMs / (1000 * 60 * 60); // hours
+  };
+
   function RecenterMap({ position }: { position: [number, number] }) {
     const map = useMap();
     map.setView(position);
@@ -776,22 +791,22 @@ function MainApp() {
 
         {!showStartModal && trackId && <div className="controls">
           {recordingMode === 'manual' ? (
-            <button onClick={recordPoint}>
+            <button onClick={recordPoint} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>
               Record Point
             </button>
           ) : (
             <div className="auto-controls">
               {trackingStatus === 'idle' && (
-                <button onClick={startTracking}>Start</button>
+                <button onClick={startTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Start</button>
               )}
               {trackingStatus === 'tracking' && (
-                <button onClick={pauseTracking}>Pause </button>
+                <button onClick={pauseTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Pause </button>
               )}
               {trackingStatus === 'paused' && (
-                <button onClick={resumeTracking}>Resume</button>
+                <button onClick={resumeTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Resume</button>
               )}
               {(trackingStatus === 'tracking' || trackingStatus === 'paused') && (
-                <button onClick={stopTracking}>Stop</button>
+                <button onClick={stopTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Stop</button>
               )}
             </div>
           )}
@@ -799,9 +814,8 @@ function MainApp() {
 
         {trackPoints.length > 0 &&
           <div className="stats">
-
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
-            <p>Duration: {getDuration().toFixed(2)} hours</p>
+            <p>Moving Time: {getMovingTime().toFixed(2)} hours</p>
             <p>Distance: {getTotalDistance().toFixed(2)} km</p>
             <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
             <p
@@ -809,10 +823,8 @@ function MainApp() {
               className="points-count-link"
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
-
             </p>
             {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Live</a>}
-
           </div>}
 
         {viewMode === 'map' ? (
