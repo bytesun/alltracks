@@ -6,7 +6,7 @@ import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
 import { TrackPage } from './pages/Track';
 import { TracksPage } from './pages/TracksPage';
-import  CheckIn  from './pages/CheckIn';
+// ...existing code...
 
 import { Live } from './pages/Live';
 import { Status } from './pages/Status';
@@ -31,7 +31,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainApp />} />
                 <Route path="/trails" element={<Trails />} />
-                <Route path="/checkin" element={<CheckIn />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/track/:trackId" element={<TrackPage />} />
                 <Route path="/event/:eventId" element={<EventPage />} />

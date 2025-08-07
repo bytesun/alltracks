@@ -16,7 +16,6 @@
     { "source": "/event/:eventId", "destination": "/" },
     { "source": "/user/:userKey", "destination": "/" },
     { "source": "/live/:liveId", "destination": "/" },
-    { "source": "/checkin", "destination": "/" },
     { "source": "/trails", "destination": "/" }
   ]
 }
