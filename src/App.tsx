@@ -41,6 +41,7 @@ function App() {
                 <Route path="/group/:groupId" element={<GroupPage />} />
                 <Route path="/user/:userKey" element={<UserPage />} />
                 <Route path="/tracks/:userId" element={<TracksPage />} />
+                
               </Routes>
             </Layout>
           

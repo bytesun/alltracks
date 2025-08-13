@@ -127,11 +127,11 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                     onChange={(e) => handleTrackSelection(e.target.value)}
                     className="track-select"
                   >
-                    <option value="">Choose a track</option>
+                    <option value="">Choose/Create a track</option>
                     <option value="new">➕ Create New Track</option>
                     {existingTracks.map(track => (
                       <option key={track.id} value={track.id}>
-                        🕒 {track.id} ({new Date(track.timestamp).toLocaleDateString()})
+                        🕒 {track.id}  ({new Date(track.timestamp).toLocaleDateString()})
                       </option>
                     ))}
                   </select>
@@ -178,7 +178,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             )}
           </section>
 
-          <section className="recording-settings">
+          {/* <section className="recording-settings">
 
             <div className="recording-mode-toggle">
               <label className={`mode-option ${recordingMode === 'manual' ? 'active' : ''}`}>
@@ -250,7 +250,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                 </div>
               </div>
             )}
-          </section>
+          </section> */}
         </div>
 
         <footer className="modal-footer">
