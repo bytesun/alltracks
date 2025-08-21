@@ -824,7 +824,22 @@ function MainApp() {
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
-            {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Live</a>}
+            {isAuthed && hasCloudPoints && (
+              <button
+                style={{ marginLeft: 8, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}
+                onClick={async () => {
+                  const url = window.location.origin + '/live/' + trackId;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    showNotification('Share link copied to clipboard!', 'success');
+                  } catch (e) {
+                    showNotification('Failed to copy link', 'error');
+                  }
+                }}
+              >
+                Share
+              </button>
+            )}
           </div>}
 
         {viewMode === 'map' ? (
