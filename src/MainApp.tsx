@@ -74,6 +74,8 @@ function MainApp() {
   const alltracks = useAlltracks();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
+  const [trackType, setTrackType] = useState<string>('hiking');
+  const [trackName, setTrackName] = useState<string | null>(null);
 
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
@@ -149,9 +151,10 @@ function MainApp() {
 
   useEffect(() => {
     const loadPoints = async () => {
-      const savedPoints = await getTrackPointsFromIndexDB(trackId);
-      if (savedPoints.length > 0) {
-        setTrackPoints(savedPoints);
+      const result = await getTrackPointsFromIndexDB(trackId);
+      if (result.points.length > 0) {
+        setTrackPoints(result.points);
+        setTrackType(result.trackType);
       }
     };
     if (trackId) {
@@ -170,10 +173,11 @@ function MainApp() {
 
   useEffect(() => {
     const saveIndexdb = async () => {
-      await saveTrackPointsToIndexDB(trackId, trackPoints);
+      if (!trackId) return; // don't write an entry with null id
+      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType);
     }
     saveIndexdb();
-  }, [trackPoints])
+  }, [trackPoints, trackType])
 
 
 
@@ -454,7 +458,7 @@ function MainApp() {
         // }
         //save to  IndexDB
         const updatedPoints = [...trackPoints, newPoint];
-        await saveTrackPointsToIndexDB(trackId, updatedPoints);
+  await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType);
         if (data.photo) {
           // if (data.cloudEnabled) {
           //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
@@ -501,7 +505,7 @@ function MainApp() {
                     ? { ...point, photo: photoUrl }
                     : point
                 );
-                await saveTrackPointsToIndexDB(trackId, updatedPoints);
+                await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType);
                 showNotification('Photo uploaded to Arweave:', "success");
               }
             } catch (error) {
@@ -596,6 +600,13 @@ function MainApp() {
     Cookies.remove('lastTrackId');
     setTrackId(null)
     setTrackPoints([]);
+    setImportPoints([]);
+    setIsTracking(false);
+    setTrackingStatus('idle');
+    setTrackType('hiking');
+    setHasCloudPoints(false);
+    setMessage(undefined);
+    setTrackName(null);
     showNotification('Track cleared', 'success');
 
   };
@@ -730,15 +741,18 @@ function MainApp() {
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
       minTime: number;
-      maxTime: number;
+      maxTime: number;  
       minDistance: number;
-    }
+    };
+    trackType: string;
+    trackName?: string;
   }) => {
 
     Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
     Cookies.set('lastGroupId', trackSettings.groupId, { expires: 7 });
 
-    setTrackId(trackSettings.trackId);
+  setTrackId(trackSettings.trackId);
+  if (trackSettings.trackName) setTrackName(trackSettings.trackName);
     setGroupId(trackSettings.groupId);
     // setWallet(trackSettings.wallet);
     setRecordingMode(trackSettings.recordingMode);
@@ -824,22 +838,7 @@ function MainApp() {
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
-            {isAuthed && hasCloudPoints && (
-              <button
-                style={{ marginLeft: 8, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}
-                onClick={async () => {
-                  const url = window.location.origin + '/live/' + trackId;
-                  try {
-                    await navigator.clipboard.writeText(url);
-                    showNotification('Share link copied to clipboard!', 'success');
-                  } catch (e) {
-                    showNotification('Failed to copy link', 'error');
-                  }
-                }}
-              >
-                Share
-              </button>
-            )}
+            {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Live</a>}
           </div>}
 
         {viewMode === 'map' ? (

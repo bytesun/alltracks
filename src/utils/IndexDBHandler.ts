@@ -25,25 +25,24 @@ export const setupIndexedDB = async () => {
   await initDB();
 };
 
-export const saveTrackPointsToIndexDB = async (trackId: string, points: TrackPoint[]) => {
+export const saveTrackPointsToIndexDB = async (trackId: string, points: TrackPoint[], trackType?: string) => {
   const db = await openDB(DB_NAME, DB_VERSION);
-
   await db.put(STORE_NAME, {
     id: trackId,
     points: points,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    trackType: trackType || 'hiking',
   });
 };
 export const getTrackPointsFromIndexDB = async (trackId: string | null) => {
   if (!trackId) {
-    return [];
+    return { points: [], trackType: 'hiking' };
   }
-  
   const db = await openDB(DB_NAME, DB_VERSION);
   const tx = db.transaction(STORE_NAME, 'readonly');
   const store = tx.objectStore(STORE_NAME);
   const result = await store.get(trackId);
-  return result?.points || [];
+  return { points: result?.points || [], trackType: result?.trackType || 'hiking' };
 };
 
 // Clear specific track

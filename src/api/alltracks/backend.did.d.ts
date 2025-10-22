@@ -174,7 +174,7 @@ export type TrackFilter = { 'user' : Principal } |
 export type TrackType = { 'fly' : null } |
   { 'run' : null } |
   { 'ski' : null } |
-  { 'other' : null } |
+  { 'track' : null } |
   { 'bike' : null } |
   { 'hike' : null } |
   { 'travel' : null } |

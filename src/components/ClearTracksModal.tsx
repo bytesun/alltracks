@@ -30,13 +30,20 @@ export const ClearTracksModal: React.FC<ClearTracksModalProps> = ({ onClose, onC
         <h3>Local Stored Tracks</h3>
         <div className="tracks-list">
           {tracks.length > 0 ? (
-            tracks.map((track) => (
-              <div key={track.id} className="track-item">
-                <span>{new Date(track.points[0]?.timestamp).toLocaleString()}</span>
-                <span>{track.points.length} points</span>
-                <button onClick={() => handleClearTrack(track.id)}>x</button>
-              </div>
-            ))
+            tracks.map((track) => {
+              const pts = track.points || [];
+              const firstTs = pts.length > 0 ? new Date(pts[0].timestamp).toLocaleString() : '–';
+              const count = pts.length || 0;
+              const name = track.name || 'Unnamed';
+              return (
+                <div key={track.id} className="track-item">
+                  <span className="track-name">{name}</span>
+                  <span className="track-ts">{firstTs}</span>
+                  <span className="track-count">{count} points</span>
+                  <button onClick={() => handleClearTrack(track.id)}>x</button>
+                </div>
+              );
+            })
           ) : (
             <div className="empty-tracks">
               <span className="material-icons">info</span>

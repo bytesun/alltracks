@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { v4 as uuidv4 } from 'uuid';
 import { openDB } from 'idb';
 import "../styles/StartTrackModal.css";
@@ -17,6 +18,8 @@ interface StartTrackModalProps {
       minTime: number;
       minDistance: number;
     };
+    trackType: string;
+    trackName?: string;
   }) => void;
 }
 
@@ -31,10 +34,12 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   const [trackId, setTrackId] = React.useState<string>(uuidv4());
   const [groupId, setGroupId] = React.useState<string>(Cookies.get('groupId') || '0');
   const [recordingMode, setRecordingMode] = React.useState<'manual' | 'auto'>('manual');
-  const [existingTracks, setExistingTracks] = React.useState<{ id: string, timestamp: number }[]>([]);
+  const [existingTracks, setExistingTracks] = React.useState<{ id: string, timestamp: number, name?: string }[]>([]);
   const [selectedTrack, setSelectedTrack] = React.useState<string>('');
   const [wallet, setWallet] = React.useState<any>(null);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [trackType, setTrackType] = React.useState<string>('hiking');
+  const [trackName, setTrackName] = useState<string>('');
   const [autoRecordingSettings, setAutoRecordingSettings] = React.useState({
     minTime: 10,
     minDistance: 10,
@@ -63,11 +68,12 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
     const loadTracks = async () => {
       try {
         const db = await openDB('tracks-db', 1);
-        const tracks = await db.getAll('tracks');
-        setExistingTracks(tracks.map(track => ({
-          id: track.id,
-          timestamp: track.timestamp
-        })));
+          const tracks = await db.getAll('tracks');
+          setExistingTracks(tracks.map(track => ({
+            id: track.id,
+            timestamp: track.timestamp,
+            name: track.name || ''
+          })));
       } catch (error) {
         // console.error("Error loading tracks:", error);
       };
@@ -83,9 +89,27 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   const handleTrackSelection = (value: string) => {
     setSelectedTrack(value);
     if (value === 'new') {
-      //do nothing
+      // generate a fresh id for the new track
+      setTrackId(uuidv4());
+      setTrackName('');
+      setTrackType('hiking');
     } else {
-      setTrackId(value);
+      // existing track selected -> load metadata from IndexedDB
+      (async () => {
+        try {
+          const db = await openDB('tracks-db', 1);
+          const rec = await db.get('tracks', value);
+          if (rec) {
+            setTrackId(rec.id || value);
+            setTrackName(rec.name || '');
+            setTrackType(rec.type || 'hiking');
+          } else {
+            setTrackId(value);
+          }
+        } catch (err) {
+          setTrackId(value);
+        }
+      })();
     }
   };
 
@@ -131,7 +155,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                     <option value="new">➕ Create New Track</option>
                     {existingTracks.map(track => (
                       <option key={track.id} value={track.id}>
-                        🕒 {track.id}  ({new Date(track.timestamp).toLocaleDateString()})
+                        {track.name ? `🕒 ${track.name} (${track.id})` : `🕒 ${track.id}`}  ({new Date(track.timestamp).toLocaleDateString()})
                       </option>
                     ))}
                   </select>
@@ -139,7 +163,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
               </div>
             )}
 
-            {(selectedTrack === 'new' || existingTracks.length === 0) && (
+            {/* {(selectedTrack === 'new' || existingTracks.length === 0) && (
               <div className="setting-row">
                 <div className="setting-label">
                   <span>Track ID</span>
@@ -148,12 +172,13 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                   <input
                     type="text"
                     value={trackId}
+                    disabled
                     onChange={(e) => setTrackId(e.target.value)}
                     placeholder="Enter track identifier"
                   />
                 </div>
               </div>
-            )}
+            )} */}
 
             {isAuthed && groups.length > 0 && (
               <div className="setting-row">
@@ -176,6 +201,41 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                 </div>
               </div>
             )}
+
+            <div className="setting-row">
+              <div className="setting-label">
+                <span>Track Type</span>
+              </div>
+              <div className="setting-control">
+                <select
+                  value={trackType}
+                  onChange={e => setTrackType(e.target.value)}
+                  className="track-type-select"
+                >
+                  <option value="hiking">Hiking</option>
+                  <option value="travaling">Traveling</option>
+                  <option value="running">Running</option>
+                  <option value="cycling">Cycling</option>
+                  <option value="rowing">Rowing</option>
+                  <option value="sailing">Sailing</option>
+                  <option value="tracking">Tracking</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-label">
+                <span>Track Name</span>
+              </div>
+              <div className="setting-control">
+                <input
+                  type="text"
+                  value={trackName}
+                  onChange={(e) => setTrackName(e.target.value)}
+                  placeholder="Enter a friendly name for this track"
+                />
+              </div>
+            </div>
           </section>
 
           {/* <section className="recording-settings">
@@ -281,16 +341,35 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             )}
           </section> */}
           <button
-            disabled={!trackId || !recordingMode || trackId === ''}
-            onClick={() => onStart({
-              trackId,
-              groupId,
-              wallet,
-              recordingMode,
-              autoRecordingSettings
-            })}
+            disabled={trackName.trim() === ''}
+            onClick={async () => {
+              // ensure we have an id
+              const idToSave = trackId || uuidv4();
+              setTrackId(idToSave);
+              try {
+                const db = await openDB('tracks-db', 1, {
+                  upgrade(db) {
+                    if (!db.objectStoreNames.contains('tracks')) {
+                      db.createObjectStore('tracks', { keyPath: 'id' });
+                    }
+                  }
+                });
+                const record = { id: idToSave, timestamp: Date.now(), name: trackName, type: trackType };
+                await db.put('tracks', record);
+              } catch (err) {
+                // ignore
+              }
+              onStart({
+                trackId: idToSave,
+                groupId,
+                wallet,
+                recordingMode,
+                autoRecordingSettings,
+                trackType,
+                trackName
+              });
+            }}
           >
-
             Start
           </button>
 
