@@ -5,7 +5,7 @@ import { AuthClient } from "@dfinity/auth-client";
 import { LoginModal } from './LoginModal';
 import { useGlobalContext,useSetAgent,useSetLoginModal } from './Store';
 
-import { HOST, IDENTITY_PROVIDER } from "../lib/canisters";
+import { HOST, IDENTITY_PROVIDER, IDENTITY_PROVIDER_v2 } from "../lib/canisters";
 import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -63,7 +63,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
-      identityProvider: IDENTITY_PROVIDER,
+      identityProvider: IDENTITY_PROVIDER_v2,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
