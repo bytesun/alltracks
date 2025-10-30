@@ -20,7 +20,8 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
   const [comment, setComment] = useState('');
   const [showCloudOptions, setShowCloudOptions] = useState(false);
 
-  const [enableCloud, setEnableCloud] = useState(false);
+  // Default cloud enabled when user is authenticated
+  const [enableCloud, setEnableCloud] = useState<boolean>(Boolean(isAuthed));
   const [reportIncident, setReportIncident] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
@@ -53,6 +54,14 @@ export const CommentModal: React.FC<CommentModalProps> = ({ onSave, onClose }) =
     });
     onClose();
   };
+
+  // If the user becomes authenticated while the modal is open,
+  // default to enabling cloud sync (but don't override an explicit user choice).
+  React.useEffect(() => {
+    if (isAuthed && !enableCloud) {
+      setEnableCloud(true);
+    }
+  }, [isAuthed]);
 
   return (
     <div className="modal-overlay">
