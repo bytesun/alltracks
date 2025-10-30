@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 
 import { useGlobalContext, useSetLoginModal, useSetAgent } from "./Store";
 
-import { HOST, IDENTITY_PROVIDER } from "../lib/canisters";
+import { HOST, IDENTITY_PROVIDER, IDENTITY_PROVIDER_v2 } from "../lib/canisters";
 import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
 
 export const Navbar = () => {
@@ -70,7 +70,7 @@ export const Navbar = () => {
 
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
-      identityProvider: IDENTITY_PROVIDER,
+      identityProvider: IDENTITY_PROVIDER_v2,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
@@ -86,6 +86,25 @@ export const Navbar = () => {
     });
   };
 
+  const handleIIV2Login = async () => {
+
+    authClient.login({
+      // derivationOrigin: DERIVATION_ORIGION,
+      identityProvider: IDENTITY_PROVIDER_v2,
+      maxTimeToLive: ONE_WEEK_NS,
+      windowOpenerFeatures: windowFeatures,
+      onSuccess: () => {
+        const identity = authClient.getIdentity();
+        setAgent({
+          agent: new HttpAgent({
+            identity,
+            host: HOST,
+          }),
+          isAuthed: true,
+        });
+      },
+    });
+  };
   const handleIILogout = async () => {
     await authClient.logout();
     setAgent({ agent: null });
@@ -123,9 +142,13 @@ export const Navbar = () => {
       }
     });
   };
+
   const handleLogin = (method: string) => {
     if (method === 'ii') {
       handleIILogin();
+    } else if (method === 'iiv2') {
+      // Implement II v2 login
+      handleIIV2Login();
     } else if (method === 'google') {
       // Implement Google login
       handleNFIDLogin();
@@ -176,6 +199,7 @@ export const Navbar = () => {
         <div className="desktop-menu">
 
           <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
+          <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Spots</Link>
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
           {principal &&<Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
           {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}

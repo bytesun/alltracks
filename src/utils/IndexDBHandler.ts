@@ -2,7 +2,7 @@ import { openDB } from 'idb';
 import { TrackPoint } from '../types/TrackPoint';
 const DB_NAME = 'tracks-db';
 const STORE_NAME = 'tracks';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const initDB = () => {
   return new Promise((resolve, reject) => {
@@ -15,6 +15,12 @@ export const initDB = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('spots')) {
+        db.createObjectStore('spots', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('comments')) {
+        db.createObjectStore('comments', { keyPath: 'id', autoIncrement: true });
       }
     };
   });
@@ -68,4 +74,46 @@ export const getAllTracksFromIndexDB = async () => {
   const store = tx.objectStore(STORE_NAME);
   const allTracks = await store.getAll();
   return allTracks || [];
+};
+
+// Spots helpers
+export const saveSpotToIndexDB = async (spot: { id: string; name: string; latitude: number; longitude: number; timestamp: number }) => {
+  const db = await openDB(DB_NAME, DB_VERSION);
+  await db.put('spots', spot);
+};
+
+export const getAllSpotsFromIndexDB = async () => {
+  const db = await openDB(DB_NAME, DB_VERSION);
+  const tx = db.transaction('spots', 'readonly');
+  const store = tx.objectStore('spots');
+  const all = await store.getAll();
+  return all || [];
+};
+
+export const getSpotFromIndexDB = async (id: string) => {
+  const db = await openDB(DB_NAME, DB_VERSION);
+  return await db.get('spots', id);
+};
+
+export const clearSpotFromIndexDB = async (id: string) => {
+  const db = await openDB(DB_NAME, DB_VERSION);
+  const tx = db.transaction('spots', 'readwrite');
+  const store = tx.objectStore('spots');
+  await store.delete(id);
+};
+
+// Comments helpers (comments stored with id auto-increment; include spotId)
+export const saveCommentToIndexDB = async (spotId: string, comment: { author: string; text: string; timestamp: number }) => {
+  const db = await openDB(DB_NAME, DB_VERSION);
+  const tx = db.transaction('comments', 'readwrite');
+  const store = tx.objectStore('comments');
+  await store.add({ spotId, ...comment });
+};
+
+export const getCommentsForSpot = async (spotId: string) => {
+  const db = await openDB(DB_NAME, DB_VERSION);
+  const tx = db.transaction('comments', 'readonly');
+  const store = tx.objectStore('comments');
+  const all = await store.getAll();
+  return (all || []).filter((c: any) => c.spotId === spotId);
 };

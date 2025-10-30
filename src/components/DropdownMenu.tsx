@@ -47,6 +47,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
             Trails
           </li>
           <li onClick={() => {
+            navigate('/spots');
+            setIsOpen(false);
+          }}>
+            <span className="material-icons">place</span>
+            Spots
+          </li>
+          <li onClick={() => {
             navigate('/status');
             setIsOpen(false);
           }}>

@@ -15,6 +15,8 @@ import { Guide } from './pages/Guide';
 import { GroupPage } from './pages/GroupPage';
 import { UserPage } from './pages/UserPage';
 import { EventPage } from './pages/EventPage';
+import Spots from './pages/Spots';
+import SpotDetail from './pages/SpotDetail';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -41,6 +43,8 @@ function App() {
                 <Route path="/group/:groupId" element={<GroupPage />} />
                 <Route path="/user/:userKey" element={<UserPage />} />
                 <Route path="/tracks/:userId" element={<TracksPage />} />
+                <Route path="/spots" element={<Spots />} />
+                <Route path="/spots/:spotId" element={<SpotDetail />} />
                 
               </Routes>
             </Layout>

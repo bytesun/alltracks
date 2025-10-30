@@ -1,0 +1,100 @@
+.page-container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-container h2 {
+  margin-top: 0;
+}
+
+.page-container input[type="text"],
+.page-container textarea,
+.page-container .spot-name-input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 60%;
+  max-width: 420px;
+}
+
+.page-container .spot-name-input:focus,
+.page-container textarea:focus {
+  outline: 2px solid rgba(76,175,80,0.25);
+  border-color: #4caf50;
+}
+
+.page-container .primary-btn,
+.page-container button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #4CAF50; /* match app primary button color */
+  color: white;
+  cursor: pointer;
+}
+
+.page-container .primary-btn:disabled,
+.page-container button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.page-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.page-container li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-container li a {
+  color: #007AFF;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-container .meta {
+  color: #666;
+  margin-left: 8px;
+}
+
+.add-spot-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.add-spot-controls .spot-name-input {
+  flex: 1 1 420px;
+}
+
+.comment-block {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.comment-block textarea {
+  flex: 1 1 720px;
+  min-height: 84px;
+}
+
+.comment-block .primary-btn {
+  align-self: flex-start;
+}
+
+.comment-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #efefef;
+}
+
+.comment-item .meta {
+  font-size: 12px;
+}

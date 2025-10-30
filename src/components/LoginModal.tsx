@@ -15,10 +15,14 @@ export const LoginModal: React.FC<{ isOpen: boolean; onClose: () => void; onLogi
             <img src="/dfinity.ico" alt="Internet Identity" />
             Internet Identity
           </button>
-          <button className="login-button google" onClick={() => onLogin('google')}>
+              {/* <button className="login-button ii" onClick={() => onLogin('iiv2')}>
+            <img src="/dfinity.ico" alt="Internet Identity 2" />
+            Internet Identity 2
+          </button> */}
+          {/* <button className="login-button google" onClick={() => onLogin('google')}>
           <img src="/google.png" alt="Google" />
            Google
-          </button>
+          </button> */}
         </div>
         <button className="close-button" onClick={onClose}>
           <span className="material-icons">close</span>
