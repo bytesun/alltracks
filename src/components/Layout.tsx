@@ -78,7 +78,25 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       },
     });
   };
+const handleII2Login = async () => {
 
+    authClient.login({
+      derivationOrigin: DERIVATION_ORIGION,
+      identityProvider: IDENTITY_PROVIDER_v2,
+      maxTimeToLive: ONE_WEEK_NS,
+      windowOpenerFeatures: windowFeatures,
+      onSuccess: () => {
+        const identity = authClient.getIdentity();
+        setAgent({
+          agent: new HttpAgent({
+            identity,
+            host: HOST,
+          }),
+          isAuthed: true,
+        });
+      },
+    });
+  };
   const handleIILogout = async () => {
     await authClient.logout();
     setAgent({ agent: null });
@@ -122,6 +140,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     } else if (method === 'google') {
       // Implement Google login
       handleNFIDLogin();
+    } else if (method === 'iiv2') {
+      handleII2Login();
     }
     setLoginModal(false);
   };
