@@ -67,17 +67,19 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   React.useEffect(() => {
     const loadTracks = async () => {
       try {
-        const db = await openDB('tracks-db', 1);
-          const tracks = await db.getAll('tracks');
-          setExistingTracks(tracks.map(track => ({
+        const db = await openDB('tracks-db', 2);
+        const tracks = await db.getAll('tracks');
+        setExistingTracks(
+          (tracks || []).map((track: any) => ({
             id: track.id,
-            timestamp: track.timestamp,
+            timestamp: track.timestamp || Date.now(),
             name: track.name || ''
-          })));
+          }))
+        );
       } catch (error) {
         // console.error("Error loading tracks:", error);
-      };
-    }
+      }
+    };
     loadTracks();
   }, []);
 
@@ -97,12 +99,13 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
       // existing track selected -> load metadata from IndexedDB
       (async () => {
         try {
-          const db = await openDB('tracks-db', 1);
+          const db = await openDB('tracks-db', 2);
           const rec = await db.get('tracks', value);
           if (rec) {
             setTrackId(rec.id || value);
             setTrackName(rec.name || '');
-            setTrackType(rec.type || 'hiking');
+            // some records use 'type' or 'trackType'
+            setTrackType(rec.type || rec.trackType || 'hiking');
           } else {
             setTrackId(value);
           }
@@ -341,21 +344,32 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             )}
           </section> */}
           <button
-            disabled={trackName.trim() === ''}
+            disabled={(() => {
+              // allow starting an existing track without editing name
+              if (selectedTrack && selectedTrack !== 'new') return false;
+              // if there are no existing tracks, require a name
+              if (existingTracks.length === 0) return trackName.trim() === '';
+              // if creating new, require a name
+              if (selectedTrack === 'new' || selectedTrack === '') return trackName.trim() === '';
+              return true;
+            })()}
             onClick={async () => {
               // ensure we have an id
               const idToSave = trackId || uuidv4();
               setTrackId(idToSave);
               try {
-                const db = await openDB('tracks-db', 1, {
-                  upgrade(db) {
-                    if (!db.objectStoreNames.contains('tracks')) {
-                      db.createObjectStore('tracks', { keyPath: 'id' });
+                // only create/update record if creating a new track
+                if (selectedTrack === 'new' || existingTracks.length === 0) {
+                  const db = await openDB('tracks-db', 2, {
+                    upgrade(db) {
+                      if (!db.objectStoreNames.contains('tracks')) {
+                        db.createObjectStore('tracks', { keyPath: 'id' });
+                      }
                     }
-                  }
-                });
-                const record = { id: idToSave, timestamp: Date.now(), name: trackName, type: trackType };
-                await db.put('tracks', record);
+                  });
+                  const record = { id: idToSave, timestamp: Date.now(), name: trackName, type: trackType };
+                  await db.put('tracks', record);
+                }
               } catch (err) {
                 // ignore
               }
