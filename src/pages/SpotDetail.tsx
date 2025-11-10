@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './Spots.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getSpotFromIndexDB, getCommentsForSpot, saveCommentToIndexDB, clearSpotFromIndexDB } from '../utils/IndexDBHandler';
+import { useAlltracks } from '../components/Store';
+import { getCommentsForSpot, saveCommentToIndexDB } from '../utils/IndexDBHandler';
 
 type Spot = {
   id: string;
@@ -9,6 +10,8 @@ type Spot = {
   latitude: number;
   longitude: number;
   timestamp: number;
+  tags?: string[];
+  description?: string;
 };
 
 export default function SpotDetail() {
@@ -19,10 +22,33 @@ export default function SpotDetail() {
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const alltracks = useAlltracks();
+
   const load = async () => {
     if (!spotId) return;
-    const s = await getSpotFromIndexDB(spotId);
-    setSpot(s || null);
+    const name = decodeURIComponent(spotId);
+    try {
+      const s = await alltracks.getSpotByName(name);
+      if (s) {
+        let latitude = 0, longitude = 0;
+        let note = '';
+        try {
+          const parsed = JSON.parse(s.description || '{}');
+          latitude = parsed.latitude || 0;
+          longitude = parsed.longitude || 0;
+          note = parsed.note || '';
+        } catch (e) {
+          // if description isn't JSON, use raw text
+          note = s.description || '';
+        }
+        setSpot({ id: s.name, name: s.name, latitude, longitude, timestamp: s.createdAt, tags: s.tags || [], description: note } as any);
+      } else {
+        setSpot(null);
+      }
+    } catch (err) {
+      console.error('Failed to load spot from backend', err);
+      setSpot(null);
+    }
     const cs = await getCommentsForSpot(spotId);
     setComments(cs || []);
   };
@@ -59,7 +85,13 @@ export default function SpotDetail() {
   const removeSpot = async () => {
     if (!spotId) return;
     if (!confirm('Delete this spot?')) return;
-    await clearSpotFromIndexDB(spotId);
+    const name = decodeURIComponent(spotId);
+    try {
+      await alltracks.deleteSpot(name);
+    } catch (err) {
+      console.error('Failed to delete spot', err);
+      alert('Unable to delete spot.');
+    }
     navigate('/spots');
   };
 
@@ -68,6 +100,12 @@ export default function SpotDetail() {
   return (
     <div className="page-container">
       <h2>{spot.name || 'Unnamed spot'}</h2>
+      {spot.tags && spot.tags.length > 0 && (
+        <div className="tags-row" style={{ marginBottom: 8 }}>
+          {spot.tags.map((t: string) => <span key={t} className="tag-chip">{t}</span>)}
+        </div>
+      )}
+      {spot.description && <div className="spot-desc" style={{ marginBottom: 8 }}>{spot.description}</div>}
       <div style={{ marginBottom: 8 }}>
         <strong>Coordinates:</strong> {spot.latitude.toFixed(6)}, {spot.longitude.toFixed(6)}
       </div>

@@ -93,6 +93,11 @@ export interface NewSavedPoint {
   'longitude' : number,
   'category' : string,
 }
+export interface NewSpot {
+  'name' : string,
+  'tags' : Array<string>,
+  'description' : string,
+}
 export interface NewTrack {
   'id' : string,
   'duration' : number,
@@ -130,15 +135,17 @@ export interface Photo {
   'timestamp' : Time,
 }
 export interface Point { 'latitude' : number, 'longitude' : number }
-export type Result = { 'ok' : bigint } |
+export type Result = { 'ok' : Spot } |
   { 'err' : string };
-export type Result_1 = { 'ok' : Trail } |
+export type Result_1 = { 'ok' : bigint } |
   { 'err' : string };
-export type Result_2 = { 'ok' : Track } |
+export type Result_2 = { 'ok' : Trail } |
   { 'err' : string };
-export type Result_3 = { 'ok' : SavedPoint } |
+export type Result_3 = { 'ok' : Track } |
   { 'err' : string };
-export type Result_4 = { 'ok' : Group } |
+export type Result_4 = { 'ok' : SavedPoint } |
+  { 'err' : string };
+export type Result_5 = { 'ok' : Group } |
   { 'err' : string };
 export interface SavedPoint {
   'latitude' : number,
@@ -152,6 +159,13 @@ export type Severity = { 'low' : null } |
   { 'high' : null } |
   { 'critical' : null } |
   { 'medium' : null };
+export interface Spot {
+  'name' : string,
+  'createdAt' : Time,
+  'createdBy' : Principal,
+  'tags' : Array<string>,
+  'description' : string,
+}
 export type Time = bigint;
 export interface Track {
   'id' : string,
@@ -174,7 +188,7 @@ export type TrackFilter = { 'user' : Principal } |
 export type TrackType = { 'fly' : null } |
   { 'run' : null } |
   { 'ski' : null } |
-  { 'track' : null } |
+  { 'other' : null } |
   { 'bike' : null } |
   { 'hike' : null } |
   { 'travel' : null } |
@@ -228,7 +242,7 @@ export interface _SERVICE {
       Principal,
       { 'comment' : string, 'timestamp' : Time, 'photo' : [] | [string] },
     ],
-    Result
+    Result_1
   >,
   'addPhoto' : ActorMethod<
     [
@@ -240,17 +254,19 @@ export interface _SERVICE {
         'timestamp' : Time,
       },
     ],
-    Result
+    Result_1
   >,
-  'createCheckpoint' : ActorMethod<[NewCheckPoint], Result>,
-  'createGroup' : ActorMethod<[NewGroup], Result_4>,
-  'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result>,
-  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_3>,
-  'createTrack' : ActorMethod<[NewTrack], Result_2>,
-  'createTrail' : ActorMethod<[NewTrail], Result_1>,
-  'createUserCredential' : ActorMethod<[UserCredential], Result>,
-  'deletePhoto' : ActorMethod<[string], Result>,
-  'deleteTrail' : ActorMethod<[bigint], Result>,
+  'createCheckpoint' : ActorMethod<[NewCheckPoint], Result_1>,
+  'createGroup' : ActorMethod<[NewGroup], Result_5>,
+  'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result_1>,
+  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_4>,
+  'createSpot' : ActorMethod<[NewSpot], Result>,
+  'createTrack' : ActorMethod<[NewTrack], Result_3>,
+  'createTrail' : ActorMethod<[NewTrail], Result_2>,
+  'createUserCredential' : ActorMethod<[UserCredential], Result_1>,
+  'deletePhoto' : ActorMethod<[string], Result_1>,
+  'deleteSpot' : ActorMethod<[string], Result_1>,
+  'deleteTrail' : ActorMethod<[bigint], Result_1>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpointComments' : ActorMethod<
     [Time, Principal],
@@ -273,6 +289,7 @@ export interface _SERVICE {
     Array<IncidentPoint>
   >,
   'getIncidentPointsByTrack' : ActorMethod<[string], Array<IncidentPoint>>,
+  'getLatestCheckpoints' : ActorMethod<[], Array<CheckPoint>>,
   'getListCounts' : ActorMethod<
     [],
     {
@@ -287,8 +304,11 @@ export interface _SERVICE {
   'getMyGroups' : ActorMethod<[], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMySavedPoints' : ActorMethod<[], Array<SavedPoint>>,
+  'getMySpots' : ActorMethod<[bigint, bigint], Array<Spot>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,
   'getSavedPointsByCategory' : ActorMethod<[string], Array<SavedPoint>>,
+  'getSpotByName' : ActorMethod<[string], [] | [Spot]>,
+  'getSpots' : ActorMethod<[bigint, bigint], Array<Spot>>,
   'getTrack' : ActorMethod<[string], [] | [Track]>,
   'getTrackPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
@@ -299,10 +319,12 @@ export interface _SERVICE {
     Array<Trail>
   >,
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
-  'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result>,
+  'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
+  'searchSpotsByTag' : ActorMethod<[string, bigint, bigint], Array<Spot>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
-  'updateGroup' : ActorMethod<[string, NewGroup], Result>,
+  'updateGroup' : ActorMethod<[string, NewGroup], Result_1>,
+  'updateSpot' : ActorMethod<[string, NewSpot], Result>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

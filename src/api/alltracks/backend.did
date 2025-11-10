@@ -91,6 +91,14 @@ type Track =
    trackfile: TrackFile;
  };
 type Time = int;
+type Spot = 
+ record {
+   createdAt: Time;
+   createdBy: principal;
+   description: text;
+   name: text;
+   tags: vec text;
+ };
 type Severity = 
  variant {
    critical;
@@ -107,30 +115,35 @@ type SavedPoint =
    latitude: float64;
    longitude: float64;
  };
-type Result_4 = 
+type Result_5 = 
  variant {
    err: text;
    ok: Group;
  };
-type Result_3 = 
+type Result_4 = 
  variant {
    err: text;
    ok: SavedPoint;
  };
-type Result_2 = 
+type Result_3 = 
  variant {
    err: text;
    ok: Track;
  };
-type Result_1 = 
+type Result_2 = 
  variant {
    err: text;
    ok: Trail;
  };
-type Result = 
+type Result_1 = 
  variant {
    err: text;
    ok: nat;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: Spot;
  };
 type Point = 
  record {
@@ -175,6 +188,12 @@ type NewTrack =
    startime: Time;
    trackType: TrackType;
    trackfile: TrackFile;
+ };
+type NewSpot = 
+ record {
+   description: text;
+   name: text;
+   tags: vec text;
  };
 type NewSavedPoint = 
  record {
@@ -285,40 +304,50 @@ type CheckPoint =
    trackId: text;
  };
 service : {
-  addCheckpointComment: (Time, principal,
+  addCheckpointComment: (checkpointTimestamp: Time, checkpointCreatedBy:
+   principal, comment:
    record {
      comment: text;
      photo: opt text;
      timestamp: Time;
-   }) -> (Result);
-  addPhoto:
-   (record {
-      groupId: opt text;
-      photoUrl: text;
-      tags: vec text;
-      timestamp: Time;
-      trackId: text;
-    }) -> (Result);
-  createCheckpoint: (NewCheckPoint) -> (Result);
-  createGroup: (NewGroup) -> (Result_4);
-  createIncidentPoint: (NewIncidentPoint) -> (Result);
-  createSavedPoint: (NewSavedPoint) -> (Result_3);
-  createTrack: (NewTrack) -> (Result_2);
-  createTrail: (NewTrail) -> (Result_1);
-  createUserCredential: (UserCredential) -> (Result);
-  deletePhoto: (text) -> (Result);
-  deleteTrail: (nat) -> (Result);
-  getCheckPointsByTrackId: (text) -> (vec CheckPoint) query;
-  getCheckpointComments: (Time, principal) -> (vec CheckpointComment) query;
-  getCheckpoints: (CheckpointFilter, Time, Time) -> (vec CheckPoint) query;
-  getGroup: (text) -> (opt Group) query;
-  getGroupPhotos: (text, Time, Time) -> (vec Photo) query;
-  getIncidentCheckpoints: (Time, Time) -> (vec IncidentPoint) query;
-  getIncidentPointsByCategory: (IncidentCategory) ->
+   }) -> (Result_1);
+  addPhoto: (photo:
+   record {
+     groupId: opt text;
+     photoUrl: text;
+     tags: vec text;
+     timestamp: Time;
+     trackId: text;
+   }) -> (Result_1);
+  createCheckpoint: (checkpoint: NewCheckPoint) -> (Result_1);
+  createGroup: (group: NewGroup) -> (Result_5);
+  createIncidentPoint: (incident: NewIncidentPoint) -> (Result_1);
+  createSavedPoint: (point: NewSavedPoint) -> (Result_4);
+  createSpot: (spot: NewSpot) -> (Result);
+  createTrack: (track: NewTrack) -> (Result_3);
+  createTrail: (trail: NewTrail) -> (Result_2);
+  createUserCredential: (credential: UserCredential) -> (Result_1);
+  deletePhoto: (photoUrl: text) -> (Result_1);
+  deleteSpot: (name: text) -> (Result_1);
+  deleteTrail: (id: nat) -> (Result_1);
+  getCheckPointsByTrackId: (trackId: text) -> (vec CheckPoint) query;
+  getCheckpointComments: (timestamp: Time, createdBy: principal) ->
+   (vec CheckpointComment) query;
+  getCheckpoints: (filter: CheckpointFilter, startime: Time, endtime:
+   Time) -> (vec CheckPoint) query;
+  getGroup: (id: text) -> (opt Group) query;
+  getGroupPhotos: (groupId: text, startTime: Time, endTime: Time) ->
+   (vec Photo) query;
+  getIncidentCheckpoints: (startTime: Time, endTime: Time) ->
    (vec IncidentPoint) query;
-  getIncidentPointsBySeverity: (Severity) -> (vec IncidentPoint) query;
-  getIncidentPointsByTimeRange: (Time, Time) -> (vec IncidentPoint) query;
-  getIncidentPointsByTrack: (text) -> (vec IncidentPoint) query;
+  getIncidentPointsByCategory: (category: IncidentCategory) ->
+   (vec IncidentPoint) query;
+  getIncidentPointsBySeverity: (severity: Severity) ->
+   (vec IncidentPoint) query;
+  getIncidentPointsByTimeRange: (startTime: Time, endTime: Time) ->
+   (vec IncidentPoint) query;
+  getIncidentPointsByTrack: (trackId: text) -> (vec IncidentPoint) query;
+  getLatestCheckpoints: () -> (vec CheckPoint) query;
   getListCounts: () ->
    (record {
       checkpoints: nat;
@@ -329,25 +358,31 @@ service : {
     }) query;
   getMyCredential: () -> (opt UserCredential) query;
   getMyGroups: () -> (vec Group) query;
-  getMyPhotos: (Time, Time) -> (vec Photo) query;
+  getMyPhotos: (startTime: Time, endTime: Time) -> (vec Photo) query;
   getMySavedPoints: () -> (vec SavedPoint) query;
+  getMySpots: (page: nat, pageSize: nat) -> (vec Spot) query;
   getMyTrails: () -> (vec Trail) query;
-  getSavedPointsByCategory: (text) -> (vec SavedPoint) query;
-  getTrack: (text) -> (opt Track) query;
-  getTrackPhotos: (text, Time, Time) -> (vec Photo) query;
-  getTracks: (TrackFilter) -> (vec Track) query;
-  getTrail: (nat) -> (opt Trail) query;
-  getTrails: (TrailFilter) -> (vec Trail) query;
-  getTrailsInBounds:
-   (record {
-      east: float64;
-      north: float64;
-      south: float64;
-      west: float64;
-    }) -> (vec Trail) query;
-  getUserstats: (text) -> (opt UserStats) query;
-  savePoints: (vec NewSavedPoint) -> (Result);
-  searchPhotosByTags: (vec text) -> (vec Photo) query;
-  searchTrails: (text) -> (vec Trail) query;
-  updateGroup: (text, NewGroup) -> (Result);
+  getSavedPointsByCategory: (category: text) -> (vec SavedPoint) query;
+  getSpotByName: (name: text) -> (opt Spot) query;
+  getSpots: (page: nat, pageSize: nat) -> (vec Spot) query;
+  getTrack: (id: text) -> (opt Track) query;
+  getTrackPhotos: (trackId: text, startTime: Time, endTime: Time) ->
+   (vec Photo) query;
+  getTracks: (filter: TrackFilter) -> (vec Track) query;
+  getTrail: (id: nat) -> (opt Trail) query;
+  getTrails: (filter: TrailFilter) -> (vec Trail) query;
+  getTrailsInBounds: (bounds:
+   record {
+     east: float64;
+     north: float64;
+     south: float64;
+     west: float64;
+   }) -> (vec Trail) query;
+  getUserstats: (pid: text) -> (opt UserStats) query;
+  savePoints: (points: vec NewSavedPoint) -> (Result_1);
+  searchPhotosByTags: (searchTags: vec text) -> (vec Photo) query;
+  searchSpotsByTag: (tag: text, page: nat, pageSize: nat) -> (vec Spot) query;
+  searchTrails: (term: text) -> (vec Trail) query;
+  updateGroup: (groupId: text, updates: NewGroup) -> (Result_1);
+  updateSpot: (name: text, updates: NewSpot) -> (Result);
 }
