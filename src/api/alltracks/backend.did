@@ -91,6 +91,15 @@ type Track =
    trackfile: TrackFile;
  };
 type Time = int;
+type SpotV2 = 
+ record {
+   createdAt: Time;
+   createdBy: principal;
+   description: text;
+   id: nat;
+   name: text;
+   tags: vec text;
+ };
 type Spot = 
  record {
    createdAt: Time;
@@ -115,15 +124,20 @@ type SavedPoint =
    latitude: float64;
    longitude: float64;
  };
-type Result_5 = 
+type Result_6 = 
  variant {
    err: text;
    ok: Group;
  };
-type Result_4 = 
+type Result_5 = 
  variant {
    err: text;
    ok: SavedPoint;
+ };
+type Result_4 = 
+ variant {
+   err: text;
+   ok: SpotV2;
  };
 type Result_3 = 
  variant {
@@ -320,10 +334,10 @@ service : {
      trackId: text;
    }) -> (Result_1);
   createCheckpoint: (checkpoint: NewCheckPoint) -> (Result_1);
-  createGroup: (group: NewGroup) -> (Result_5);
+  createGroup: (group: NewGroup) -> (Result_6);
   createIncidentPoint: (incident: NewIncidentPoint) -> (Result_1);
-  createSavedPoint: (point: NewSavedPoint) -> (Result_4);
-  createSpot: (spot: NewSpot) -> (Result);
+  createSavedPoint: (point: NewSavedPoint) -> (Result_5);
+  createSpot: (spot: NewSpot) -> (Result_4);
   createTrack: (track: NewTrack) -> (Result_3);
   createTrail: (trail: NewTrail) -> (Result_2);
   createUserCredential: (credential: UserCredential) -> (Result_1);
@@ -360,11 +374,11 @@ service : {
   getMyGroups: () -> (vec Group) query;
   getMyPhotos: (startTime: Time, endTime: Time) -> (vec Photo) query;
   getMySavedPoints: () -> (vec SavedPoint) query;
-  getMySpots: (page: nat, pageSize: nat) -> (vec Spot) query;
+  getMySpots: (page: nat, pageSize: nat) -> (vec SpotV2) query;
   getMyTrails: () -> (vec Trail) query;
   getSavedPointsByCategory: (category: text) -> (vec SavedPoint) query;
-  getSpotByName: (name: text) -> (opt Spot) query;
-  getSpots: (page: nat, pageSize: nat) -> (vec Spot) query;
+  getSpotById: (id: nat) -> (opt SpotV2) query;
+  getSpots: (page: nat, pageSize: nat) -> (vec SpotV2) query;
   getTrack: (id: text) -> (opt Track) query;
   getTrackPhotos: (trackId: text, startTime: Time, endTime: Time) ->
    (vec Photo) query;
@@ -381,7 +395,8 @@ service : {
   getUserstats: (pid: text) -> (opt UserStats) query;
   savePoints: (points: vec NewSavedPoint) -> (Result_1);
   searchPhotosByTags: (searchTags: vec text) -> (vec Photo) query;
-  searchSpotsByTag: (tag: text, page: nat, pageSize: nat) -> (vec Spot) query;
+  searchSpotsByTag: (tag: text, page: nat, pageSize: nat) ->
+   (vec SpotV2) query;
   searchTrails: (term: text) -> (vec Trail) query;
   updateGroup: (groupId: text, updates: NewGroup) -> (Result_1);
   updateSpot: (name: text, updates: NewSpot) -> (Result);

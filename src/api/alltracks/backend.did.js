@@ -30,7 +30,7 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'badge' : IDL.Text,
   });
-  const Result_5 = IDL.Variant({ 'ok' : Group, 'err' : IDL.Text });
+  const Result_6 = IDL.Variant({ 'ok' : Group, 'err' : IDL.Text });
   const IncidentCategory = IDL.Variant({
     'other' : IDL.Null,
     'wildlife' : IDL.Null,
@@ -70,20 +70,21 @@ export const idlFactory = ({ IDL }) => {
     'longitude' : IDL.Float64,
     'category' : IDL.Text,
   });
-  const Result_4 = IDL.Variant({ 'ok' : SavedPoint, 'err' : IDL.Text });
+  const Result_5 = IDL.Variant({ 'ok' : SavedPoint, 'err' : IDL.Text });
   const NewSpot = IDL.Record({
     'name' : IDL.Text,
     'tags' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
   });
-  const Spot = IDL.Record({
+  const SpotV2 = IDL.Record({
+    'id' : IDL.Nat,
     'name' : IDL.Text,
     'createdAt' : Time,
     'createdBy' : IDL.Principal,
     'tags' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
   });
-  const Result = IDL.Variant({ 'ok' : Spot, 'err' : IDL.Text });
+  const Result_4 = IDL.Variant({ 'ok' : SpotV2, 'err' : IDL.Text });
   const TrackType = IDL.Variant({
     'fly' : IDL.Null,
     'run' : IDL.Null,
@@ -245,6 +246,14 @@ export const idlFactory = ({ IDL }) => {
     'totalDistance' : IDL.Float64,
     'totalElevation' : IDL.Float64,
   });
+  const Spot = IDL.Record({
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'createdBy' : IDL.Principal,
+    'tags' : IDL.Vec(IDL.Text),
+    'description' : IDL.Text,
+  });
+  const Result = IDL.Variant({ 'ok' : Spot, 'err' : IDL.Text });
   return IDL.Service({
     'addCheckpointComment' : IDL.Func(
         [
@@ -273,10 +282,10 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'createCheckpoint' : IDL.Func([NewCheckPoint], [Result_1], []),
-    'createGroup' : IDL.Func([NewGroup], [Result_5], []),
+    'createGroup' : IDL.Func([NewGroup], [Result_6], []),
     'createIncidentPoint' : IDL.Func([NewIncidentPoint], [Result_1], []),
-    'createSavedPoint' : IDL.Func([NewSavedPoint], [Result_4], []),
-    'createSpot' : IDL.Func([NewSpot], [Result], []),
+    'createSavedPoint' : IDL.Func([NewSavedPoint], [Result_5], []),
+    'createSpot' : IDL.Func([NewSpot], [Result_4], []),
     'createTrack' : IDL.Func([NewTrack], [Result_3], []),
     'createTrail' : IDL.Func([NewTrail], [Result_2], []),
     'createUserCredential' : IDL.Func([UserCredential], [Result_1], []),
@@ -347,15 +356,15 @@ export const idlFactory = ({ IDL }) => {
     'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),
     'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),
     'getMySavedPoints' : IDL.Func([], [IDL.Vec(SavedPoint)], ['query']),
-    'getMySpots' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Spot)], ['query']),
+    'getMySpots' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(SpotV2)], ['query']),
     'getMyTrails' : IDL.Func([], [IDL.Vec(Trail)], ['query']),
     'getSavedPointsByCategory' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(SavedPoint)],
         ['query'],
       ),
-    'getSpotByName' : IDL.Func([IDL.Text], [IDL.Opt(Spot)], ['query']),
-    'getSpots' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Spot)], ['query']),
+    'getSpotById' : IDL.Func([IDL.Nat], [IDL.Opt(SpotV2)], ['query']),
+    'getSpots' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(SpotV2)], ['query']),
     'getTrack' : IDL.Func([IDL.Text], [IDL.Opt(Track)], ['query']),
     'getTrackPhotos' : IDL.Func(
         [IDL.Text, Time, Time],
@@ -386,7 +395,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'searchSpotsByTag' : IDL.Func(
         [IDL.Text, IDL.Nat, IDL.Nat],
-        [IDL.Vec(Spot)],
+        [IDL.Vec(SpotV2)],
         ['query'],
       ),
     'searchTrails' : IDL.Func([IDL.Text], [IDL.Vec(Trail)], ['query']),

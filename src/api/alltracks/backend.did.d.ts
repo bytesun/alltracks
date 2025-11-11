@@ -143,9 +143,11 @@ export type Result_2 = { 'ok' : Trail } |
   { 'err' : string };
 export type Result_3 = { 'ok' : Track } |
   { 'err' : string };
-export type Result_4 = { 'ok' : SavedPoint } |
+export type Result_4 = { 'ok' : SpotV2 } |
   { 'err' : string };
-export type Result_5 = { 'ok' : Group } |
+export type Result_5 = { 'ok' : SavedPoint } |
+  { 'err' : string };
+export type Result_6 = { 'ok' : Group } |
   { 'err' : string };
 export interface SavedPoint {
   'latitude' : number,
@@ -160,6 +162,14 @@ export type Severity = { 'low' : null } |
   { 'critical' : null } |
   { 'medium' : null };
 export interface Spot {
+  'name' : string,
+  'createdAt' : Time,
+  'createdBy' : Principal,
+  'tags' : Array<string>,
+  'description' : string,
+}
+export interface SpotV2 {
+  'id' : bigint,
   'name' : string,
   'createdAt' : Time,
   'createdBy' : Principal,
@@ -257,10 +267,10 @@ export interface _SERVICE {
     Result_1
   >,
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result_1>,
-  'createGroup' : ActorMethod<[NewGroup], Result_5>,
+  'createGroup' : ActorMethod<[NewGroup], Result_6>,
   'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result_1>,
-  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_4>,
-  'createSpot' : ActorMethod<[NewSpot], Result>,
+  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_5>,
+  'createSpot' : ActorMethod<[NewSpot], Result_4>,
   'createTrack' : ActorMethod<[NewTrack], Result_3>,
   'createTrail' : ActorMethod<[NewTrail], Result_2>,
   'createUserCredential' : ActorMethod<[UserCredential], Result_1>,
@@ -304,11 +314,11 @@ export interface _SERVICE {
   'getMyGroups' : ActorMethod<[], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMySavedPoints' : ActorMethod<[], Array<SavedPoint>>,
-  'getMySpots' : ActorMethod<[bigint, bigint], Array<Spot>>,
+  'getMySpots' : ActorMethod<[bigint, bigint], Array<SpotV2>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,
   'getSavedPointsByCategory' : ActorMethod<[string], Array<SavedPoint>>,
-  'getSpotByName' : ActorMethod<[string], [] | [Spot]>,
-  'getSpots' : ActorMethod<[bigint, bigint], Array<Spot>>,
+  'getSpotById' : ActorMethod<[bigint], [] | [SpotV2]>,
+  'getSpots' : ActorMethod<[bigint, bigint], Array<SpotV2>>,
   'getTrack' : ActorMethod<[string], [] | [Track]>,
   'getTrackPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
@@ -321,7 +331,7 @@ export interface _SERVICE {
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
   'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
-  'searchSpotsByTag' : ActorMethod<[string, bigint, bigint], Array<Spot>>,
+  'searchSpotsByTag' : ActorMethod<[string, bigint, bigint], Array<SpotV2>>,
   'searchTrails' : ActorMethod<[string], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result_1>,
   'updateSpot' : ActorMethod<[string, NewSpot], Result>,

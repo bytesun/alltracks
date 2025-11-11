@@ -21,15 +21,36 @@ export default function Spots() {
   const [tagsInput, setTagsInput] = useState('');
   const [descriptionText, setDescriptionText] = useState('');
   const alltracks = useAlltracks();
-  const { state: { principal } } = useGlobalContext();
+  const { state: { principal, isAuthed } } = useGlobalContext();
   const { showNotification } = useNotification();
 
   const load = async () => {
     try {
       const serverSpots: any[] = await alltracks.getSpots(0, 100);
       // map to local shape, parse coords from description if present
+      const normalizeTime = (raw: any): number => {
+        if (raw === undefined || raw === null) return Date.now();
+        try {
+          let n: number;
+          if (typeof raw === 'bigint') n = Number(raw);
+          else if (typeof raw === 'string' && /^\d+$/.test(raw)) n = Number(raw);
+          else if (typeof raw === 'object' && raw.toString) n = Number(raw.toString());
+          else n = Number(raw);
+          if (!Number.isFinite(n)) return Date.now();
+          // normalize: if value looks like nanoseconds (very large), convert to ms
+          if (n > 1e14) return Math.floor(n / 1e6);
+          // if value looks like seconds (10-digit), convert to ms
+          if (n > 1e9 && n < 1e11) return Math.floor(n * 1000);
+          if (n <= 0) return Date.now();
+          return Math.floor(n);
+        } catch (e) {
+          return Date.now();
+        }
+      };
+
       const mapped = (serverSpots || []).map(s => {
-        let latitude = 0, longitude = 0, timestamp = s.createdAt || Date.now();
+        let latitude = 0, longitude = 0;
+        const timestamp: number = normalizeTime(s?.createdAt);
         try {
           const parsed = JSON.parse(s.description || '{}');
           latitude = parsed.latitude || 0;
@@ -38,7 +59,8 @@ export default function Spots() {
           // ignore
         }
         return {
-          id: s.name,
+          // use the backend SpotV2.id (bigint) as the unique id
+          id: String(s.id ?? s.name),
           name: s.name,
           latitude,
           longitude,
@@ -108,7 +130,8 @@ export default function Spots() {
   return (
     <div className="page-container">
       <h2>Spots</h2>
-      <div className="add-spot-controls" style={{ marginBottom: 12 }}>
+      {isAuthed && (
+        <div className="add-spot-controls" style={{ marginBottom: 12 }}>
         <div className="form-field">
           <label className="form-label">Name</label>
           <input aria-label="Spot name" className="spot-name-input" placeholder="Spot name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
@@ -129,7 +152,8 @@ export default function Spots() {
             {adding ? 'Adding…' : 'Add'}
           </button>
         </div>
-      </div>
+        </div>
+      )}
 
       {spots.length === 0 && <p>No spots yet.</p>}
 
@@ -137,7 +161,7 @@ export default function Spots() {
         {spots.map((s) => (
           <li key={s.id} style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Link to={`/spots/${encodeURIComponent(s.name)}`}>{s.name || 'Unnamed spot'}</Link>
+              <Link to={`/spots/${encodeURIComponent(s.id)}`}>{s.name || 'Unnamed spot'}</Link>
               {s.tags && s.tags.length > 0 && (
                 <div className="tags-row">
                   {s.tags.map((t: string) => (
@@ -148,7 +172,9 @@ export default function Spots() {
             </div>
             <div>
               <span style={{ color: '#666' }}>{new Date(s.timestamp).toLocaleString()}</span>
-              <button onClick={() => remove(s.name)} style={{ marginLeft: 12 }}>Delete</button>
+              {isAuthed && (
+                <button onClick={() => remove(s.name)} style={{ marginLeft: 12 }}>Delete</button>
+              )}
             </div>
           </li>
         ))}
