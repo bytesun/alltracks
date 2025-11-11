@@ -67,14 +67,39 @@
 /* Form grid: name | tags | actions */
 .add-spot-controls {
   display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 12px;
-  align-items: end;
+  /* name (short) | tags (fixed) | description (moderate, capped) | button (auto) */
+  /* keep description from stretching too wide on large screens; make button column auto so it stays close */
+  grid-template-columns: 140px 160px minmax(240px, 1fr) auto;
+  gap: 8px; /* tighten gap so the Add button sits closer to the inputs */
+  align-items: center; /* center items vertically so the Add button lines up */
   width: 100%;
+}
+
+/* In the compact horizontal layout we hide labels and center inputs so
+   the button lines up neatly with the controls. Keep labels visible on small screens. */
+.add-spot-controls .form-label {
+  display: none;
+}
+
+.add-spot-controls .form-field {
+  justify-content: center; /* center label+input block so input aligns vertically */
 }
 
 .add-spot-controls .spot-name-input {
   width: 100%;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.spot-tags-input {
+  padding: 6px 8px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.spot-desc-input {
+  padding: 6px 8px;
 }
 
 .comment-block {
@@ -115,7 +140,6 @@
   padding: 2px 8px;
   font-size: 12px;
 }
-
 .spot-desc {
   color: #333;
   background: #fff;
@@ -129,7 +153,8 @@
   padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  width: 200px;
+  width: 100%;
+  max-width: 160px;
 }
 
 .spot-desc-input {
@@ -137,7 +162,7 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   width: 100%;
-  max-width: 720px;
+  max-width: 420px; /* constrain description width so it's not excessively large */
 }
 
 /* Form refinements */
@@ -145,6 +170,32 @@
 .form-field {
   display: flex;
   flex-direction: column;
+}
+
+.form-field > input,
+.form-field > textarea {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  background: #fff;
+  height: 32px; /* slightly smaller control height so description doesn't appear oversized */
+}
+
+/* Ensure specific inputs match exactly so description doesn't visually appear larger */
+.spot-name-input,
+.spot-tags-input,
+.spot-desc-input {
+  height: 32px;
+  line-height: 18px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+/* Make the Add button vertically align with inputs in the grid */
+.add-spot-controls .actions-field .primary-btn.compact {
+  align-self: center;
 }
 
 .form-label {
@@ -157,12 +208,22 @@
   font-size: 12px;
   color: #666;
   margin-top: 6px;
+  display: none; /* hide helper for compact layout */
 }
 
 .actions-field {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
+  align-items: center; /* vertical centering so button aligns with inputs */
+  justify-content: flex-start; /* align to left of its grid cell so button sits next to description */
+}
+
+.primary-btn.compact {
+  padding: 6px 10px;
+  font-size: 14px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-actions {
@@ -177,11 +238,14 @@
 @media (max-width: 720px) {
   .add-spot-controls {
     grid-template-columns: 1fr;
+    gap: 8px;
     align-items: stretch;
   }
-  .actions-field {
-    justify-content: stretch;
-  }
+  .form-field { width: 100%; }
+  /* show labels on mobile where stacked layout benefits from them */
+  .add-spot-controls .form-label { display: block; }
+  .actions-field { justify-content: flex-end; }
+  .primary-btn.compact { width: 100%; }
 }
 
 /* Spots list items layout */

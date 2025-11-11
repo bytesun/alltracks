@@ -26,7 +26,7 @@ export default function Spots() {
 
   const load = async () => {
     try {
-      const serverSpots: any[] = await alltracks.getMySpots(0, 100);
+      const serverSpots: any[] = await alltracks.getSpots(0, 100);
       // map to local shape, parse coords from description if present
       const mapped = (serverSpots || []).map(s => {
         let latitude = 0, longitude = 0, timestamp = s.createdAt || Date.now();
@@ -65,23 +65,14 @@ export default function Spots() {
       const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
       });
-  const spotName = name || `Spot ${new Date().toLocaleString()}`;
-  // store coordinates and user description together in the description field as JSON
-  const description = JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, note: descriptionText || '' });
-  const tagsArray = (tagsInput || '').split(',').map(t => t.trim()).filter(Boolean);
-      // check for duplicate name
-      try {
-        const exists = await alltracks.getSpotByName(spotName);
-        if (exists) {
-          showNotification('A spot with that name already exists. Choose a different name.', 'error');
-          setAdding(false);
-          return;
-        }
-      } catch (e) {
-        // ignore lookup errors and proceed to creation
-      }
-
-      const result: any = await alltracks.createSpot({ name: spotName, description, tags: tagsArray });
+      const spotName = name || `Spot ${new Date().toLocaleString()}`;
+      // store coordinates and user description together in the description field as JSON
+      const description = JSON.stringify({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, note: descriptionText || '' });
+      const tagsArray = (tagsInput || '').split(',').map(t => t.trim()).filter(Boolean);
+      
+      const newSpot = { name: spotName, description, tags: tagsArray }
+      console.log('Creating spot:', newSpot);
+      const result: any = await alltracks.createSpot(newSpot);
       // canister returns { ok: Spot } or { err: string }
       if (result && result.ok) {
         // success
@@ -121,25 +112,23 @@ export default function Spots() {
         <div className="form-field">
           <label className="form-label">Name</label>
           <input aria-label="Spot name" className="spot-name-input" placeholder="Spot name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
-          <div className="field-help">Give your spot a short, unique name.</div>
         </div>
 
         <div className="form-field">
           <label className="form-label">Tags</label>
           <input aria-label="Tags" className="spot-tags-input" placeholder="e.g. scenic,waterfall" value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} />
-          <div className="field-help">Comma-separated tags to help discovery.</div>
         </div>
-      </div>
 
-      <div className="form-field" style={{ marginBottom: 12 }}>
-        <label className="form-label">Description</label>
-        <textarea className="spot-desc-input" placeholder="Short description (optional)" value={descriptionText} onChange={(e) => setDescriptionText(e.target.value)} rows={3} />
-      </div>
+        <div className="form-field">
+          <label className="form-label">Description</label>
+          <input aria-label="Description" className="spot-desc-input" placeholder="Short description (optional)" value={descriptionText} onChange={(e) => setDescriptionText(e.target.value)} />
+        </div>
 
-      <div className="form-actions" style={{ marginBottom: 16 }}>
-        <button className="primary-btn" onClick={addCurrentLocation} disabled={adding}>
-          {adding ? 'Adding…' : 'Add current location'}
-        </button>
+        <div className="form-field actions-field">
+          <button className="primary-btn compact" onClick={addCurrentLocation} disabled={adding}>
+            {adding ? 'Adding…' : 'Add'}
+          </button>
+        </div>
       </div>
 
       {spots.length === 0 && <p>No spots yet.</p>}
