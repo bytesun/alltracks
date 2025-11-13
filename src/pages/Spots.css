@@ -155,6 +155,18 @@
   overflow: hidden;
 }
 
+.spot-search-input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 320px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .spot-search-input { width: 100%; }
+}
+
 .spot-tags-input {
   padding: 8px 10px;
   border: 1px solid #ddd;

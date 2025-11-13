@@ -62,7 +62,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const handleIILogin = async () => {
 
     authClient.login({
-      derivationOrigin: DERIVATION_ORIGION,
+      // derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,

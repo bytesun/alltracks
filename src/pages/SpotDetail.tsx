@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Spots.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAlltracks, useGlobalContext } from '../components/Store';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { locationIcon } from '../lib/markerIcons';
 import { getCommentsForSpot, saveCommentToIndexDB } from '../utils/IndexDBHandler';
@@ -98,16 +99,27 @@ export default function SpotDetail() {
 
   const removeSpot = async () => {
     if (!spotId) return;
-    if (!confirm('Delete this spot?')) return;
-    // delete by spot name (backend deleteSpot expects the name)
-    const name = spot?.name || decodeURIComponent(spotId);
+    // open confirmation modal
+    setConfirmOpen(true);
+  };
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const performDelete = async () => {
+    if (!spot) return;
+    setDeleting(true);
+    const name = spot.name || decodeURIComponent(spotId || '');
     try {
       await alltracks.deleteSpot(name);
+      setConfirmOpen(false);
+      navigate('/spots');
     } catch (err) {
       console.error('Failed to delete spot', err);
       alert('Unable to delete spot.');
+    } finally {
+      setDeleting(false);
     }
-    navigate('/spots');
   };
 
   if (!spot) return <div className="page-container"><p>Loading spot…</p></div>;
@@ -121,6 +133,12 @@ export default function SpotDetail() {
         </div>
       )}
       {spot.description && <div className="spot-desc" style={{ marginBottom: 8 }}>{spot.description}</div>}
+
+      <div style={{ marginBottom: 8 }}>
+        <strong>Coordinates:</strong> {spot.latitude.toFixed(6)}, {spot.longitude.toFixed(6)}
+        <div />
+        <strong>Created:</strong> {new Date(spot.timestamp).toLocaleString()}
+      </div>
       {spot.latitude !== 0 && spot.longitude !== 0 && (
         <div className="spot-map" style={{ marginBottom: 8 }}>
           <MapContainer center={[spot.latitude, spot.longitude]} zoom={15} style={{ height: '240px', width: '100%' }} scrollWheelZoom={false}>
@@ -134,17 +152,18 @@ export default function SpotDetail() {
           </MapContainer>
         </div>
       )}
-      <div style={{ marginBottom: 8 }}>
-        <strong>Coordinates:</strong> {spot.latitude.toFixed(6)}, {spot.longitude.toFixed(6)}
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <strong>Created:</strong> {new Date(spot.timestamp).toLocaleString()}
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        {isAuthed && (
-          <button onClick={removeSpot} style={{ marginLeft: 8 }}>Delete spot</button>
-        )}
-      </div>
+
+
+
+      {confirmOpen && (
+        <ConfirmationModal
+          message={`Delete spot "${spot?.name || ''}"? This action cannot be undone.`}
+          onConfirm={performDelete}
+          onCancel={() => setConfirmOpen(false)}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
+      )}
 
       <h3>Comments</h3>
       {comments.length === 0 && <p>No comments yet.</p>}
