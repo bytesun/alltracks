@@ -206,7 +206,7 @@ export const Navbar = () => {
           {isAuthed && <button className="auth-button" onClick={handleAuth}>
              Sign Out
           </button>}
-          {!isAuthed && <button className="auth-button" onClick={handleAuth}>
+          {!isAuthed && <button className="auth-button" onClick={handleIIV2Login}>
              Sign In
           </button>}
         </div>
