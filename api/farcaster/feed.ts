@@ -14,11 +14,17 @@ export default async function handler(req: any, res: any) {
 
     let r = await fetch(url);
     if (!r.ok) {
-      // Try to surface the upstream response body for debugging (don't leak sensitive info in production)
+      // If the primary fetch fails, attempt a conservative fallback to fid=1.
       let bodyText = '';
       try { bodyText = await r.text(); } catch (e) { bodyText = String(e); }
-      console.error('feed upstream error', r.status, bodyText);
-      return res.status(r.status).json({ error: `Upstream returned ${r.status}`, upstream: bodyText });
+      console.warn('feed upstream non-ok, retrying with fid=1', r.status, bodyText);
+      r = await fetch(`${base}?fid=1&limit=20`);
+      if (!r.ok) {
+        let bodyText2 = '';
+        try { bodyText2 = await r.text(); } catch (e) { bodyText2 = String(e); }
+        console.error('feed upstream error after fid=1 fallback', r.status, bodyText2);
+        return res.status(r.status).json({ error: `Upstream returned ${r.status}`, upstream: bodyText2 });
+      }
     }
     const data = await r.json();
     res.setHeader('Content-Type', 'application/json');
