@@ -114,7 +114,8 @@ export const Navbar = () => {
     if (isAuthed) {
       handleIILogout();
     } else {
-      setLoginModal(true);
+      // setLoginModal(true);
+      handleIIV2Login()
     }
   };
   const APPLICATION_NAME = "AllTracks";
