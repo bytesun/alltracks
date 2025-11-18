@@ -1,16 +1,17 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+/* Using 'any' for req/res to avoid requiring @vercel/node types */
 
 // Proxy/feed endpoint to avoid CORS from the browser. Returns the raw JSON
 // from the Farcaster gateway. Usage: GET /api/farcaster/feed?q=your+query
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   const q = (req.query.q || req.query.query || '') as string;
   try {
     const base = 'https://api.farcaster.xyz/v2/casts';
     // The Farcaster `casts` endpoint requires filters (e.g. `fid`) when called
-    // without a search query. Use fid=1 (official Farcaster account) as a
-    // safe default so the proxy returns a useful feed instead of 400.
-    const url = q ? `${base}?query=${encodeURIComponent(q)}&limit=20` : `${base}?fid=1&limit=20`;
+    // without a search query. Instead of defaulting to a single fid, query for
+    // hiking-related terms so the app shows relevant posts by default.
+    const defaultQuery = 'hiking OR hike OR trail OR outdoors';
+    const url = q ? `${base}?query=${encodeURIComponent(q)}&limit=20` : `${base}?query=${encodeURIComponent(defaultQuery)}&limit=20`;
     const r = await fetch(url);
     if (!r.ok) {
       // Try to surface the upstream response body for debugging (don't leak sensitive info in production)
