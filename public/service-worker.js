@@ -1,7 +1,6 @@
 const CACHE_NAME = 'suntrack-v3';
 const urlsToCache = [
-  '/manifest.json',
-  '/static/css/main.css'
+  '/manifest.json'
 ];
 
 // On install, cache a minimal set of assets. Failures for individual
