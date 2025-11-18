@@ -8,17 +8,21 @@
     }
   ],
   "rewrites": [
+    { "source": "/(.*)", "destination": "/" },
     { "source": "/group/:groupId", "destination": "/" },
 
     { "source": "/tracks/:userId", "destination": "/" },
     { "source": "/track/:trackId", "destination": "/" },
+    { "source": "/profile", "destination": "/" },
     { "source": "/profile/:id", "destination": "/" },
     { "source": "/event/:eventId", "destination": "/" },
     { "source": "/user/:userKey", "destination": "/" },
     { "source": "/live/:liveId", "destination": "/" },
     { "source": "/trails", "destination": "/" },
     { "source": "/guide", "destination": "/" },
-    { "source": "spots/:spotId", "destination": "/"}
+    { "source": "/spots", "destination": "/"},
+    { "source": "/spots/:spotId", "destination": "/"},
+    { "source": "/posts", "destination": "/" }
     
   ]
 }

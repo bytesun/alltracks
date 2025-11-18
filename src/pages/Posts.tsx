@@ -218,19 +218,19 @@ export default function Posts() {
                   <svg viewBox="0 0 24 24" aria-hidden>
                     <path d="M10 9V5l-7 7 7 7v-4.1C15 15.9 18 16.1 21 12c-3 0-6-3-11-3z"></path>
                   </svg>
-                  <span>Reply</span>
+                  
                 </button>
                 <button title="Like">
                   <svg viewBox="0 0 24 24" aria-hidden>
                     <path d="M12 21s-7.5-4.6-9.6-7.1C.7 11.3 2 6 6.4 6c2.1 0 3.4 1.4 4 2.2.6-.8 1.9-2.2 4-2.2C22 6 23.3 11.3 21.6 13.9 19.5 16.4 12 21 12 21z"></path>
                   </svg>
-                  <span>Like</span>
+                  
                 </button>
                 <button title="Share">
                   <svg viewBox="0 0 24 24" aria-hidden>
                     <path d="M18 8a3 3 0 10-2.83-4H9a3 3 0 100 2h6.17A3 3 0 0018 8zm-6 8a3 3 0 10-2.83-4H3a3 3 0 100 2h6.17A3 3 0 0012 16z"></path>
                   </svg>
-                  <span>Share</span>
+                  
                 </button>
               </div>
             </div>
