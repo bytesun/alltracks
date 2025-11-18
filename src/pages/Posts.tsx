@@ -43,13 +43,20 @@ export default function Posts() {
         data = null;
       }
 
-      // data.casts or data (depending on gateway)
-      const source = (data && Array.isArray(data.casts) ? data.casts : (Array.isArray(data) ? data : []));
+      // Support multiple upstream shapes:
+      // - { casts: [...] }
+      // - { result: { casts: [...] }, next: ... }
+      // - raw array [...]
+      const source = (data && Array.isArray(data.casts) ? data.casts
+        : (data && data.result && Array.isArray(data.result.casts) ? data.result.casts
+        : (Array.isArray(data) ? data : [])));
+
       const list = source.map((c: any) => ({
-        hash: c.hash || c.fid || c.id || String(Math.random()),
-        body: c.body || c.text || '',
+        hash: c.hash || c.threadHash || c.castHash || String(Math.random()),
+        body: c.body || c.text || c.processedCastText || '',
         createdAt: c.createdAt || c.timestamp || c.createdAtMs || Date.now(),
-        author: c.fid ? { fid: c.fid, displayName: c.displayName, username: c.username } : (c.author || {}),
+        author: (c.author ? { fid: c.author.fid, displayName: c.author.displayName, username: c.author.username }
+          : (c.fid ? { fid: c.fid, displayName: c.displayName, username: c.username } : {})),
       }));
       setCasts(list);
     } catch (err) {
