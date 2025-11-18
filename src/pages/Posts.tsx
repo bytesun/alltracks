@@ -28,15 +28,24 @@ export default function Posts() {
   const fetchCasts = async (q?: string) => {
     setLoading(true);
     try {
-      // Public Farcaster gateway endpoint (read-only). If you have a dedicated
-      // gateway or backend, change the URL accordingly.
-      const base = 'https://api.farcaster.xyz/v2/casts';
-      const url = q ? `${base}?query=${encodeURIComponent(q)}&limit=20` : `${base}?limit=20`;
-      let res = await fetch(url);
+      // Use the serverless feed proxy to avoid CORS: /api/farcaster/feed?q=...
+      const base = '/api/farcaster/feed';
+      const url = q ? `${base}?q=${encodeURIComponent(q)}` : base;
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      let data = await res.json();
+      let data: any;
+      // feed proxy should return JSON; try to parse safely
+      const text = await res.text();
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        // if not JSON, fallback to empty
+        data = null;
+      }
+
       // data.casts or data (depending on gateway)
-      const list = (data.casts || data || []).map((c: any) => ({
+      const source = (data && Array.isArray(data.casts) ? data.casts : (Array.isArray(data) ? data : []));
+      const list = source.map((c: any) => ({
         hash: c.hash || c.fid || c.id || String(Math.random()),
         body: c.body || c.text || '',
         createdAt: c.createdAt || c.timestamp || c.createdAtMs || Date.now(),
@@ -44,25 +53,9 @@ export default function Posts() {
       }));
       setCasts(list);
     } catch (err) {
-      console.error('Failed to fetch casts (direct), trying CORS proxy', err);
-      // Try a CORS proxy as a fallback (public proxy). This helps in dev or CORS-restricted environments.
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(q ? `${'https://api.farcaster.xyz/v2/casts'}?query=${encodeURIComponent(q)}&limit=20` : `${'https://api.farcaster.xyz/v2/casts'}?limit=20`)}`;
-        const pres = await fetch(proxyUrl);
-        if (!pres.ok) throw new Error(`Proxy HTTP ${pres.status}`);
-        const pdata = await pres.json();
-        const list = (pdata.casts || pdata || []).map((c: any) => ({
-          hash: c.hash || c.fid || c.id || String(Math.random()),
-          body: c.body || c.text || '',
-          createdAt: c.createdAt || c.timestamp || c.createdAtMs || Date.now(),
-          author: c.fid ? { fid: c.fid, displayName: c.displayName, username: c.username } : (c.author || {}),
-        }));
-        setCasts(list);
-      } catch (err2) {
-        console.error('Failed to fetch casts via proxy', err2);
-        showNotification('Failed to fetch posts (network or CORS).', 'error');
-        setCasts([]);
-      }
+      console.error('Failed to fetch casts via server proxy', err);
+      showNotification('Failed to fetch posts (network or proxy).', 'error');
+      setCasts([]);
     } finally {
       setLoading(false);
     }
