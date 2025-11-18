@@ -8,8 +8,8 @@ export default async function handler(req: any, res: any) {
   try {
     const base = 'https://api.farcaster.xyz/v2/casts';
     // Default to fetching casts for a specific fid when no query is
-    // provided. Use fid=75046798 as requested.
-    const defaultFid = 75046798;
+    // provided. Use fid=1475261 as requested.
+    const defaultFid = 1475261;
     const url = q ? `${base}?query=${encodeURIComponent(q)}&limit=20` : `${base}?fid=${defaultFid}&limit=20`;
 
     let r = await fetch(url);
