@@ -200,6 +200,7 @@ export const Navbar = () => {
 
           <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
           <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Spots</Link>
+          <Link to="/posts" className="nav-link"><span className="material-icons">chat_bubble</span>Posts</Link>
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
           {principal &&<Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
           {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}

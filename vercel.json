@@ -17,7 +17,8 @@
     { "source": "/user/:userKey", "destination": "/" },
     { "source": "/live/:liveId", "destination": "/" },
     { "source": "/trails", "destination": "/" },
-    { "source": "/guide", "destination": "/" }
+    { "source": "/guide", "destination": "/" },
+    { "source": "spots/:spotId", "destination": "/"}
     
   ]
 }

@@ -17,6 +17,7 @@ import { UserPage } from './pages/UserPage';
 import { EventPage } from './pages/EventPage';
 import Spots from './pages/Spots';
 import SpotDetail from './pages/SpotDetail';
+import Posts from './pages/Posts';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/tracks/:userId" element={<TracksPage />} />
                 <Route path="/spots" element={<Spots />} />
                 <Route path="/spots/:spotId" element={<SpotDetail />} />
+                <Route path="/posts" element={<Posts />} />
                 
               </Routes>
             </Layout>
