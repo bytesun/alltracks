@@ -7,12 +7,12 @@ export default async function handler(req: any, res: any) {
   const q = (req.query.q || req.query.query || '') as string;
   try {
     const base = 'https://api.farcaster.xyz/v2/casts';
-    // The Farcaster `casts` endpoint requires filters (e.g. `fid`) when called
-    // without a search query. Instead of defaulting to a single fid, query for
-    // hiking-related terms so the app shows relevant posts by default.
-    const defaultQuery = 'hiking OR hike OR trail OR outdoors';
-    const url = q ? `${base}?query=${encodeURIComponent(q)}&limit=20` : `${base}?query=${encodeURIComponent(defaultQuery)}&limit=20`;
-    const r = await fetch(url);
+    // Default to fetching casts for a specific fid when no query is
+    // provided. Use fid=75046798 as requested.
+    const defaultFid = 75046798;
+    const url = q ? `${base}?query=${encodeURIComponent(q)}&limit=20` : `${base}?fid=${defaultFid}&limit=20`;
+
+    let r = await fetch(url);
     if (!r.ok) {
       // Try to surface the upstream response body for debugging (don't leak sensitive info in production)
       let bodyText = '';
