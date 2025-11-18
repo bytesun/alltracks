@@ -48,16 +48,45 @@ export default function Posts() {
         if (authorObj?.pfp) pfp = authorObj.pfp?.url || authorObj.pfp;
         else if (authorObj?.avatar) pfp = authorObj.avatar;
         else if (authorObj?.profileImageUrl) pfp = authorObj.profileImageUrl;
+        // normalize common URI schemes (ipfs://, ar://) to gateway URLs
+        const normalizeUri = (u: any) => {
+          if (!u) return null;
+          if (typeof u !== 'string') return null;
+          if (u.startsWith('ipfs://')) {
+            // ipfs://<cid>/path -> https://ipfs.io/ipfs/<cid>/path
+            return u.replace('ipfs://', 'https://ipfs.io/ipfs/');
+          }
+          if (u.startsWith('ipns://')) {
+            return u.replace('ipns://', 'https://ipfs.io/ipns/');
+          }
+          if (u.startsWith('ar://')) {
+            return u.replace('ar://', 'https://arweave.net/');
+          }
+          // handle bare CID or /ipfs/ paths
+          if (u.match(/^Qm[1-9A-HJ-NP-Za-km-z]{44}/) || u.includes('/ipfs/')) {
+            if (u.startsWith('/ipfs/')) return `https://ipfs.io${u}`;
+            return u.includes('/ipfs/') ? (u.startsWith('http') ? u : `https://ipfs.io${u}`) : u;
+          }
+          return u;
+        };
+        if (pfp) pfp = normalizeUri(pfp);
 
         let image: string | null = null;
         if (c.embeds && Array.isArray(c.embeds)) {
-          const img = c.embeds.find((e: any) => e.type === 'image' && (e.url || e.staticRaster));
-          if (img) image = img.url || img.staticRaster || null;
+          // embeds may contain items with images array or direct url
+          for (const e of c.embeds) {
+            if (!e) continue;
+            if (e.type === 'image' && (e.url || e.staticRaster)) { image = e.url || e.staticRaster; break; }
+            if (Array.isArray(e.images) && e.images.length) { image = e.images[0].url || e.images[0].staticRaster || e.images[0]; break; }
+          }
         }
         if (!image && c.processedMedia && Array.isArray(c.processedMedia) && c.processedMedia.length) {
           const pm = c.processedMedia[0];
           if (pm && (pm.url || pm.staticRaster)) image = pm.url || pm.staticRaster || null;
+          else if (typeof pm === 'string') image = pm;
         }
+        if (!image && c.image) image = c.image;
+        if (image) image = normalizeUri(image);
 
         return {
           hash: c.hash || c.castHash || c.cid || (c.cast && c.cast.hash) || Math.random().toString(36).slice(2),
@@ -154,14 +183,19 @@ export default function Posts() {
       <ul className="post-list">
         {casts.map((c) => (
           <li className="post-card" key={c.hash}>
-            <div className="post-avatar">
-              {c.author?.pfp ? (
-                // eslint-disable-next-line jsx-a11y/img-redundant-alt
-                <img src={c.author.pfp as string} alt={c.author.username || 'avatar'} />
-              ) : (
-                <img src="/assets/face-red.svg" alt="avatar" />
-              )}
-            </div>
+              <div className="post-avatar">
+                {c.author?.pfp ? (
+                  // eslint-disable-next-line jsx-a11y/img-redundant-alt
+                  <img
+                    src={c.author.pfp as string}
+                    alt={c.author.username || 'avatar'}
+                    loading="lazy"
+                    onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/face-red.svg'; }}
+                  />
+                ) : (
+                  <img src="/assets/face-red.svg" alt="avatar" />
+                )}
+              </div>
             <div className="post-body">
               <div className="post-header">
                 <div className="post-author-name">{c.author.displayName || c.author.username}</div>
@@ -171,12 +205,33 @@ export default function Posts() {
               <div className="post-text">{c.body}</div>
               {c.image && (
                 // eslint-disable-next-line jsx-a11y/img-redundant-alt
-                <img src={c.image} alt="post image" className="post-image" />
+                <img
+                  src={c.image}
+                  alt="post image"
+                  className="post-image"
+                  loading="lazy"
+                  onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none'; }}
+                />
               )}
               <div className="post-actions">
-                <button>Reply</button>
-                <button>Like</button>
-                <button>Share</button>
+                <button title="Reply">
+                  <svg viewBox="0 0 24 24" aria-hidden>
+                    <path d="M10 9V5l-7 7 7 7v-4.1C15 15.9 18 16.1 21 12c-3 0-6-3-11-3z"></path>
+                  </svg>
+                  <span>Reply</span>
+                </button>
+                <button title="Like">
+                  <svg viewBox="0 0 24 24" aria-hidden>
+                    <path d="M12 21s-7.5-4.6-9.6-7.1C.7 11.3 2 6 6.4 6c2.1 0 3.4 1.4 4 2.2.6-.8 1.9-2.2 4-2.2C22 6 23.3 11.3 21.6 13.9 19.5 16.4 12 21 12 21z"></path>
+                  </svg>
+                  <span>Like</span>
+                </button>
+                <button title="Share">
+                  <svg viewBox="0 0 24 24" aria-hidden>
+                    <path d="M18 8a3 3 0 10-2.83-4H9a3 3 0 100 2h6.17A3 3 0 0018 8zm-6 8a3 3 0 10-2.83-4H3a3 3 0 100 2h6.17A3 3 0 0012 16z"></path>
+                  </svg>
+                  <span>Share</span>
+                </button>
               </div>
             </div>
           </li>
