@@ -140,9 +140,7 @@ export default function Posts() {
         <input className="spot-search-input" placeholder="Search posts (server-side)" value={query} onChange={(e) => setQuery(e.target.value)} />
         <button className="primary-btn" onClick={handleSearch} disabled={loading}>{loading ? 'Searching…' : 'Search'}</button>
         <button className="primary-btn" onClick={() => { setQuery(''); fetchCasts(); }}>Reset</button>
-      </div>
 
-      <div style={{ marginBottom: 12 }}>
         {!farcastConnected ? (
           <button className="primary-btn" onClick={async () => {
             try {
