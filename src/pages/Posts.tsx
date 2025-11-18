@@ -139,7 +139,6 @@ export default function Posts() {
       <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
         <input className="spot-search-input" placeholder="Search posts (server-side)" value={query} onChange={(e) => setQuery(e.target.value)} />
         <button className="primary-btn" onClick={handleSearch} disabled={loading}>{loading ? 'Searching…' : 'Search'}</button>
-        <button className="primary-btn" onClick={() => { setQuery(''); fetchCasts(); }}>Reset</button>
 
         {!farcastConnected ? (
           <button className="primary-btn" onClick={async () => {
@@ -156,7 +155,7 @@ export default function Posts() {
               const res = await fetch('/api/farcaster/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address, message, signature }) });
               if (!res.ok) throw new Error('Auth failed'); setFarcastAddress(address); setFarcastConnected(true); showNotification('Farcaster wallet connected', 'success');
             } catch (err: any) { console.error('Farcaster connect failed', err); showNotification('Farcaster connect failed: ' + (err?.message || ''), 'error'); }
-          }}>Connect Farcaster (wallet)</button>
+          }}>Connect  (wallet)</button>
         ) : (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{ color: '#666' }}>Connected: {farcastAddress}</div>

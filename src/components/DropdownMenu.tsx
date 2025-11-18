@@ -50,8 +50,15 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
             navigate('/spots');
             setIsOpen(false);
           }}>
-            <span className="material-icons">place</span>
+            <span className="material-icons">chat_bubble</span>
             Spots
+          </li>
+                    <li onClick={() => {
+            navigate('/posts');
+            setIsOpen(false);
+          }}>
+            <span className="material-icons">place</span>
+            Posts
           </li>
           <li onClick={() => {
             navigate('/status');
