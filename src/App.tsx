@@ -18,6 +18,7 @@ import { EventPage } from './pages/EventPage';
 import Spots from './pages/Spots';
 import SpotDetail from './pages/SpotDetail';
 import Posts from './pages/Posts';
+import Everpeace from './pages/Everpeace';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -47,6 +48,7 @@ function App() {
                 <Route path="/spots" element={<Spots />} />
                 <Route path="/spots/:spotId" element={<SpotDetail />} />
                 <Route path="/posts" element={<Posts />} />
+                <Route path="/everpeace" element={<Everpeace />} />
                 
               </Routes>
             </Layout>
