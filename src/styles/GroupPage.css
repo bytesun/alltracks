@@ -9,10 +9,23 @@
   padding: 30px;
   margin: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.group-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  flex-shrink: 0;
 }
 
 .group-title {
   margin-bottom: 16px;
+  flex: 1;
 }
 
 .group-title h1 {

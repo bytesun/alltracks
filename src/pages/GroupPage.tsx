@@ -63,7 +63,7 @@ export const GroupPage: React.FC = () => {
                     description: data[0].description,
                     calendarId: groupId,
                     members: [],
-                    groupBadge: ""
+                    groupBadge: data[0].badge || ""
                 });
                 // Load group stats
                 alltracks.getUserstats(groupId).then((stats) => {
@@ -132,6 +132,14 @@ export const GroupPage: React.FC = () => {
             <div className="group-container">
 
                 <section className="group-header">
+                    {group?.groupBadge && (
+                        <img
+                            src={group.groupBadge}
+                            alt={`${group.name} logo`}
+                            className="group-logo"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                    )}
                     <div className="group-title">
                         <h1>{group?.name}</h1>
                         {groupStats && <div className="group-stats">
