@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 export default function Everpeace() {
   const containerStyle: React.CSSProperties = { maxWidth: 900, margin: '24px auto', padding: 20, background: '#fff', borderRadius: 8, boxShadow: '0 4px 18px rgba(15,20,25,0.06)' }
   const headerStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }
-  const logoStyle: React.CSSProperties = { width: 96, height: 96, borderRadius: 12, objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }
+  const logoStyle: React.CSSProperties = { width: 176, height: 176, borderRadius: 16, objectFit: 'cover', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }
   const titleStyle: React.CSSProperties = { margin: 0, fontSize: 28 }
   const prologueStyle: React.CSSProperties = { color: '#444', lineHeight: 1.6 }
 
@@ -12,7 +12,7 @@ export default function Everpeace() {
     <div style={{ padding: 16 }}>
       <div style={containerStyle}>
         <div style={headerStyle}>
-          <img src="/192x192.png" alt="Mount Everpeace logo" style={logoStyle} />
+          <img src="https://arweave.net/wjUf4LlIqVW5EMI5wK-CKgxAH58V9x0IoZIjMiNQxmc" alt="Mount Everpeace logo (high resolution)" style={logoStyle} />
           <div>
             <h1 style={titleStyle}>Mount Everpeace</h1>
             <div style={{ color: '#666' }}>A man who knows his path fears no storm</div>

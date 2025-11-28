@@ -46,13 +46,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
               Events
             </a>
           </li>
-          <li onClick={() => {
+          {/* <li onClick={() => {
             navigate('/trails');
             setIsOpen(false);
           }}>
             <span className="material-icons">hiking</span>
             Trails
-          </li>
+          </li> */}
  
           <li onClick={() => {
             navigate('/spots');
@@ -61,13 +61,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
             <span className="material-icons">chat_bubble</span>
             Spots
           </li>
-                    <li onClick={() => {
+                    {/* <li onClick={() => {
             navigate('/posts');
             setIsOpen(false);
           }}>
             <span className="material-icons">place</span>
             Posts
-          </li>
+          </li> */}
           <li onClick={() => {
             navigate('/status');
             setIsOpen(false);
