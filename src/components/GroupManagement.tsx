@@ -95,17 +95,31 @@ export const GroupManagement = () => {
 
   };
   const handleUpdateGroup = async (updatedData: BeEditGroup) => {
-    // await setDoc({
-    //   collection: "groups",
-    //   doc: {
-    //     key: updatedData.calendarId,
-    //     version: updatedData.version,
-    //     data: updatedData
-    //   }
-    // });
+    try {
+      // Prepare payload matching the canister NewGroup type
+      const payload = {
+        id: updatedData.calendarId,
+        name: updatedData.name,
+        description: updatedData.description,
+        badge: updatedData.groupBadge || '',
+        // keep existing members if present, otherwise use current principal
+        members: (updatedData.members && updatedData.members.length > 0) ? updatedData.members : [principal],
+        admin: principal,
+      } as any;
 
-    // await fetchGroups();
-    setEditingGroup(null);
+      const res = await alltracks.updateGroup(updatedData.calendarId, payload);
+      if (res && (res as any).ok) {
+        showNotification(`Group ${updatedData.name} updated`, 'success');
+        await fetchGroups();
+        setEditingGroup(null);
+      } else {
+        const err = (res as any).err || 'Unknown error';
+        showNotification(`Failed to update group: ${err}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error updating group:', error);
+      showNotification(`Error updating group: ${String(error)}`, 'error');
+    }
   };
   return (
     <div className="groups-container">
