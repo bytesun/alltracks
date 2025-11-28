@@ -70,7 +70,7 @@ export const Navbar = () => {
 
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
-      identityProvider: IDENTITY_PROVIDER_v2,
+      identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
