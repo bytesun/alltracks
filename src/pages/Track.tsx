@@ -119,6 +119,72 @@ export const TrackPage: React.FC = () => {
     setIsPlaying(false);
   };
 
+  const downloadTrackAsGPX = () => {
+    if (trackPoints.length === 0) return;
+
+    const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="AllTracks" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${track?.name || 'Track'}</name>
+    <time>${new Date().toISOString()}</time>
+  </metadata>
+  <trk>
+    <name>${track?.name || 'Track'}</name>
+    <trkseg>`;
+
+    const gpxPoints = trackPoints.map(point => 
+      `      <trkpt lat="${point.latitude}" lon="${point.longitude}">
+        <ele>${point.elevation || 0}</ele>
+        <time>${new Date(point.timestamp).toISOString()}</time>
+      </trkpt>`
+    ).join('\n');
+
+    const gpxFooter = `
+    </trkseg>
+  </trk>
+</gpx>`;
+
+    const gpxContent = gpxHeader + '\n' + gpxPoints + gpxFooter;
+    const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${track?.name || 'track'}.gpx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadTrackAsJSON = () => {
+    if (trackPoints.length === 0) return;
+
+    const jsonData = {
+      name: track?.name,
+      description: track?.description,
+      exportDate: new Date().toISOString(),
+      stats: {
+        distance: track?.length,
+        duration: track?.duration,
+        elevation: track?.elevation,
+        pointCount: trackPoints.length,
+        startTime: trackPoints[0]?.timestamp,
+        endTime: trackPoints[trackPoints.length - 1]?.timestamp,
+      },
+      points: trackPoints,
+    };
+
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${track?.name || 'track'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Add ref for the track points container
   const pointsListRef = useRef<HTMLDivElement>(null);
 
@@ -145,6 +211,44 @@ export const TrackPage: React.FC = () => {
             <option value={2}>2x</option>
             <option value={4}>4x</option>
           </select>
+          <button
+            onClick={downloadTrackAsGPX}
+            disabled={trackPoints.length === 0}
+            title="Download track as GPX"
+            style={{
+              padding: '6px 12px',
+              background: '#2196F3',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              cursor: trackPoints.length > 0 ? 'pointer' : 'not-allowed',
+              opacity: trackPoints.length > 0 ? 1 : 0.5,
+              fontSize: 12,
+              marginLeft: 8,
+            }}
+          >
+            <span className="material-icons" style={{ fontSize: 18 }}>download</span>
+            GPX
+          </button>
+          <button
+            onClick={downloadTrackAsJSON}
+            disabled={trackPoints.length === 0}
+            title="Download track as JSON"
+            style={{
+              padding: '6px 12px',
+              background: '#4CAF50',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              cursor: trackPoints.length > 0 ? 'pointer' : 'not-allowed',
+              opacity: trackPoints.length > 0 ? 1 : 0.5,
+              fontSize: 12,
+              marginLeft: 4,
+            }}
+          >
+            <span className="material-icons" style={{ fontSize: 18 }}>download</span>
+            JSON
+          </button>
         </div>
 
         <div className="track-points-container" ref={pointsListRef}>
