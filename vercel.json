@@ -22,7 +22,8 @@
     { "source": "/guide", "destination": "/" },
     { "source": "/spots", "destination": "/"},
     { "source": "/spots/:spotId", "destination": "/"},
-    { "source": "/posts", "destination": "/" }
+    { "source": "/posts", "destination": "/" },
+    { "source": "/everpeace", "destination":"/"}
     
   ]
 }
