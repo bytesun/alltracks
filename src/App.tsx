@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import MainApp  from './MainApp';
 
 import { Trails } from './pages/Trails';
@@ -54,6 +55,7 @@ function App() {
             </Layout>
           
         </Store>
+        <Analytics />
       </StatsProvider>
     </NotificationProvider>
   );
