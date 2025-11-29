@@ -828,6 +828,7 @@ function MainApp() {
 
         {trackPoints.length > 0 &&
           <div className="stats">
+            {trackName && <h3 style={{ margin: 0, marginBottom: 8 }}>{trackName}</h3>}
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
             <p>Moving Time: {getMovingTime().toFixed(2)} hours</p>
             <p>Distance: {getTotalDistance().toFixed(2)} km</p>
