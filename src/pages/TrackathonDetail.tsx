@@ -25,6 +25,17 @@ export const TrackathonDetail: React.FC = () => {
     return () => clearInterval(interval);
   }, [trackathonId]);
 
+  // Auto-select first participant for completed trackathons
+  useEffect(() => {
+    if (trackathon && participants.length > 0) {
+      const now = Date.now();
+      const isCompleted = now >= trackathon.endTime;
+      if (isCompleted && !selectedParticipant) {
+        setSelectedParticipant(participants[0]);
+      }
+    }
+  }, [trackathon, participants]);
+
   const loadTrackathonData = async () => {
     try {
       // TODO: Replace with actual API call

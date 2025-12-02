@@ -706,6 +706,11 @@
     min-width: auto;
   }
 
+  .right-column {
+    min-height: 400px;
+    height: 400px;
+  }
+
   .participants-list,
   .leaderboard {
     max-height: 400px;
@@ -713,6 +718,8 @@
 
   .map-container {
     min-height: 400px;
+    height: 400px;
+    flex: none;
   }
 }
 
@@ -743,6 +750,15 @@
     min-width: auto;
   }
 
+  .right-column {
+    min-height: 350px;
+    height: auto;
+  }
+
+  .right-column h3 {
+    margin-bottom: 0.5rem;
+  }
+
   .participants-list,
   .leaderboard {
     max-height: 400px;
@@ -750,6 +766,8 @@
 
   .map-container {
     min-height: 350px;
+    height: 350px !important;
+    flex: none;
   }
 
   .leaderboard-header,

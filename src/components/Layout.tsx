@@ -1,22 +1,22 @@
-import React,{useState,useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
 import { LoginModal } from './LoginModal';
-import { useGlobalContext,useSetAgent,useSetLoginModal } from './Store';
+import { useGlobalContext, useSetAgent, useSetLoginModal } from './Store';
 
 import { HOST, IDENTITY_PROVIDER, IDENTITY_PROVIDER_v2 } from "../lib/canisters";
-import { DERIVATION_ORIGION,  ONE_WEEK_NS } from "../lib/constants";
+import { DERIVATION_ORIGION, ONE_WEEK_NS } from "../lib/constants";
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const {
-        state: { isAuthed },
-      } = useGlobalContext();
-      const setAgent = useSetAgent();
-      const [loginModal, setLoginModal] = useSetLoginModal();
-    
-      const [authClient, setAuthClient] = useState<AuthClient>(null);
-    
+  const {
+    state: { isAuthed },
+  } = useGlobalContext();
+  const setAgent = useSetAgent();
+  const [loginModal, setLoginModal] = useSetLoginModal();
+
+  const [authClient, setAuthClient] = useState<AuthClient>(null);
+
   // Auth on refresh
   useEffect(() => {
     (async () => {
@@ -28,10 +28,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           }
         }
       );
-      setAuthClient(authClient);     
-        if (await authClient.isAuthenticated()) {
-          handleAuthenticated(authClient);
-        }
+      setAuthClient(authClient);
+      if (await authClient.isAuthenticated()) {
+        handleAuthenticated(authClient);
+      }
 
     })();
   }, []);
@@ -62,7 +62,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const handleIILogin = async () => {
 
     authClient.login({
-      // derivationOrigin: DERIVATION_ORIGION,
+      derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
@@ -78,8 +78,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       },
     });
   };
-const handleII2Login = async () => {
 
+  const handleII2Login = async () => {
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER_v2,
@@ -150,7 +150,7 @@ const handleII2Login = async () => {
     <>
       <Navbar />
       {children}
-      <LoginModal 
+      <LoginModal
         isOpen={loginModal}
         onClose={() => setLoginModal(false)}
         onLogin={handleLogin}
