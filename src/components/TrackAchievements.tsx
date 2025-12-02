@@ -26,7 +26,7 @@ export const TrackAchievements: React.FC<{ stats: UserStats; userId: string }> =
       <div className="achievement-card highlight">
         <span className="material-icons">stars</span>
         <div className="achievement-content">
-          <h4>Hiker Score</h4>
+          <h4>Track Score</h4>
           <p>{calculateScore()}</p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export const TrackAchievements: React.FC<{ stats: UserStats; userId: string }> =
       <div className="achievement-card clickable" onClick={() => window.location.href = `/tracks/${userId}`}>
         <span className="material-icons">hiking</span>
         <div className="achievement-content ">
-          <h4>Trails Completed</h4>
+          <h4>Tracks Completed</h4>
           <p>{completedTrails}</p>
         </div>
       </div>

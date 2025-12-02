@@ -208,19 +208,16 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
               <span className="material-icons">timer</span>
               Duration (hours) * - Reference duration for the challenge
             </label>
-            <select
+            <input
+              type="number"
               value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 1 })}
+              min="1"
+              max="168"
+              placeholder="e.g., 24"
               required
-            >
-              <option value="4">4 hours</option>
-              <option value="8">8 hours</option>
-              <option value="12">12 hours</option>
-              <option value="24">24 hours</option>
-              <option value="48">48 hours</option>
-              <option value="72">72 hours</option>
-              <option value="168">1 week (168 hours)</option>
-            </select>
+            />
+            <small className="helper-text">Enter hours between 1 and 168 (7 days)</small>
           </div>
 
           <div className="form-group">

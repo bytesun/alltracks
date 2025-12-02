@@ -69,7 +69,7 @@ export const Profile: React.FC = () => {
               onClick={() => setActiveTab('profile')}
             >
               <span className="material-icons">person</span>
-              POH
+              Prove of Tracking
             </div>
 
 
@@ -123,7 +123,7 @@ export const Profile: React.FC = () => {
 
             {activeTab === 'profile' && (
               <>
-                <h2>Proof Of Hiking </h2>
+                <h2>Proof Of Tracking </h2>
                 <div className="profile-info">
                   {/* <div className="info-item">
                     <span className="material-icons">badge</span>

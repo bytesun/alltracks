@@ -228,10 +228,7 @@ export const TrackathonDetail: React.FC = () => {
   return (
     <div className="trackathon-detail-container">
       <div className="trackathon-header">
-        <button className="back-button" onClick={() => navigate('/trackathons')}>
-          <span className="material-icons">arrow_back</span>
-          Back to Trackathons
-        </button>
+
         
         <div className="header-content">
           <div className="title-row">

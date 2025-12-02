@@ -1018,12 +1018,23 @@ function MainApp() {
           <span className="material-icons">event</span>
           Events
         </a>
-        <a
+        {/* <a
           href="/guide"
           className="footer-link"
         >
           <span className="material-icons">help</span>
           User Guide
+        </a> */}
+                <a
+          href="/everpeace"
+          className="footer-link"
+          onClick={(e) => {
+            e.preventDefault();
+            setShowFeedbackModal(true);
+          }}
+        >
+          <span className="material-icons">terrain</span>
+          Everpeace
         </a>
         <a
           href="#"

@@ -157,7 +157,7 @@ export const GroupPage: React.FC = () => {
                         className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
                         onClick={() => setActiveTab('events')}
                     >
-                        Upcoming Hikings
+                        Upcoming Activities
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}

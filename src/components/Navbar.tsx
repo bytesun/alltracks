@@ -200,7 +200,7 @@ export const Navbar = () => {
           <div className="desktop-menu">
             <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Trackathons</Link>
 
-            <Link to="/everpeace" className="nav-link"><span className="material-icons">terrain</span>Everpeace</Link>
+            {/* <Link to="/everpeace" className="nav-link"><span className="material-icons">terrain</span>Everpeace</Link> */}
             {/* <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link> */}
             <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Spots</Link>
             {/* <Link to="/posts" className="nav-link"><span className="material-icons">chat_bubble</span>Posts</Link> */}

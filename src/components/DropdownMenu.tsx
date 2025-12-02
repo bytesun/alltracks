@@ -40,13 +40,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
               <span className="material-icons">flag</span>
               Trackathons
             </li>
-            <li onClick={() => {
+            {/* <li onClick={() => {
               navigate('/everpeace');
               setIsOpen(false);
             }}>
               <span className="material-icons">terrain</span>
               Everpeace
-            </li>
+            </li> */}
             {/* <li>
             <a href='https://icevent.app' target='_blank' rel='noopener noreferrer'>
               <span className="material-icons">event</span>
