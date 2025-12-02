@@ -23,11 +23,11 @@ const defaultIcon = icon({
   iconAnchor: [12, 41]
 });
 
-const currentLocationIcon = icon({
-  iconUrl: '/marker-icon.png',
-  shadowUrl: '/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
+const currentLocationIcon = L.divIcon({
+  className: 'current-location-icon',
+  html: '<span class="material-icons" style="font-size: 32px; color: #2196F3;">person</span>',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32]
 });
 
 export const Map: React.FC<MapProps> = ({ trackPoints, isTracking, onAddPoint, currentPoint, isPlayback }) => {

@@ -22,6 +22,40 @@ export const TrackPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPointIndex, setCurrentPointIndex] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Generate SVG path from track points
+  const generateRouteSVG = () => {
+    if (trackPoints.length === 0) return '';
+
+    // Find bounds
+    const lats = trackPoints.map(p => p.latitude);
+    const lngs = trackPoints.map(p => p.longitude);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+
+    // SVG dimensions
+    const width = 300;
+    const height = 200;
+    const padding = 10;
+
+    // Scale coordinates to SVG
+    const scaleX = (lng: number) => 
+      padding + ((lng - minLng) / (maxLng - minLng)) * (width - 2 * padding);
+    const scaleY = (lat: number) => 
+      height - padding - ((lat - minLat) / (maxLat - minLat)) * (height - 2 * padding);
+
+    // Generate path
+    const pathData = trackPoints.map((point, index) => {
+      const x = scaleX(point.longitude);
+      const y = scaleY(point.latitude);
+      return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+    }).join(' ');
+
+    return pathData;
+  };
 
   useEffect(() => {
     if (isPlaying) {
@@ -74,7 +108,9 @@ export const TrackPage: React.FC = () => {
   const TrackSummary = () => (
     <div className="track-summary">
       <h2>{track?.name || 'Unnamed Track'}</h2>
-      <p>{track?.description || ''}</p>
+      <p>{track?.description || ''}</p>     
+
+      
       <div className="track-stats">
         <div className="stat">
           <label>Date</label>
@@ -99,24 +135,36 @@ export const TrackPage: React.FC = () => {
 
   const startPlayback = () => {
     setIsPlaying(true);
-    const interval = setInterval(() => {
+    playbackIntervalRef.current = setInterval(() => {
       setCurrentPointIndex(prev => {
         if (prev >= trackPoints.length - 1) {
           setIsPlaying(false);
-          clearInterval(interval);
+          if (playbackIntervalRef.current) {
+            clearInterval(playbackIntervalRef.current);
+            playbackIntervalRef.current = null;
+          }
           return 0;
         }
         return prev + 1;
       });
     }, 1000 / playbackSpeed);
   };
+  
   const pausePlayback = () => {
     setIsPlaying(false);
+    if (playbackIntervalRef.current) {
+      clearInterval(playbackIntervalRef.current);
+      playbackIntervalRef.current = null;
+    }
   };
 
   const resetPlayback = () => {
     setCurrentPointIndex(0);
     setIsPlaying(false);
+    if (playbackIntervalRef.current) {
+      clearInterval(playbackIntervalRef.current);
+      playbackIntervalRef.current = null;
+    }
   };
 
   const downloadTrackAsGPX = () => {
@@ -185,6 +233,72 @@ export const TrackPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadTrackAsSVG = () => {
+    if (trackPoints.length === 0) return;
+
+    const lats = trackPoints.map(p => p.latitude);
+    const lngs = trackPoints.map(p => p.longitude);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const padding = 10;
+    const width = 300;
+    const height = 200;
+    const scaleX = (lng: number) => 
+      padding + ((lng - minLng) / (maxLng - minLng)) * (width - 2 * padding);
+    const scaleY = (lat: number) => 
+      height - padding - ((lat - minLat) / (maxLat - minLat)) * (height - 2 * padding);
+    
+    const startX = scaleX(trackPoints[0].longitude);
+    const startY = scaleY(trackPoints[0].latitude);
+    const endX = scaleX(trackPoints[trackPoints.length - 1].longitude);
+    const endY = scaleY(trackPoints[trackPoints.length - 1].latitude);
+
+    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="280" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="280" fill="#f9f9f9" stroke="#ddd" stroke-width="1" rx="8"/>
+  
+  <!-- Track info -->
+  <text x="150" y="20" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">
+    ${track?.name || 'Unnamed Track'}
+  </text>
+  
+  <!-- Stats row 1 -->
+  <text x="10" y="45" font-size="11" fill="#666">
+    📅 ${new Date(track?.startime).toLocaleDateString()}
+  </text>
+  <text x="200" y="45" font-size="11" fill="#666">
+    📏 ${track?.length.toFixed(2)} km
+  </text>
+  
+  <!-- Stats row 2 -->
+  <text x="10" y="62" font-size="11" fill="#666">
+    ⏱️ ${track?.duration.toFixed(2)} hrs
+  </text>
+  <text x="200" y="62" font-size="11" fill="#666">
+    ⛰️ ${track?.elevation.toFixed(0)} m
+  </text>
+  
+  <!-- Route visualization -->
+  <g transform="translate(0, 70)">
+    <path d="${generateRouteSVG()}" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${startX}" cy="${startY}" r="5" fill="#28a745" stroke="white" stroke-width="2"/>
+    <circle cx="${endX}" cy="${endY}" r="5" fill="#dc3545" stroke="white" stroke-width="2"/>
+  </g>
+</svg>`;
+
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${track?.name || 'track'}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Add ref for the track points container
   const pointsListRef = useRef<HTMLDivElement>(null);
 
@@ -230,7 +344,7 @@ export const TrackPage: React.FC = () => {
             <span className="material-icons" style={{ fontSize: 18 }}>download</span>
             GPX
           </button>
-          <button
+          {/* <button
             onClick={downloadTrackAsJSON}
             disabled={trackPoints.length === 0}
             title="Download track as JSON"
@@ -248,7 +362,26 @@ export const TrackPage: React.FC = () => {
           >
             <span className="material-icons" style={{ fontSize: 18 }}>download</span>
             JSON
-          </button>
+          </button> */}
+          {/* <button
+            onClick={downloadTrackAsSVG}
+            disabled={trackPoints.length === 0}
+            title="Download route as SVG image"
+            style={{
+              padding: '6px 12px',
+              background: '#9C27B0',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              cursor: trackPoints.length > 0 ? 'pointer' : 'not-allowed',
+              opacity: trackPoints.length > 0 ? 1 : 0.5,
+              fontSize: 12,
+              marginLeft: 4,
+            }}
+          >
+            <span className="material-icons" style={{ fontSize: 18 }}>image</span>
+            SVG
+          </button> */}
         </div>
 
         <div className="track-points-container" ref={pointsListRef}>
