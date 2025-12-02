@@ -20,6 +20,8 @@ import Spots from './pages/Spots';
 import SpotDetail from './pages/SpotDetail';
 import Posts from './pages/Posts';
 import Everpeace from './pages/Everpeace';
+import { Trackathons } from './pages/Trackathons';
+import { TrackathonDetail } from './pages/TrackathonDetail';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -50,6 +52,8 @@ function App() {
                 <Route path="/spots/:spotId" element={<SpotDetail />} />
                 <Route path="/posts" element={<Posts />} />
                 <Route path="/everpeace" element={<Everpeace />} />
+                <Route path="/trackathons" element={<Trackathons />} />
+                <Route path="/trackathon/:trackathonId" element={<TrackathonDetail />} />
                 
               </Routes>
             </Layout>

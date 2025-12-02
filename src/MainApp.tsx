@@ -33,7 +33,7 @@ import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
 
-import { useGlobalContext } from './components/Store';
+import { useGlobalContext ,useSetLoginModal} from './components/Store';
 
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
 import { TrackType } from './api/alltracks/backend.did';
@@ -70,6 +70,7 @@ function MainApp() {
   } | null>(null);
   const { state: { isAuthed, principal, wallet } } = useGlobalContext();
   const [showNotice, setShowNotice] = useState(true);
+  const [loginModal, setLoginModal] = useSetLoginModal();
 
   const alltracks = useAlltracks();
 
@@ -783,6 +784,8 @@ function MainApp() {
 
     setShowTrailList(false);
   };
+
+   
   return (
     <div className="App">
 
@@ -1007,7 +1010,14 @@ function MainApp() {
 
 
       <footer className="home-footer">
-
+        <a
+          href="https://icevent.app"
+          className="footer-link"
+          target="_blank"
+        >
+          <span className="material-icons">event</span>
+          Events
+        </a>
         <a
           href="/guide"
           className="footer-link"
@@ -1025,6 +1035,15 @@ function MainApp() {
         >
           <span className="material-icons">feedback</span>
           Feedback
+        </a>
+        <a
+          href="#"
+          className="footer-link" 
+          rel="noopener noreferrer"
+          onClick={()=>setLoginModal(true)}
+        >
+          <span className="material-icons">login</span>
+          Legacy II
         </a>
 
       </footer>

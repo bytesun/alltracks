@@ -23,7 +23,9 @@
     { "source": "/spots", "destination": "/"},
     { "source": "/spots/:spotId", "destination": "/"},
     { "source": "/posts", "destination": "/" },
-    { "source": "/everpeace", "destination":"/"}
+    { "source": "/everpeace", "destination":"/"},
+    { "source": "/trackathons", "destination": "/" },
+    { "source": "/trackathon/:trackathonId", "destination": "/" }
     
   ]
 }

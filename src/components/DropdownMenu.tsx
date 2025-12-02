@@ -33,6 +33,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
       {isOpen && (
         <div className="nav-dropdown-menu">
         <ul>
+                    <li onClick={() => {
+            navigate('/trackathons');
+            setIsOpen(false);
+          }}>
+            <span className="material-icons">flag</span>
+            Trackathons
+          </li>
                    <li onClick={() => {
             navigate('/everpeace');
             setIsOpen(false);
@@ -40,12 +47,12 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
             <span className="material-icons">terrain</span>
             Everpeace
           </li>
-          <li>
+          {/* <li>
             <a href='https://icevent.app' target='_blank' rel='noopener noreferrer'>
               <span className="material-icons">event</span>
               Events
             </a>
-          </li>
+          </li> */}
           {/* <li onClick={() => {
             navigate('/trails');
             setIsOpen(false);
@@ -58,14 +65,15 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
             navigate('/spots');
             setIsOpen(false);
           }}>
-            <span className="material-icons">chat_bubble</span>
+            <span className="material-icons">place</span>
             Spots
           </li>
+
                     {/* <li onClick={() => {
             navigate('/posts');
             setIsOpen(false);
           }}>
-            <span className="material-icons">place</span>
+            <span className="material-icons">chat_bubble</span>
             Posts
           </li> */}
           <li onClick={() => {

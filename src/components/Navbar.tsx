@@ -199,8 +199,9 @@ export const Navbar = () => {
         {/* Desktop menu items */}
         <div className="desktop-menu">
         <Link to="/everpeace" className="nav-link"><span className="material-icons">terrain</span>Everpeace</Link>
-          <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link>
+          {/* <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link> */}
           <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Spots</Link>
+          <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Trackathons</Link>
           {/* <Link to="/posts" className="nav-link"><span className="material-icons">chat_bubble</span>Posts</Link> */}
           
           <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
@@ -209,13 +210,13 @@ export const Navbar = () => {
           {isAuthed && <button className="auth-button" onClick={handleAuth}>
              Sign Out
           </button>}
-          {!isAuthed && <button className="auth-button" onClick={handleIILogin}>
+          {!isAuthed && <button className="auth-button" onClick={handleIIV2Login}>
              Sign In
           </button>}
         </div>
 
         <div className="mobile-menu">
-          <DropdownMenu isAuthed={isAuthed} onAuth={isAuthed ?  handleAuth : handleIILogin} />
+          <DropdownMenu isAuthed={isAuthed} onAuth={isAuthed ?  handleAuth : handleIIV2Login} />
         </div>
       </div>
     </nav>
