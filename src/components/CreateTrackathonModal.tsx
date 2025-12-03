@@ -23,6 +23,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
 }) => {
   const alltracks = useAlltracks();
   const { showNotification } = useNotification();
+  const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -81,6 +82,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
       return;
     }
 
+    setIsCreating(true);
     onCreate({
       name: formData.name,
       description: formData.description,
@@ -241,12 +243,21 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+            <button type="button" className="cancel-button" onClick={onClose} disabled={isCreating}>
               Cancel
             </button>
-            <button type="submit" className="submit-button">
-              <span className="material-icons">add</span>
-              Create Trackathon
+            <button type="submit" className="submit-button" disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <span className="spinner"></span>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <span className="material-icons">add</span>
+                  Create Trackathon
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -22,6 +22,8 @@ export const TrackathonDetail: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [recordNote, setRecordNote] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isSavingPoint, setIsSavingPoint] = useState(false);
 
   useEffect(() => {
     loadTrackathonData();
@@ -100,6 +102,7 @@ export const TrackathonDetail: React.FC = () => {
   };
 
   const handleRegister = async () => {
+    setIsRegistering(true);
     try {
       const result = await alltracks.registerForTrackathon(trackathonId!);
       
@@ -112,6 +115,8 @@ export const TrackathonDetail: React.FC = () => {
     } catch (error) {
       console.error('Failed to register:', error);
       showNotification('Failed to register for trackathon', 'error');
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -143,6 +148,7 @@ export const TrackathonDetail: React.FC = () => {
   const handleSavePoint = async () => {
     if (!currentLocation) return;
     
+    setIsSavingPoint(true);
     try {
       // Create point in backend API format (using 'as any' to match backend interface)
       const apiPoint = {
@@ -167,6 +173,8 @@ export const TrackathonDetail: React.FC = () => {
     } catch (error) {
       console.error('Failed to record point:', error);
       showNotification('Failed to record point', 'error');
+    } finally {
+      setIsSavingPoint(false);
     }
   };
 
@@ -179,6 +187,11 @@ export const TrackathonDetail: React.FC = () => {
       minute: '2-digit',
       timeZoneName: 'short'
     });
+  };
+
+  const formatPrincipalId = (principalId: string) => {
+    if (principalId.length <= 10) return principalId;
+    return `${principalId.slice(0, 5)}...${principalId.slice(-5)}`;
   };
 
   const formatTime = (timestamp: number) => {
@@ -301,9 +314,18 @@ export const TrackathonDetail: React.FC = () => {
           <div className="section-header">
             <h2>Registration</h2>
             {principal && !isRegistered && (
-              <button className="register-button" onClick={handleRegister}>
-                <span className="material-icons">how_to_reg</span>
-                Register Now
+              <button className="register-button" onClick={handleRegister} disabled={isRegistering}>
+                {isRegistering ? (
+                  <>
+                    <span className="spinner"></span>
+                    Registering...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons">how_to_reg</span>
+                    Register Now
+                  </>
+                )}
               </button>
             )}
             {isRegistered && (
@@ -319,10 +341,10 @@ export const TrackathonDetail: React.FC = () => {
           <div className="registered-users">
             <h3>Registered Participants ({trackathon.registrations.length})</h3>
             <div className="user-list">
-              {trackathon.registrations.map((userId, idx) => (
+              {trackathon.registrations.map((userId) => (
                 <div key={userId} className="user-item">
                   <span className="material-icons">person</span>
-                  <span>Participant {idx + 1}</span>
+                  <span>{formatPrincipalId(userId)}</span>
                 </div>
               ))}
             </div>
@@ -622,11 +644,20 @@ export const TrackathonDetail: React.FC = () => {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="save-button" onClick={handleSavePoint}>
-                <span className="material-icons">save</span>
-                Save
+              <button className="save-button" onClick={handleSavePoint} disabled={isSavingPoint}>
+                {isSavingPoint ? (
+                  <>
+                    <span className="spinner"></span>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons">save</span>
+                    Save
+                  </>
+                )}
               </button>
-              <button className="cancel-button" onClick={() => setShowRecordModal(false)}>
+              <button className="cancel-button" onClick={() => setShowRecordModal(false)} disabled={isSavingPoint}>
                 Cancel
               </button>
             </div>
