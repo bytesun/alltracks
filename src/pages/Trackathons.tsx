@@ -16,10 +16,54 @@ export const Trackathons: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'past'>('active');
+  const [userScore, setUserScore] = useState<number>(0);
 
   useEffect(() => {
     loadTrackathons();
-  }, []);
+    if (isAuthed && principal) {
+      loadUserScore();
+    }
+  }, [isAuthed, principal]);
+
+  const loadUserScore = async () => {
+    if (!principal) {
+      setUserScore(0);
+      return;
+    }
+    
+    try {
+      // Get user stats from backend
+      const userStats = await alltracks.getUserstats(principal.toText());
+      
+      if (!userStats || userStats.length === 0) {
+        setUserScore(0);
+        return;
+      }
+      
+      const stats = userStats[0];
+      
+      // Calculate score using the same formula as TrackAchievements
+      const distancePoints = stats.totalDistance * 0.01;
+      const elevationPoints = stats.totalElevation * 0.03;
+      const trailPoints = Number(stats.completedTrails) * 0.02;
+      const hoursPoints = stats.totalHours * 0.01;
+      
+      // Calculate experience bonus based on first hike date
+      const firstHikeDate = new Date(Number(stats.firstHikeDate) / 1000000);
+      const daysSinceFirstHike = Math.floor(
+        (new Date().getTime() - firstHikeDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const experienceBonus = daysSinceFirstHike * 0.005;
+      
+      const calculatedScore = Math.floor(
+        distancePoints + elevationPoints + trailPoints + hoursPoints + experienceBonus
+      );
+      
+      setUserScore(calculatedScore);
+    } catch (error) {
+      console.error('Failed to load user score:', error);
+    }
+  };
 
   const loadTrackathons = async () => {
     setIsLoading(true);
@@ -28,6 +72,7 @@ export const Trackathons: React.FC = () => {
       // TODO: Replace with actual API call when backend is ready
       // const result = await alltracks.getTrackathons();
       
+      const now = Date.now();
       const mockData: Trackathon[] = [
         {
           id: '1',
@@ -45,13 +90,13 @@ export const Trackathons: React.FC = () => {
           id: '2',
           name: '12-Hour Running Challenge',
           description: 'Live now! Registered users can start tracking anytime before the window closes.',
-          startTime: new Date('2025-11-28T06:00:00').getTime(), // Started 3 days ago
-          endTime: new Date('2025-11-28T18:00:00').getTime(), // 12 hours after start
+          startTime: now - 2 * 60 * 60 * 1000, // Started 2 hours ago
+          endTime: now + 10 * 60 * 60 * 1000, // Ends in 10 hours (12h total)
           duration: 12,
           activityType: 'running',
           registrations: ['user1', 'user4', 'user5', 'user6'],
           createdBy: 'admin',
-          createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
+          createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
         },
         {
           id: '3',
@@ -157,6 +202,18 @@ export const Trackathons: React.FC = () => {
     }
   };
 
+  const handleCreateClick = () => {
+    if (!isAuthed) {
+      showNotification('Please login to create a trackathon', 'info');
+      return;
+    }
+    if (userScore === 0) {
+      showNotification('You need to complete at least one track before creating a trackathon. Start tracking to unlock this feature!', 'info');
+      return;
+    }
+    setShowCreateModal(true);
+  };
+
   return (
     <div className="trackathons-container">
       <div className="trackathons-header">
@@ -167,7 +224,7 @@ export const Trackathons: React.FC = () => {
         {isAuthed && (
           <button 
             className="create-trackathon-btn"
-            onClick={() => setShowCreateModal(true)}
+            onClick={handleCreateClick}
           >
             <span className="material-icons">add</span>
             Create Trackathon
@@ -218,7 +275,7 @@ export const Trackathons: React.FC = () => {
           {isAuthed && (
             <button 
               className="create-trackathon-btn"
-              onClick={() => setShowCreateModal(true)}
+              onClick={handleCreateClick}
             >
               Create Trackathon
             </button>

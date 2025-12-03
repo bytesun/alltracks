@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import { useAlltracks, useGlobalContext } from '../components/Store';
 import { Trackathon, TrackathonParticipant, TrackathonPoint, ActivityType } from '../types/Trackathon';
 import { MintBadgeModal } from '../components/MintBadgeModal';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/TrackathonDetail.css';
 
 export const TrackathonDetail: React.FC = () => {
@@ -11,17 +12,21 @@ export const TrackathonDetail: React.FC = () => {
   const navigate = useNavigate();
   const alltracks = useAlltracks();
   const { state: { principal } } = useGlobalContext();
+  const { showNotification } = useNotification();
   
   const [trackathon, setTrackathon] = useState<Trackathon | null>(null);
   const [participants, setParticipants] = useState<TrackathonParticipant[]>([]);
   const [selectedParticipant, setSelectedParticipant] = useState<TrackathonParticipant | null>(null);
   const [showMintModal, setShowMintModal] = useState(false);
+  const [showRecordModal, setShowRecordModal] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [recordNote, setRecordNote] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadTrackathonData();
-    // Auto-refresh every 30 seconds for live trackathons
-    const interval = setInterval(loadTrackathonData, 30000);
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(loadTrackathonData, 10000);
     return () => clearInterval(interval);
   }, [trackathonId]);
 
@@ -43,6 +48,7 @@ export const TrackathonDetail: React.FC = () => {
       // const participants = await alltracks.getTrackathonParticipants(trackathonId);
       
       // Mock data for now
+      const now = Date.now();
       const mockTrackathon: Trackathon = {
         id: trackathonId!,
         name: trackathonId === '1' ? '24-Hour Hiking Marathon' : 
@@ -53,10 +59,10 @@ export const TrackathonDetail: React.FC = () => {
           'Live now! Registered users can start tracking anytime before the window closes.' :
           'Completed challenge - view the leaderboard and participant routes.',
         startTime: trackathonId === '1' ? new Date('2025-12-10T08:00:00').getTime() :
-                   trackathonId === '2' ? new Date('2025-11-28T06:00:00').getTime() :
+                   trackathonId === '2' ? now - 2 * 60 * 60 * 1000 :
                    new Date('2025-10-15T07:00:00').getTime(),
         endTime: trackathonId === '1' ? new Date('2025-12-11T08:00:00').getTime() :
-                 trackathonId === '2' ? new Date('2025-11-28T18:00:00').getTime() :
+                 trackathonId === '2' ? now + 10 * 60 * 60 * 1000 :
                  new Date('2025-10-15T15:00:00').getTime(),
         duration: trackathonId === '1' ? 24 : trackathonId === '2' ? 12 : 8,
         activityType: (trackathonId === '1' ? 'hiking' : trackathonId === '2' ? 'running' : 'cycling') as ActivityType,
@@ -116,19 +122,89 @@ export const TrackathonDetail: React.FC = () => {
         {
           principal: 'user1',
           username: 'Alice Runner',
-          startedAt: new Date('2025-11-28T08:00:00').getTime(),
+          startedAt: now - 2 * 60 * 60 * 1000,
           totalDistance: 45.2,
           totalElevationGain: 320,
           trackPoints: [
-            { lat: 37.7749, lng: -122.4194, elevation: 50, timestamp: new Date('2025-11-28T08:00:00').getTime(), note: 'Start!' },
-            { lat: 37.7849, lng: -122.4094, elevation: 180, timestamp: new Date('2025-11-28T10:15:00').getTime() },
-            { lat: 37.7949, lng: -122.3994, elevation: 370, timestamp: Date.now() - 5000, note: 'Current position' },
+            { lat: 37.7749, lng: -122.4194, elevation: 50, timestamp: now - 2 * 60 * 60 * 1000, note: 'Starting my run! 🏃‍♀️' },
+            { lat: 37.7849, lng: -122.4094, elevation: 180, timestamp: now - 1.5 * 60 * 60 * 1000 },
+            { lat: 37.7949, lng: -122.3994, elevation: 370, timestamp: now - 5 * 60 * 1000, note: 'Feeling great! Halfway there 💪' },
+          ],
+        },
+        {
+          principal: 'user4',
+          username: 'Bob Sprinter',
+          startedAt: now - 1.5 * 60 * 60 * 1000,
+          totalDistance: 52.8,
+          totalElevationGain: 450,
+          trackPoints: [
+            { lat: 37.7650, lng: -122.4300, elevation: 40, timestamp: now - 1.5 * 60 * 60 * 1000, note: 'Let\'s go! Time to beat my record 🔥' },
+            { lat: 37.7750, lng: -122.4200, elevation: 160, timestamp: now - 1 * 60 * 60 * 1000, note: 'Beautiful weather today!' },
+            { lat: 37.7850, lng: -122.4100, elevation: 320, timestamp: now - 30 * 60 * 1000 },
+            { lat: 37.7950, lng: -122.4000, elevation: 490, timestamp: now - 3 * 60 * 1000, note: 'Pushing hard! 💯' },
+          ],
+        },
+        {
+          principal: 'user5',
+          username: 'Carol Marathoner',
+          startedAt: now - 1.8 * 60 * 60 * 1000,
+          totalDistance: 48.5,
+          totalElevationGain: 380,
+          trackPoints: [
+            { lat: 37.7600, lng: -122.4350, elevation: 30, timestamp: now - 1.8 * 60 * 60 * 1000, note: 'First trackathon, excited! 🎉' },
+            { lat: 37.7700, lng: -122.4250, elevation: 140, timestamp: now - 1.2 * 60 * 60 * 1000 },
+            { lat: 37.7800, lng: -122.4150, elevation: 280, timestamp: now - 40 * 60 * 1000, note: 'Love this trail 🌲' },
+            { lat: 37.7900, lng: -122.4050, elevation: 410, timestamp: now - 8 * 60 * 1000 },
+          ],
+        },
+        {
+          principal: 'user6',
+          username: 'Dave Lightning',
+          startedAt: now - 1 * 60 * 60 * 1000,
+          totalDistance: 38.3,
+          totalElevationGain: 280,
+          trackPoints: [
+            { lat: 37.7550, lng: -122.4400, elevation: 20, timestamp: now - 1 * 60 * 60 * 1000, note: 'Started late but going strong!' },
+            { lat: 37.7650, lng: -122.4300, elevation: 130, timestamp: now - 45 * 60 * 1000 },
+            { lat: 37.7750, lng: -122.4200, elevation: 250, timestamp: now - 20 * 60 * 1000, note: 'Amazing views up here 🏔️' },
+            { lat: 37.7850, lng: -122.4100, elevation: 300, timestamp: now - 2 * 60 * 1000 },
+          ],
+        },
+        {
+          principal: 'user8',
+          username: 'Emma Endurance',
+          startedAt: now - 1.7 * 60 * 60 * 1000,
+          totalDistance: 55.6,
+          totalElevationGain: 510,
+          trackPoints: [
+            { lat: 37.7580, lng: -122.4380, elevation: 35, timestamp: now - 1.7 * 60 * 60 * 1000, note: 'Let\'s do this! 💪' },
+            { lat: 37.7680, lng: -122.4280, elevation: 150, timestamp: now - 1.3 * 60 * 60 * 1000, note: 'First checkpoint done ✓' },
+            { lat: 37.7780, lng: -122.4180, elevation: 300, timestamp: now - 50 * 60 * 1000 },
+            { lat: 37.7880, lng: -122.4080, elevation: 450, timestamp: now - 25 * 60 * 1000, note: 'Feeling strong! Going for the lead 🏆' },
+            { lat: 37.7980, lng: -122.3980, elevation: 545, timestamp: now - 4 * 60 * 1000 },
+          ],
+        },
+        {
+          principal: 'user9',
+          username: 'Frank FastFeet',
+          startedAt: now - 0.5 * 60 * 60 * 1000,
+          totalDistance: 22.1,
+          totalElevationGain: 150,
+          trackPoints: [
+            { lat: 37.7620, lng: -122.4320, elevation: 45, timestamp: now - 0.5 * 60 * 60 * 1000, note: 'Just started! Better late than never 😊' },
+            { lat: 37.7720, lng: -122.4220, elevation: 120, timestamp: now - 15 * 60 * 1000 },
+            { lat: 37.7820, lng: -122.4120, elevation: 195, timestamp: now - 1 * 60 * 1000, note: 'Catching up fast! ⚡' },
           ],
         },
       ] : [];
 
       setTrackathon(mockTrackathon);
-      setParticipants(mockParticipants.sort((a, b) => b.totalDistance - a.totalDistance));
+      // Sort by last point timestamp (most recent first)
+      setParticipants(mockParticipants.sort((a, b) => {
+        const lastPointA = a.trackPoints[a.trackPoints.length - 1];
+        const lastPointB = b.trackPoints[b.trackPoints.length - 1];
+        return lastPointB.timestamp - lastPointA.timestamp;
+      }));
       setLoading(false);
     } catch (error) {
       console.error('Failed to load trackathon:', error);
@@ -140,22 +216,58 @@ export const TrackathonDetail: React.FC = () => {
     try {
       // TODO: Replace with actual API call
       // await alltracks.registerForTrackathon(trackathonId);
-      alert('Successfully registered! You can start tracking once the trackathon begins.');
+      showNotification('Successfully registered! You can start tracking once the trackathon begins.', 'success');
       loadTrackathonData();
     } catch (error) {
       console.error('Failed to register:', error);
-      alert('Failed to register for trackathon');
+      showNotification('Failed to register for trackathon', 'error');
     }
   };
 
-  const handleStartTracking = async () => {
+  const handleRecordPoint = async () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setShowRecordModal(true);
+        },
+        (error) => {
+          showNotification('Unable to get your location. Please enable location permissions.', 'error');
+          console.error('Geolocation error:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      showNotification('Geolocation is not supported by your browser.', 'error');
+    }
+  };
+
+  const handleSavePoint = async () => {
     try {
       // TODO: Replace with actual API call
-      // await alltracks.startTrackathonTracking(trackathonId);
-      navigate('/tracks'); // Navigate to tracking page
+      // await alltracks.recordTrackathonPoint({
+      //   trackathonId,
+      //   lat: currentLocation.lat,
+      //   lng: currentLocation.lng,
+      //   note: recordNote,
+      //   timestamp: Date.now()
+      // });
+      
+      showNotification('Point recorded successfully!', 'success');
+      setShowRecordModal(false);
+      setRecordNote('');
+      setCurrentLocation(null);
+      loadTrackathonData(); // Refresh data
     } catch (error) {
-      console.error('Failed to start tracking:', error);
-      alert('Failed to start tracking');
+      console.error('Failed to record point:', error);
+      showNotification('Failed to record point', 'error');
     }
   };
 
@@ -325,11 +437,11 @@ export const TrackathonDetail: React.FC = () => {
           <div className="section-header">
             <h2>Live Tracking</h2>
             {principal && isRegistered && (
-              <button className="start-button" onClick={handleStartTracking}>
-                <span className="material-icons">play_arrow</span>
-                Start Tracking
+              <button className="start-button" onClick={handleRecordPoint}>
+                <span className="material-icons">add_location</span>
+                Record Point
               </button>
-            )}
+              )}  
           </div>
 
           <p className="info-text">
@@ -345,8 +457,16 @@ export const TrackathonDetail: React.FC = () => {
                 <div className="participants-list">
                   {participants.map((participant) => {
                     const lastPoint = participant.trackPoints[participant.trackPoints.length - 1];
+                    const isSelected = selectedParticipant?.principal === participant.principal;
                     return (
-                      <div key={participant.principal} className="participant-item">
+                      <div 
+                        key={participant.principal} 
+                        className={`participant-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedParticipant(
+                          isSelected ? null : participant
+                        )}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <div className="participant-header">
                           <span className="material-icons">person</span>
                           <strong>{participant.username}</strong>
@@ -361,6 +481,15 @@ export const TrackathonDetail: React.FC = () => {
                             <span>{participant.totalElevationGain} m</span>
                           </div>
                         </div>
+                        {lastPoint?.note && (
+                          <div className="participant-note">
+                            <span className="material-icons">chat_bubble</span>
+                            <div className="note-content">
+                              <span className="note-text">"{lastPoint.note}"</span>
+                            
+                            </div>
+                          </div>
+                        )}
                         {lastPoint && (
                           <div className="current-location">
                             <span className="material-icons">location_on</span>
@@ -380,7 +509,7 @@ export const TrackathonDetail: React.FC = () => {
               </div>
 
               <div className="right-column">
-                <h3>Live Map - All Routes</h3>
+                <h3>{selectedParticipant ? `${selectedParticipant.username}'s Route` : 'Live Map - All Routes'}</h3>
                 <div className="map-container">
                   <MapContainer
                     center={getMapCenter()}
@@ -391,28 +520,57 @@ export const TrackathonDetail: React.FC = () => {
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     />
-                    {participants.map((participant, pIdx) => (
-                      <React.Fragment key={participant.principal}>
+                    {selectedParticipant ? (
+                      <React.Fragment>
                         <Polyline
-                          positions={participant.trackPoints.map(p => [p.lat, p.lng])}
-                          color={['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1'][pIdx % 5]}
-                          weight={3}
-                          opacity={0.7}
+                          positions={selectedParticipant.trackPoints.map(p => [p.lat, p.lng])}
+                          color="#007bff"
+                          weight={4}
                         />
-                        {participant.trackPoints.map((point, idx) => (
-                          <Marker key={`${participant.principal}-${idx}`} position={[point.lat, point.lng]}>
+                        {selectedParticipant.trackPoints.length > 0 && (
+                          <Marker 
+                            position={[
+                              selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lat,
+                              selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lng
+                            ]}
+                          >
                             <Popup>
-                              <strong>{participant.username}</strong><br />
-                              Point {idx + 1}<br />
-                              Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
-                              Elevation: {point.elevation}m<br />
-                              {formatTime(point.timestamp)}<br />
-                              {point.note && <em>{point.note}</em>}
+                              <strong>{selectedParticipant.username}</strong><br />
+                              Current Position<br />
+                              Lat: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lat.toFixed(6)}, 
+                              Lng: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lng.toFixed(6)}<br />
+                              Elevation: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].elevation}m<br />
+                              {formatTime(selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].timestamp)}<br />
+                              {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].note && 
+                                <em>{selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].note}</em>}
                             </Popup>
                           </Marker>
-                        ))}
+                        )}
                       </React.Fragment>
-                    ))}
+                    ) : (
+                      participants.map((participant, pIdx) => (
+                        <React.Fragment key={participant.principal}>
+                          <Polyline
+                            positions={participant.trackPoints.map(p => [p.lat, p.lng])}
+                            color={['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1'][pIdx % 5]}
+                            weight={3}
+                            opacity={0.7}
+                          />
+                          {participant.trackPoints.map((point, idx) => (
+                            <Marker key={`${participant.principal}-${idx}`} position={[point.lat, point.lng]}>
+                              <Popup>
+                                <strong>{participant.username}</strong><br />
+                                Point {idx + 1}<br />
+                                Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
+                                Elevation: {point.elevation}m<br />
+                                {formatTime(point.timestamp)}<br />
+                                {point.note && <em>{point.note}</em>}
+                              </Popup>
+                            </Marker>
+                          ))}
+                        </React.Fragment>
+                      ))
+                    )}
                   </MapContainer>
                 </div>
               </div>
@@ -541,6 +699,40 @@ export const TrackathonDetail: React.FC = () => {
             loadTrackathonData();
           }}
         />
+      )}
+
+      {/* Record Point Modal */}
+      {showRecordModal && currentLocation && (
+        <div className="modal-overlay" onClick={() => setShowRecordModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <textarea
+                  id="note-input"
+                  value={recordNote}
+                  onChange={(e) => setRecordNote(e.target.value)}
+                  placeholder="Share your thoughts, feelings, or what you see..."
+                  rows={4}
+                  maxLength={500}
+                />
+                <div className="location-coords-inline">
+                  Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
+                </div>
+                
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="save-button" onClick={handleSavePoint}>
+                <span className="material-icons">save</span>
+                Save
+              </button>
+              <button className="cancel-button" onClick={() => setShowRecordModal(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

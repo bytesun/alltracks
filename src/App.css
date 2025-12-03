@@ -301,6 +301,7 @@ button:disabled {
   gap: 30px;
   padding: 20px;
   text-align: center;
+  flex-wrap: wrap;
 }
 
 .footer-link {
@@ -310,6 +311,40 @@ button:disabled {
   text-decoration: none;
   color: #333;
   vertical-align: middle;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .home-footer {
+    gap: 15px;
+    padding: 15px 10px;
+  }
+  
+  .footer-link {
+    font-size: 12px;
+    gap: 4px;
+  }
+  
+  .footer-link .material-icons {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-footer {
+    gap: 10px;
+    padding: 10px 5px;
+  }
+  
+  .footer-link {
+    font-size: 11px;
+    gap: 3px;
+  }
+  
+  .footer-link .material-icons {
+    font-size: 16px;
+  }
 }
 
 .material-icons {
