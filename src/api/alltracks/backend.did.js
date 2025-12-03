@@ -30,7 +30,7 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'badge' : IDL.Text,
   });
-  const Result_6 = IDL.Variant({ 'ok' : Group, 'err' : IDL.Text });
+  const Result_9 = IDL.Variant({ 'ok' : Group, 'err' : IDL.Text });
   const IncidentCategory = IDL.Variant({
     'other' : IDL.Null,
     'wildlife' : IDL.Null,
@@ -70,7 +70,7 @@ export const idlFactory = ({ IDL }) => {
     'longitude' : IDL.Float64,
     'category' : IDL.Text,
   });
-  const Result_5 = IDL.Variant({ 'ok' : SavedPoint, 'err' : IDL.Text });
+  const Result_8 = IDL.Variant({ 'ok' : SavedPoint, 'err' : IDL.Text });
   const NewSpot = IDL.Record({
     'name' : IDL.Text,
     'tags' : IDL.Vec(IDL.Text),
@@ -84,7 +84,7 @@ export const idlFactory = ({ IDL }) => {
     'tags' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
   });
-  const Result_4 = IDL.Variant({ 'ok' : SpotV2, 'err' : IDL.Text });
+  const Result_7 = IDL.Variant({ 'ok' : SpotV2, 'err' : IDL.Text });
   const TrackType = IDL.Variant({
     'fly' : IDL.Null,
     'run' : IDL.Null,
@@ -131,7 +131,37 @@ export const idlFactory = ({ IDL }) => {
     'isPublic' : IDL.Bool,
     'startPoint' : Point,
   });
-  const Result_3 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
+  const Result_6 = IDL.Variant({ 'ok' : Track, 'err' : IDL.Text });
+  const ActivityType = IDL.Variant({
+    'track' : IDL.Null,
+    'hiking' : IDL.Null,
+    'cycling' : IDL.Null,
+    'rowing' : IDL.Null,
+    'running' : IDL.Null,
+  });
+  const NewTrackathon = IDL.Record({
+    'startTime' : Time,
+    'duration' : IDL.Float64,
+    'activityType' : ActivityType,
+    'endTime' : Time,
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+    'groupId' : IDL.Opt(IDL.Text),
+  });
+  const Trackathon = IDL.Record({
+    'id' : IDL.Text,
+    'startTime' : Time,
+    'duration' : IDL.Float64,
+    'activityType' : ActivityType,
+    'endTime' : Time,
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'createdBy' : IDL.Principal,
+    'description' : IDL.Text,
+    'groupId' : IDL.Opt(IDL.Text),
+    'registrations' : IDL.Vec(IDL.Principal),
+  });
+  const Result_5 = IDL.Variant({ 'ok' : Trackathon, 'err' : IDL.Text });
   const TrailType = IDL.Variant({
     'tloop' : IDL.Null,
     'outandback' : IDL.Null,
@@ -175,7 +205,7 @@ export const idlFactory = ({ IDL }) => {
     'startPoint' : Point,
     'photos' : IDL.Vec(IDL.Text),
   });
-  const Result_2 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
+  const Result_4 = IDL.Variant({ 'ok' : Trail, 'err' : IDL.Text });
   const UserCredential = IDL.Record({
     'encryptedWallet' : IDL.Record({
       'iv' : IDL.Vec(IDL.Nat8),
@@ -230,6 +260,22 @@ export const idlFactory = ({ IDL }) => {
     'severity' : Severity,
     'photo' : IDL.Opt(IDL.Text),
   });
+  const TrackathonPoint = IDL.Record({
+    'lat' : IDL.Float64,
+    'lng' : IDL.Float64,
+    'elevation' : IDL.Opt(IDL.Float64),
+    'note' : IDL.Opt(IDL.Text),
+    'timestamp' : Time,
+  });
+  const TrackathonParticipant = IDL.Record({
+    'startedAt' : IDL.Opt(Time),
+    'principal' : IDL.Principal,
+    'username' : IDL.Text,
+    'trackPoints' : IDL.Vec(TrackathonPoint),
+    'totalDistance' : IDL.Float64,
+    'totalElevationGain' : IDL.Float64,
+    'hasMintedBadge' : IDL.Bool,
+  });
   const TrackFilter = IDL.Variant({
     'user' : IDL.Principal,
     'group' : IDL.Text,
@@ -246,6 +292,21 @@ export const idlFactory = ({ IDL }) => {
     'totalDistance' : IDL.Float64,
     'totalElevation' : IDL.Float64,
   });
+  const TrackathonBadge = IDL.Record({
+    'participantPrincipal' : IDL.Principal,
+    'trackathonName' : IDL.Text,
+    'duration' : IDL.Float64,
+    'activityType' : ActivityType,
+    'completionDate' : Time,
+    'participantName' : IDL.Text,
+    'rank' : IDL.Opt(IDL.Nat),
+    'distance' : IDL.Float64,
+    'elevationGain' : IDL.Float64,
+    'routeImage' : IDL.Text,
+    'trackathonId' : IDL.Text,
+  });
+  const Result_3 = IDL.Variant({ 'ok' : TrackathonBadge, 'err' : IDL.Text });
+  const Result_2 = IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text });
   const Spot = IDL.Record({
     'name' : IDL.Text,
     'createdAt' : Time,
@@ -282,16 +343,18 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'createCheckpoint' : IDL.Func([NewCheckPoint], [Result_1], []),
-    'createGroup' : IDL.Func([NewGroup], [Result_6], []),
+    'createGroup' : IDL.Func([NewGroup], [Result_9], []),
     'createIncidentPoint' : IDL.Func([NewIncidentPoint], [Result_1], []),
-    'createSavedPoint' : IDL.Func([NewSavedPoint], [Result_5], []),
-    'createSpot' : IDL.Func([NewSpot], [Result_4], []),
-    'createTrack' : IDL.Func([NewTrack], [Result_3], []),
-    'createTrail' : IDL.Func([NewTrail], [Result_2], []),
+    'createSavedPoint' : IDL.Func([NewSavedPoint], [Result_8], []),
+    'createSpot' : IDL.Func([NewSpot], [Result_7], []),
+    'createTrack' : IDL.Func([NewTrack], [Result_6], []),
+    'createTrackathon' : IDL.Func([NewTrackathon], [Result_5], []),
+    'createTrail' : IDL.Func([NewTrail], [Result_4], []),
     'createUserCredential' : IDL.Func([UserCredential], [Result_1], []),
     'deletePhoto' : IDL.Func([IDL.Text], [Result_1], []),
     'deleteSpot' : IDL.Func([IDL.Text], [Result_1], []),
     'deleteTrail' : IDL.Func([IDL.Nat], [Result_1], []),
+    'getAllTrackathons' : IDL.Func([], [IDL.Vec(Trackathon)], ['query']),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(CheckPoint)],
@@ -357,6 +420,12 @@ export const idlFactory = ({ IDL }) => {
     'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),
     'getMySavedPoints' : IDL.Func([], [IDL.Vec(SavedPoint)], ['query']),
     'getMySpots' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(SpotV2)], ['query']),
+    'getMyTrackathonProgress' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(TrackathonParticipant)],
+        ['query'],
+      ),
+    'getMyTrackathons' : IDL.Func([], [IDL.Vec(Trackathon)], ['query']),
     'getMyTrails' : IDL.Func([], [IDL.Vec(Trail)], ['query']),
     'getSavedPointsByCategory' : IDL.Func(
         [IDL.Text],
@@ -369,6 +438,12 @@ export const idlFactory = ({ IDL }) => {
     'getTrackPhotos' : IDL.Func(
         [IDL.Text, Time, Time],
         [IDL.Vec(Photo)],
+        ['query'],
+      ),
+    'getTrackathon' : IDL.Func([IDL.Text], [IDL.Opt(Trackathon)], ['query']),
+    'getTrackathonParticipants' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(TrackathonParticipant)],
         ['query'],
       ),
     'getTracks' : IDL.Func([TrackFilter], [IDL.Vec(Track)], ['query']),
@@ -387,6 +462,13 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getUserstats' : IDL.Func([IDL.Text], [IDL.Opt(UserStats)], ['query']),
+    'mintTrackathonBadge' : IDL.Func([IDL.Text], [Result_3], []),
+    'recordTrackathonPoint' : IDL.Func(
+        [IDL.Text, TrackathonPoint],
+        [Result_2],
+        [],
+      ),
+    'registerForTrackathon' : IDL.Func([IDL.Text], [Result_2], []),
     'savePoints' : IDL.Func([IDL.Vec(NewSavedPoint)], [Result_1], []),
     'searchPhotosByTags' : IDL.Func(
         [IDL.Vec(IDL.Text)],

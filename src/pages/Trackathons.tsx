@@ -68,51 +68,24 @@ export const Trackathons: React.FC = () => {
   const loadTrackathons = async () => {
     setIsLoading(true);
     try {
-      // For now, we'll use mock data since the backend API doesn't exist yet
-      // TODO: Replace with actual API call when backend is ready
-      // const result = await alltracks.getTrackathons();
+      const result = await alltracks.getAllTrackathons();
       
-      const now = Date.now();
-      const mockData: Trackathon[] = [
-        {
-          id: '1',
-          name: '24-Hour Hiking Marathon',
-          description: 'Register now! Once the trackathon starts, registered users can begin tracking anytime within the 24-hour window.',
-          startTime: new Date('2025-12-10T08:00:00').getTime(), // Future - registration phase
-          endTime: new Date('2025-12-11T08:00:00').getTime(), // 24 hours after start
-          duration: 24,
-          activityType: 'hiking',
-          registrations: ['user1', 'user2', 'user3'],
-          createdBy: 'admin',
-          createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
-        },
-        {
-          id: '2',
-          name: '12-Hour Running Challenge',
-          description: 'Live now! Registered users can start tracking anytime before the window closes.',
-          startTime: now - 2 * 60 * 60 * 1000, // Started 2 hours ago
-          endTime: now + 10 * 60 * 60 * 1000, // Ends in 10 hours (12h total)
-          duration: 12,
-          activityType: 'running',
-          registrations: ['user1', 'user4', 'user5', 'user6'],
-          createdBy: 'admin',
-          createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-        },
-        {
-          id: '3',
-          name: '8-Hour Cycling Sprint',
-          description: 'Completed challenge - view the leaderboard and participant routes.',
-          startTime: new Date('2025-10-15T07:00:00').getTime(), // Past
-          endTime: new Date('2025-10-15T15:00:00').getTime(), // 8 hours after start
-          duration: 8,
-          activityType: 'cycling',
-          registrations: ['user1', 'user2', 'user7'],
-          createdBy: 'admin',
-          createdAt: Date.now() - 60 * 24 * 60 * 60 * 1000,
-        }
-      ];
+      // Convert backend Trackathon format to frontend format
+      const formattedTrackathons: Trackathon[] = result.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        startTime: Number(t.startTime) / 1000000, // Convert nanoseconds to milliseconds
+        endTime: Number(t.endTime) / 1000000,
+        duration: t.duration,
+        activityType: Object.keys(t.activityType)[0] as ActivityType,
+        registrations: t.registrations.map(p => p.toText()),
+        createdBy: t.createdBy.toText(),
+        createdAt: Number(t.createdAt) / 1000000,
+        groupId: t.groupId.length > 0 ? t.groupId[0] : undefined,
+      }));
       
-      setTrackathons(mockData);
+      setTrackathons(formattedTrackathons);
     } catch (error) {
       showNotification('Failed to load trackathons', 'error');
       console.error('Error loading trackathons:', error);
@@ -131,34 +104,27 @@ export const Trackathons: React.FC = () => {
     groupId?: string;
   }) => {
     try {
-      // TODO: Replace with actual API call
-      // const result = await alltracks.createTrackathon({
-      //   name: data.name,
-      //   description: data.description,
-      //   startTime: data.startTime.getTime(),
-      //   endTime: data.endTime.getTime(),
-      //   duration: data.duration,
-      //   activityType: data.activityType,
-      //   groupId: data.groupId,
-      // });
-
-      const newTrackathon: Trackathon = {
-        id: Date.now().toString(),
+      // Convert activityType string to backend format
+      const activityTypeObj = { [data.activityType]: null } as any;
+      
+      const result = await alltracks.createTrackathon({
         name: data.name,
         description: data.description,
-        startTime: data.startTime.getTime(),
-        endTime: data.endTime.getTime(),
+        startTime: BigInt(data.startTime.getTime() * 1000000), // Convert to nanoseconds
+        endTime: BigInt(data.endTime.getTime() * 1000000),
         duration: data.duration,
-        activityType: data.activityType,
-        groupId: data.groupId,
-        registrations: [],
-        createdBy: principal?.toText() || 'anonymous',
-        createdAt: Date.now(),
-      };
+        activityType: activityTypeObj,
+        groupId: data.groupId ? [data.groupId] : [],
+      });
 
-      setTrackathons([newTrackathon, ...trackathons]);
-      setShowCreateModal(false);
-      showNotification('Trackathon created successfully', 'success');
+      if ('ok' in result) {
+        // Reload trackathons to get the newly created one
+        await loadTrackathons();
+        setShowCreateModal(false);
+        showNotification('Trackathon created successfully', 'success');
+      } else {
+        showNotification('Failed to create trackathon: ' + result.err, 'error');
+      }
     } catch (error) {
       showNotification('Failed to create trackathon', 'error');
       console.error('Error creating trackathon:', error);
@@ -272,7 +238,7 @@ export const Trackathons: React.FC = () => {
           <span className="material-icons">flag</span>
           <h3>No trackathons found</h3>
           <p>Be the first to create a trackathon challenge!</p>
-          {isAuthed && (
+          {isAuthed && userScore > 1000 && (
             <button 
               className="create-trackathon-btn"
               onClick={handleCreateClick}

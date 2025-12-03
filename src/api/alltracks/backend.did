@@ -51,6 +51,52 @@ type Trail =
    trailfile: TrailFile;
    ttype: TrailType;
  };
+type TrackathonPoint = 
+ record {
+   elevation: opt float64;
+   lat: float64;
+   lng: float64;
+   note: opt text;
+   timestamp: Time;
+ };
+type TrackathonParticipant = 
+ record {
+   hasMintedBadge: bool;
+   "principal": principal;
+   startedAt: opt Time;
+   totalDistance: float64;
+   totalElevationGain: float64;
+   trackPoints: vec TrackathonPoint;
+   username: text;
+ };
+type TrackathonBadge = 
+ record {
+   activityType: ActivityType;
+   completionDate: Time;
+   distance: float64;
+   duration: float64;
+   elevationGain: float64;
+   participantName: text;
+   participantPrincipal: principal;
+   rank: opt nat;
+   routeImage: text;
+   trackathonId: text;
+   trackathonName: text;
+ };
+type Trackathon = 
+ record {
+   activityType: ActivityType;
+   createdAt: Time;
+   createdBy: principal;
+   description: text;
+   duration: float64;
+   endTime: Time;
+   groupId: opt text;
+   id: text;
+   name: text;
+   registrations: vec principal;
+   startTime: Time;
+ };
 type TrackType = 
  variant {
    bike;
@@ -124,30 +170,45 @@ type SavedPoint =
    latitude: float64;
    longitude: float64;
  };
-type Result_6 = 
+type Result_9 = 
  variant {
    err: text;
    ok: Group;
  };
-type Result_5 = 
+type Result_8 = 
  variant {
    err: text;
    ok: SavedPoint;
  };
-type Result_4 = 
+type Result_7 = 
  variant {
    err: text;
    ok: SpotV2;
  };
-type Result_3 = 
+type Result_6 = 
  variant {
    err: text;
    ok: Track;
  };
-type Result_2 = 
+type Result_5 = 
+ variant {
+   err: text;
+   ok: Trackathon;
+ };
+type Result_4 = 
  variant {
    err: text;
    ok: Trail;
+ };
+type Result_3 = 
+ variant {
+   err: text;
+   ok: TrackathonBadge;
+ };
+type Result_2 = 
+ variant {
+   err: text;
+   ok: text;
  };
 type Result_1 = 
  variant {
@@ -187,6 +248,16 @@ type NewTrail =
    tags: vec text;
    trailfile: TrailFile;
    ttype: TrailType;
+ };
+type NewTrackathon = 
+ record {
+   activityType: ActivityType;
+   description: text;
+   duration: float64;
+   endTime: Time;
+   groupId: opt text;
+   name: text;
+   startTime: Time;
  };
 type NewTrack = 
  record {
@@ -317,6 +388,14 @@ type CheckPoint =
    timestamp: Time;
    trackId: text;
  };
+type ActivityType = 
+ variant {
+   cycling;
+   hiking;
+   rowing;
+   running;
+   track;
+ };
 service : {
   addCheckpointComment: (checkpointTimestamp: Time, checkpointCreatedBy:
    principal, comment:
@@ -334,16 +413,18 @@ service : {
      trackId: text;
    }) -> (Result_1);
   createCheckpoint: (checkpoint: NewCheckPoint) -> (Result_1);
-  createGroup: (group: NewGroup) -> (Result_6);
+  createGroup: (group: NewGroup) -> (Result_9);
   createIncidentPoint: (incident: NewIncidentPoint) -> (Result_1);
-  createSavedPoint: (point: NewSavedPoint) -> (Result_5);
-  createSpot: (spot: NewSpot) -> (Result_4);
-  createTrack: (track: NewTrack) -> (Result_3);
-  createTrail: (trail: NewTrail) -> (Result_2);
+  createSavedPoint: (point: NewSavedPoint) -> (Result_8);
+  createSpot: (spot: NewSpot) -> (Result_7);
+  createTrack: (track: NewTrack) -> (Result_6);
+  createTrackathon: (trackathon: NewTrackathon) -> (Result_5);
+  createTrail: (trail: NewTrail) -> (Result_4);
   createUserCredential: (credential: UserCredential) -> (Result_1);
   deletePhoto: (photoUrl: text) -> (Result_1);
   deleteSpot: (name: text) -> (Result_1);
   deleteTrail: (id: nat) -> (Result_1);
+  getAllTrackathons: () -> (vec Trackathon) query;
   getCheckPointsByTrackId: (trackId: text) -> (vec CheckPoint) query;
   getCheckpointComments: (timestamp: Time, createdBy: principal) ->
    (vec CheckpointComment) query;
@@ -375,6 +456,9 @@ service : {
   getMyPhotos: (startTime: Time, endTime: Time) -> (vec Photo) query;
   getMySavedPoints: () -> (vec SavedPoint) query;
   getMySpots: (page: nat, pageSize: nat) -> (vec SpotV2) query;
+  getMyTrackathonProgress: (trackathonId: text) ->
+   (opt TrackathonParticipant) query;
+  getMyTrackathons: () -> (vec Trackathon) query;
   getMyTrails: () -> (vec Trail) query;
   getSavedPointsByCategory: (category: text) -> (vec SavedPoint) query;
   getSpotById: (id: nat) -> (opt SpotV2) query;
@@ -382,6 +466,9 @@ service : {
   getTrack: (id: text) -> (opt Track) query;
   getTrackPhotos: (trackId: text, startTime: Time, endTime: Time) ->
    (vec Photo) query;
+  getTrackathon: (trackathonId: text) -> (opt Trackathon) query;
+  getTrackathonParticipants: (trackathonId: text) ->
+   (vec TrackathonParticipant) query;
   getTracks: (filter: TrackFilter) -> (vec Track) query;
   getTrail: (id: nat) -> (opt Trail) query;
   getTrails: (filter: TrailFilter) -> (vec Trail) query;
@@ -393,6 +480,10 @@ service : {
      west: float64;
    }) -> (vec Trail) query;
   getUserstats: (pid: text) -> (opt UserStats) query;
+  mintTrackathonBadge: (trackathonId: text) -> (Result_3);
+  recordTrackathonPoint: (trackathonId: text, point: TrackathonPoint) ->
+   (Result_2);
+  registerForTrackathon: (trackathonId: text) -> (Result_2);
   savePoints: (points: vec NewSavedPoint) -> (Result_1);
   searchPhotosByTags: (searchTags: vec text) -> (vec Photo) query;
   searchSpotsByTag: (tag: text, page: nat, pageSize: nat) ->

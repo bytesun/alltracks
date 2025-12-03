@@ -2,6 +2,11 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
+export type ActivityType = { 'track' : null } |
+  { 'hiking' : null } |
+  { 'cycling' : null } |
+  { 'rowing' : null } |
+  { 'running' : null };
 export interface CheckPoint {
   'latitude' : number,
   'elevation' : number,
@@ -112,6 +117,15 @@ export interface NewTrack {
   'isPublic' : boolean,
   'startPoint' : Point,
 }
+export interface NewTrackathon {
+  'startTime' : Time,
+  'duration' : number,
+  'activityType' : ActivityType,
+  'endTime' : Time,
+  'name' : string,
+  'description' : string,
+  'groupId' : [] | [string],
+}
 export interface NewTrail {
   'duration' : number,
   'ttype' : TrailType,
@@ -139,15 +153,21 @@ export type Result = { 'ok' : Spot } |
   { 'err' : string };
 export type Result_1 = { 'ok' : bigint } |
   { 'err' : string };
-export type Result_2 = { 'ok' : Trail } |
+export type Result_2 = { 'ok' : string } |
   { 'err' : string };
-export type Result_3 = { 'ok' : Track } |
+export type Result_3 = { 'ok' : TrackathonBadge } |
   { 'err' : string };
-export type Result_4 = { 'ok' : SpotV2 } |
+export type Result_4 = { 'ok' : Trail } |
   { 'err' : string };
-export type Result_5 = { 'ok' : SavedPoint } |
+export type Result_5 = { 'ok' : Trackathon } |
   { 'err' : string };
-export type Result_6 = { 'ok' : Group } |
+export type Result_6 = { 'ok' : Track } |
+  { 'err' : string };
+export type Result_7 = { 'ok' : SpotV2 } |
+  { 'err' : string };
+export type Result_8 = { 'ok' : SavedPoint } |
+  { 'err' : string };
+export type Result_9 = { 'ok' : Group } |
   { 'err' : string };
 export interface SavedPoint {
   'latitude' : number,
@@ -205,6 +225,48 @@ export type TrackType = { 'fly' : null } |
   { 'climb' : null } |
   { 'drive' : null } |
   { 'paddle' : null };
+export interface Trackathon {
+  'id' : string,
+  'startTime' : Time,
+  'duration' : number,
+  'activityType' : ActivityType,
+  'endTime' : Time,
+  'name' : string,
+  'createdAt' : Time,
+  'createdBy' : Principal,
+  'description' : string,
+  'groupId' : [] | [string],
+  'registrations' : Array<Principal>,
+}
+export interface TrackathonBadge {
+  'participantPrincipal' : Principal,
+  'trackathonName' : string,
+  'duration' : number,
+  'activityType' : ActivityType,
+  'completionDate' : Time,
+  'participantName' : string,
+  'rank' : [] | [bigint],
+  'distance' : number,
+  'elevationGain' : number,
+  'routeImage' : string,
+  'trackathonId' : string,
+}
+export interface TrackathonParticipant {
+  'startedAt' : [] | [Time],
+  'principal' : Principal,
+  'username' : string,
+  'trackPoints' : Array<TrackathonPoint>,
+  'totalDistance' : number,
+  'totalElevationGain' : number,
+  'hasMintedBadge' : boolean,
+}
+export interface TrackathonPoint {
+  'lat' : number,
+  'lng' : number,
+  'elevation' : [] | [number],
+  'note' : [] | [string],
+  'timestamp' : Time,
+}
 export interface Trail {
   'id' : bigint,
   'duration' : number,
@@ -267,16 +329,18 @@ export interface _SERVICE {
     Result_1
   >,
   'createCheckpoint' : ActorMethod<[NewCheckPoint], Result_1>,
-  'createGroup' : ActorMethod<[NewGroup], Result_6>,
+  'createGroup' : ActorMethod<[NewGroup], Result_9>,
   'createIncidentPoint' : ActorMethod<[NewIncidentPoint], Result_1>,
-  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_5>,
-  'createSpot' : ActorMethod<[NewSpot], Result_4>,
-  'createTrack' : ActorMethod<[NewTrack], Result_3>,
-  'createTrail' : ActorMethod<[NewTrail], Result_2>,
+  'createSavedPoint' : ActorMethod<[NewSavedPoint], Result_8>,
+  'createSpot' : ActorMethod<[NewSpot], Result_7>,
+  'createTrack' : ActorMethod<[NewTrack], Result_6>,
+  'createTrackathon' : ActorMethod<[NewTrackathon], Result_5>,
+  'createTrail' : ActorMethod<[NewTrail], Result_4>,
   'createUserCredential' : ActorMethod<[UserCredential], Result_1>,
   'deletePhoto' : ActorMethod<[string], Result_1>,
   'deleteSpot' : ActorMethod<[string], Result_1>,
   'deleteTrail' : ActorMethod<[bigint], Result_1>,
+  'getAllTrackathons' : ActorMethod<[], Array<Trackathon>>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpointComments' : ActorMethod<
     [Time, Principal],
@@ -315,12 +379,22 @@ export interface _SERVICE {
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMySavedPoints' : ActorMethod<[], Array<SavedPoint>>,
   'getMySpots' : ActorMethod<[bigint, bigint], Array<SpotV2>>,
+  'getMyTrackathonProgress' : ActorMethod<
+    [string],
+    [] | [TrackathonParticipant]
+  >,
+  'getMyTrackathons' : ActorMethod<[], Array<Trackathon>>,
   'getMyTrails' : ActorMethod<[], Array<Trail>>,
   'getSavedPointsByCategory' : ActorMethod<[string], Array<SavedPoint>>,
   'getSpotById' : ActorMethod<[bigint], [] | [SpotV2]>,
   'getSpots' : ActorMethod<[bigint, bigint], Array<SpotV2>>,
   'getTrack' : ActorMethod<[string], [] | [Track]>,
   'getTrackPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
+  'getTrackathon' : ActorMethod<[string], [] | [Trackathon]>,
+  'getTrackathonParticipants' : ActorMethod<
+    [string],
+    Array<TrackathonParticipant>
+  >,
   'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
   'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
@@ -329,6 +403,9 @@ export interface _SERVICE {
     Array<Trail>
   >,
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
+  'mintTrackathonBadge' : ActorMethod<[string], Result_3>,
+  'recordTrackathonPoint' : ActorMethod<[string, TrackathonPoint], Result_2>,
+  'registerForTrackathon' : ActorMethod<[string], Result_2>,
   'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchSpotsByTag' : ActorMethod<[string, bigint, bigint], Array<SpotV2>>,

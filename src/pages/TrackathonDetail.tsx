@@ -43,164 +43,51 @@ export const TrackathonDetail: React.FC = () => {
 
   const loadTrackathonData = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const trackathon = await alltracks.getTrackathon(trackathonId);
-      // const participants = await alltracks.getTrackathonParticipants(trackathonId);
+      // Get trackathon details
+      const trackathonResult = await alltracks.getTrackathon(trackathonId!);
       
-      // Mock data for now
-      const now = Date.now();
-      const mockTrackathon: Trackathon = {
-        id: trackathonId!,
-        name: trackathonId === '1' ? '24-Hour Hiking Marathon' : 
-              trackathonId === '2' ? '12-Hour Running Challenge' : '8-Hour Cycling Sprint',
-        description: trackathonId === '1' ? 
-          'Register now! Once the trackathon starts, registered users can begin tracking anytime within the 24-hour window.' :
-          trackathonId === '2' ?
-          'Live now! Registered users can start tracking anytime before the window closes.' :
-          'Completed challenge - view the leaderboard and participant routes.',
-        startTime: trackathonId === '1' ? new Date('2025-12-10T08:00:00').getTime() :
-                   trackathonId === '2' ? now - 2 * 60 * 60 * 1000 :
-                   new Date('2025-10-15T07:00:00').getTime(),
-        endTime: trackathonId === '1' ? new Date('2025-12-11T08:00:00').getTime() :
-                 trackathonId === '2' ? now + 10 * 60 * 60 * 1000 :
-                 new Date('2025-10-15T15:00:00').getTime(),
-        duration: trackathonId === '1' ? 24 : trackathonId === '2' ? 12 : 8,
-        activityType: (trackathonId === '1' ? 'hiking' : trackathonId === '2' ? 'running' : 'cycling') as ActivityType,
-        registrations: ['user1', 'user2', 'user3', 'user4'],
-        createdBy: 'admin',
-        createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+      if (!trackathonResult || trackathonResult.length === 0) {
+        setLoading(false);
+        return;
+      }
+      
+      const t = trackathonResult[0];
+      const formattedTrackathon: Trackathon = {
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        startTime: Number(t.startTime) / 1000000,
+        endTime: Number(t.endTime) / 1000000,
+        duration: t.duration,
+        activityType: Object.keys(t.activityType)[0] as ActivityType,
+        registrations: t.registrations.map(p => p.toText()),
+        createdBy: t.createdBy.toText(),
+        createdAt: Number(t.createdAt) / 1000000,
+        groupId: t.groupId.length > 0 ? t.groupId[0] : undefined,
       };
 
-      // Mock participants data
-      const mockParticipants: TrackathonParticipant[] = trackathonId === '3' ? [
-        {
-          principal: 'user1',
-          username: 'Alice Runner',
-          startedAt: new Date('2025-10-15T07:15:00').getTime(),
-          totalDistance: 145.2,
-          totalElevationGain: 1200,
-          hasMintedBadge: true, // Alice has already minted her badge
-          trackPoints: [
-            { lat: 37.7749, lng: -122.4194, elevation: 50, timestamp: new Date('2025-10-15T07:15:00').getTime() },
-            { lat: 37.7849, lng: -122.4094, elevation: 180, timestamp: new Date('2025-10-15T09:30:00').getTime(), note: 'Checkpoint 1' },
-            { lat: 37.7949, lng: -122.3994, elevation: 520, timestamp: new Date('2025-10-15T11:45:00').getTime(), note: 'Halfway point' },
-            { lat: 37.8049, lng: -122.3894, elevation: 850, timestamp: new Date('2025-10-15T14:00:00').getTime(), note: 'Final push' },
-            { lat: 37.8149, lng: -122.3794, elevation: 1250, timestamp: new Date('2025-10-15T15:15:00').getTime() },
-          ],
-        },
-        {
-          principal: 'user2',
-          username: 'Bob Cyclist',
-          startedAt: new Date('2025-10-15T07:30:00').getTime(),
-          totalDistance: 132.8,
-          totalElevationGain: 980,
-          hasMintedBadge: false, // Bob hasn't minted yet
-          trackPoints: [
-            { lat: 37.7649, lng: -122.4294, elevation: 40, timestamp: new Date('2025-10-15T07:30:00').getTime() },
-            { lat: 37.7749, lng: -122.4194, elevation: 150, timestamp: new Date('2025-10-15T09:45:00').getTime() },
-            { lat: 37.7849, lng: -122.4094, elevation: 380, timestamp: new Date('2025-10-15T12:00:00').getTime() },
-            { lat: 37.7949, lng: -122.3994, elevation: 680, timestamp: new Date('2025-10-15T14:30:00').getTime() },
-            { lat: 37.8049, lng: -122.3894, elevation: 1020, timestamp: new Date('2025-10-15T15:30:00').getTime() },
-          ],
-        },
-        {
-          principal: 'user7',
-          username: 'Charlie Speed',
-          startedAt: new Date('2025-10-15T08:00:00').getTime(),
-          totalDistance: 118.5,
-          totalElevationGain: 850,
-          hasMintedBadge: false,
-          trackPoints: [
-            { lat: 37.7549, lng: -122.4394, elevation: 30, timestamp: new Date('2025-10-15T08:00:00').getTime() },
-            { lat: 37.7649, lng: -122.4294, elevation: 120, timestamp: new Date('2025-10-15T10:00:00').getTime() },
-            { lat: 37.7749, lng: -122.4194, elevation: 350, timestamp: new Date('2025-10-15T12:30:00').getTime() },
-            { lat: 37.7849, lng: -122.4094, elevation: 580, timestamp: new Date('2025-10-15T15:00:00').getTime() },
-            { lat: 37.7949, lng: -122.3994, elevation: 880, timestamp: new Date('2025-10-15T16:00:00').getTime() },
-          ],
-        },
-      ] : trackathonId === '2' ? [
-        {
-          principal: 'user1',
-          username: 'Alice Runner',
-          startedAt: now - 2 * 60 * 60 * 1000,
-          totalDistance: 45.2,
-          totalElevationGain: 320,
-          trackPoints: [
-            { lat: 37.7749, lng: -122.4194, elevation: 50, timestamp: now - 2 * 60 * 60 * 1000, note: 'Starting my run! 🏃‍♀️' },
-            { lat: 37.7849, lng: -122.4094, elevation: 180, timestamp: now - 1.5 * 60 * 60 * 1000 },
-            { lat: 37.7949, lng: -122.3994, elevation: 370, timestamp: now - 5 * 60 * 1000, note: 'Feeling great! Halfway there 💪' },
-          ],
-        },
-        {
-          principal: 'user4',
-          username: 'Bob Sprinter',
-          startedAt: now - 1.5 * 60 * 60 * 1000,
-          totalDistance: 52.8,
-          totalElevationGain: 450,
-          trackPoints: [
-            { lat: 37.7650, lng: -122.4300, elevation: 40, timestamp: now - 1.5 * 60 * 60 * 1000, note: 'Let\'s go! Time to beat my record 🔥' },
-            { lat: 37.7750, lng: -122.4200, elevation: 160, timestamp: now - 1 * 60 * 60 * 1000, note: 'Beautiful weather today!' },
-            { lat: 37.7850, lng: -122.4100, elevation: 320, timestamp: now - 30 * 60 * 1000 },
-            { lat: 37.7950, lng: -122.4000, elevation: 490, timestamp: now - 3 * 60 * 1000, note: 'Pushing hard! 💯' },
-          ],
-        },
-        {
-          principal: 'user5',
-          username: 'Carol Marathoner',
-          startedAt: now - 1.8 * 60 * 60 * 1000,
-          totalDistance: 48.5,
-          totalElevationGain: 380,
-          trackPoints: [
-            { lat: 37.7600, lng: -122.4350, elevation: 30, timestamp: now - 1.8 * 60 * 60 * 1000, note: 'First trackathon, excited! 🎉' },
-            { lat: 37.7700, lng: -122.4250, elevation: 140, timestamp: now - 1.2 * 60 * 60 * 1000 },
-            { lat: 37.7800, lng: -122.4150, elevation: 280, timestamp: now - 40 * 60 * 1000, note: 'Love this trail 🌲' },
-            { lat: 37.7900, lng: -122.4050, elevation: 410, timestamp: now - 8 * 60 * 1000 },
-          ],
-        },
-        {
-          principal: 'user6',
-          username: 'Dave Lightning',
-          startedAt: now - 1 * 60 * 60 * 1000,
-          totalDistance: 38.3,
-          totalElevationGain: 280,
-          trackPoints: [
-            { lat: 37.7550, lng: -122.4400, elevation: 20, timestamp: now - 1 * 60 * 60 * 1000, note: 'Started late but going strong!' },
-            { lat: 37.7650, lng: -122.4300, elevation: 130, timestamp: now - 45 * 60 * 1000 },
-            { lat: 37.7750, lng: -122.4200, elevation: 250, timestamp: now - 20 * 60 * 1000, note: 'Amazing views up here 🏔️' },
-            { lat: 37.7850, lng: -122.4100, elevation: 300, timestamp: now - 2 * 60 * 1000 },
-          ],
-        },
-        {
-          principal: 'user8',
-          username: 'Emma Endurance',
-          startedAt: now - 1.7 * 60 * 60 * 1000,
-          totalDistance: 55.6,
-          totalElevationGain: 510,
-          trackPoints: [
-            { lat: 37.7580, lng: -122.4380, elevation: 35, timestamp: now - 1.7 * 60 * 60 * 1000, note: 'Let\'s do this! 💪' },
-            { lat: 37.7680, lng: -122.4280, elevation: 150, timestamp: now - 1.3 * 60 * 60 * 1000, note: 'First checkpoint done ✓' },
-            { lat: 37.7780, lng: -122.4180, elevation: 300, timestamp: now - 50 * 60 * 1000 },
-            { lat: 37.7880, lng: -122.4080, elevation: 450, timestamp: now - 25 * 60 * 1000, note: 'Feeling strong! Going for the lead 🏆' },
-            { lat: 37.7980, lng: -122.3980, elevation: 545, timestamp: now - 4 * 60 * 1000 },
-          ],
-        },
-        {
-          principal: 'user9',
-          username: 'Frank FastFeet',
-          startedAt: now - 0.5 * 60 * 60 * 1000,
-          totalDistance: 22.1,
-          totalElevationGain: 150,
-          trackPoints: [
-            { lat: 37.7620, lng: -122.4320, elevation: 45, timestamp: now - 0.5 * 60 * 60 * 1000, note: 'Just started! Better late than never 😊' },
-            { lat: 37.7720, lng: -122.4220, elevation: 120, timestamp: now - 15 * 60 * 1000 },
-            { lat: 37.7820, lng: -122.4120, elevation: 195, timestamp: now - 1 * 60 * 1000, note: 'Catching up fast! ⚡' },
-          ],
-        },
-      ] : [];
+      // Get participants
+      const participantsResult = await alltracks.getTrackathonParticipants(trackathonId!);
+      
+      const formattedParticipants: TrackathonParticipant[] = participantsResult.map(p => ({
+        principal: p.principal.toText(),
+        username: p.username,
+        startedAt: p.startedAt.length > 0 ? Number(p.startedAt[0]) / 1000000 : undefined,
+        totalDistance: p.totalDistance,
+        totalElevationGain: p.totalElevationGain,
+        hasMintedBadge: p.hasMintedBadge,
+        trackPoints: p.trackPoints.map(point => ({
+          lat: point.lat,
+          lng: point.lng,
+          elevation: point.elevation.length > 0 ? point.elevation[0] : undefined,
+          timestamp: Number(point.timestamp) / 1000000,
+          note: point.note.length > 0 ? point.note[0] : undefined,
+        })),
+      }));
 
-      setTrackathon(mockTrackathon);
+      setTrackathon(formattedTrackathon);
       // Sort by last point timestamp (most recent first)
-      setParticipants(mockParticipants.sort((a, b) => {
+      setParticipants(formattedParticipants.sort((a, b) => {
         const lastPointA = a.trackPoints[a.trackPoints.length - 1];
         const lastPointB = b.trackPoints[b.trackPoints.length - 1];
         return lastPointB.timestamp - lastPointA.timestamp;
@@ -214,10 +101,14 @@ export const TrackathonDetail: React.FC = () => {
 
   const handleRegister = async () => {
     try {
-      // TODO: Replace with actual API call
-      // await alltracks.registerForTrackathon(trackathonId);
-      showNotification('Successfully registered! You can start tracking once the trackathon begins.', 'success');
-      loadTrackathonData();
+      const result = await alltracks.registerForTrackathon(trackathonId!);
+      
+      if ('ok' in result) {
+        showNotification('Successfully registered! You can start tracking once the trackathon begins.', 'success');
+        loadTrackathonData();
+      } else {
+        showNotification('Failed to register: ' + result.err, 'error');
+      }
     } catch (error) {
       console.error('Failed to register:', error);
       showNotification('Failed to register for trackathon', 'error');
@@ -250,21 +141,29 @@ export const TrackathonDetail: React.FC = () => {
   };
 
   const handleSavePoint = async () => {
+    if (!currentLocation) return;
+    
     try {
-      // TODO: Replace with actual API call
-      // await alltracks.recordTrackathonPoint({
-      //   trackathonId,
-      //   lat: currentLocation.lat,
-      //   lng: currentLocation.lng,
-      //   note: recordNote,
-      //   timestamp: Date.now()
-      // });
+      // Create point in backend API format (using 'as any' to match backend interface)
+      const apiPoint = {
+        lat: currentLocation.lat,
+        lng: currentLocation.lng,
+        elevation: [], // Will be calculated by backend or can be added from device
+        timestamp: BigInt(Date.now() * 1000000), // Convert to nanoseconds
+        note: recordNote ? [recordNote] : [],
+      } as any;
       
-      showNotification('Point recorded successfully!', 'success');
-      setShowRecordModal(false);
-      setRecordNote('');
-      setCurrentLocation(null);
-      loadTrackathonData(); // Refresh data
+      const result = await alltracks.recordTrackathonPoint(trackathonId!, apiPoint);
+      
+      if ('ok' in result) {
+        showNotification('Point recorded successfully!', 'success');
+        setShowRecordModal(false);
+        setRecordNote('');
+        setCurrentLocation(null);
+        loadTrackathonData(); // Refresh data
+      } else {
+        showNotification('Failed to record point: ' + result.err, 'error');
+      }
     } catch (error) {
       console.error('Failed to record point:', error);
       showNotification('Failed to record point', 'error');

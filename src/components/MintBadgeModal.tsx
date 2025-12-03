@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
 import html2canvas from 'html2canvas';
 import { TrackathonParticipant, Trackathon, TrackathonBadge } from '../types/Trackathon';
 import { useAlltracks } from './Store';
+import { useNotification } from '../context/NotificationContext';
 import '../styles/MintBadgeModal.css';
 
 interface MintBadgeModalProps {
@@ -21,6 +22,7 @@ export const MintBadgeModal: React.FC<MintBadgeModalProps> = ({
   onMinted,
 }) => {
   const alltracks = useAlltracks();
+  const { showNotification } = useNotification();
   const [isMinting, setIsMinting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
@@ -49,46 +51,19 @@ export const MintBadgeModal: React.FC<MintBadgeModalProps> = ({
   const handleMint = async () => {
     setIsMinting(true);
     try {
-      // Generate the badge image
-      if (!badgeRef.current) {
-        throw new Error('Badge reference not found');
+      // Call the backend API to mint the badge NFT
+      const result = await alltracks.mintTrackathonBadge(trackathon.id);
+      
+      if ('ok' in result) {
+        showNotification('Badge NFT minted successfully! Check your wallet.', 'success');
+        onMinted();
+        onClose();
+      } else {
+        showNotification('Failed to mint badge: ' + result.err, 'error');
       }
-
-      const canvas = await html2canvas(badgeRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        logging: false,
-      });
-      const routeImage = canvas.toDataURL('image/png');
-
-      const badgeData: TrackathonBadge = {
-        trackathonId: trackathon.id,
-        trackathonName: trackathon.name,
-        participantPrincipal: participant.principal,
-        participantName: participant.username,
-        completionDate: trackathon.endTime,
-        distance: participant.totalDistance,
-        elevationGain: participant.totalElevationGain,
-        duration: trackathon.duration,
-        activityType: trackathon.activityType,
-        routeImage,
-        rank,
-      };
-
-      // TODO: Replace with actual API call to mint NFT
-      // const result = await alltracks.mintTrackathonBadge(trackathon.id, badgeData);
-      
-      console.log('Minting badge NFT:', badgeData);
-      
-      // Simulate minting delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      alert('Badge NFT minted successfully! Check your wallet.');
-      onMinted();
-      onClose();
     } catch (error) {
       console.error('Failed to mint badge:', error);
-      alert('Failed to mint badge. Please try again.');
+      showNotification('Failed to mint badge. Please try again.', 'error');
     } finally {
       setIsMinting(false);
     }
