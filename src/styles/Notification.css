@@ -45,6 +45,12 @@
   padding: 4px;
   opacity: 0.8;
   transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.notification-close .material-icons {
+  font-size: 20px;
+  color: white;
 }
 
 .notification-close:hover {
@@ -55,4 +61,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+}
+
+.notification-content p {
+  margin: 0;
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.notification-content .material-icons {
+  color: white;
+  font-size: 20px;
+  flex-shrink: 0;
 }
