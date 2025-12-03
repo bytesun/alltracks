@@ -21,7 +21,10 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
     const showNotification = (message: string, type: 'success' | 'error' | 'info') => {
         setNotification({ message, type });
-        setTimeout(() => setNotification(null), 3000);
+        // Only auto-dismiss success and info notifications, errors require manual close
+        if (type !== 'error') {
+            setTimeout(() => setNotification(null), 3000);
+        }
     };
 
     return (

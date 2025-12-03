@@ -9,7 +9,9 @@
   border-radius: 8px;
   color: white;
   animation: slideIn 0.3s ease-out;
-  z-index: 1000;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
 }
 
 .notification.success {
