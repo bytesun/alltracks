@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAlltracks } from './Store';
+import { useNotification } from '../context/NotificationContext';
 import { ActivityType } from '../types/Trackathon';
 import '../styles/CreateTrackathonModal.css';
 
@@ -21,6 +22,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
   onCreate,
 }) => {
   const alltracks = useAlltracks();
+  const { showNotification } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -65,17 +67,17 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
     const endTime = new Date(`${formData.endDate}T${formData.endTime}`);
 
     if (startTime < new Date()) {
-      alert('Start time must be in the future');
+      showNotification('Start time must be in the future', 'error');
       return;
     }
 
     if (endTime <= startTime) {
-      alert('End time must be after start time');
+      showNotification('End time must be after start time', 'error');
       return;
     }
 
     if (formData.duration < 1 || formData.duration > 168) {
-      alert('Duration must be between 1 and 168 hours (7 days)');
+      showNotification('Duration must be between 1 and 168 hours (7 days)', 'error');
       return;
     }
 
