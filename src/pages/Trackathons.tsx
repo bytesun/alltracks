@@ -105,9 +105,7 @@ export const Trackathons: React.FC = () => {
   }) => {
     try {
       // Convert activityType string to backend format
-      // Map 'other' to 'track' since backend doesn't have 'other'
-      const activityTypeKey = data.activityType === 'other' ? 'track' : data.activityType;
-      const activityTypeObj = { [activityTypeKey]: null };
+      const activityTypeObj = { [data.activityType]: null };
       
       const result = await alltracks.createTrackathon({
         name: data.name,
