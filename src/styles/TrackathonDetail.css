@@ -482,6 +482,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .participant-header .material-icons {
@@ -491,6 +492,13 @@
 .participant-header strong {
   font-size: 1.1rem;
   color: #333;
+}
+
+.participant-principal {
+  font-size: 0.8rem;
+  color: #999;
+  font-family: monospace;
+  margin-left: auto;
 }
 
 .participant-stats {
@@ -577,6 +585,12 @@
   font-size: 0.9rem;
   color: #666;
   font-family: monospace;
+}
+
+.location-elevation {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .location-time {
