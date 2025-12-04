@@ -226,6 +226,24 @@ export const TrackathonDetail: React.FC = () => {
     return trackathon?.registrations.includes(principal?.toText() || '');
   };
 
+  const isUserChallengeOver = () => {
+    if (!trackathon || !principal) return false;
+    
+    // Find the current user's participant data
+    const currentUserParticipant = participants.find(p => p.principal === principal.toText());
+    
+    // If user hasn't started tracking yet, challenge is not over
+    if (!currentUserParticipant || !currentUserParticipant.startedAt) return false;
+    
+    // Calculate when the challenge ends for this participant
+    // startedAt is in milliseconds, duration is in hours
+    const challengeEndTime = currentUserParticipant.startedAt + (trackathon.duration * 60 * 60 * 1000);
+    const now = Date.now();
+    
+    // Challenge is over if current time exceeds the end time
+    return now > challengeEndTime;
+  };
+
   const getMapCenter = (): [number, number] => {
     if (selectedParticipant && selectedParticipant.trackPoints.length > 0) {
       const lastPoint = selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1];
@@ -364,7 +382,7 @@ export const TrackathonDetail: React.FC = () => {
         <div className="live-section">
           <div className="section-header">
             <h2>Live Tracking</h2>
-            {principal && isRegistered && (
+            {principal && isRegistered && !isUserChallengeOver() && (
               <button className="start-button" onClick={handleRecordPoint}>
                 <span className="material-icons">add_location</span>
                 Record Point
