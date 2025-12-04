@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { useAlltracks, useGlobalContext } from '../components/Store';
@@ -226,7 +226,7 @@ export const TrackathonDetail: React.FC = () => {
     return trackathon?.registrations.includes(principal?.toText() || '');
   };
 
-  const isUserChallengeOver = () => {
+  const isUserChallengeOver = useMemo(() => {
     if (!trackathon || !principal) return false;
     
     // Find the current user's participant data
@@ -242,7 +242,7 @@ export const TrackathonDetail: React.FC = () => {
     
     // Challenge is over if current time exceeds the end time
     return now > challengeEndTime;
-  };
+  }, [trackathon, principal, participants]);
 
   const getMapCenter = (): [number, number] => {
     if (selectedParticipant && selectedParticipant.trackPoints.length > 0) {
@@ -382,7 +382,7 @@ export const TrackathonDetail: React.FC = () => {
         <div className="live-section">
           <div className="section-header">
             <h2>Live Tracking</h2>
-            {principal && isRegistered && !isUserChallengeOver() && (
+            {principal && isRegistered && !isUserChallengeOver && (
               <button className="start-button" onClick={handleRecordPoint}>
                 <span className="material-icons">add_location</span>
                 Record Point
