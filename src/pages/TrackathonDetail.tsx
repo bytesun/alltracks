@@ -92,6 +92,12 @@ export const TrackathonDetail: React.FC = () => {
       setParticipants(formattedParticipants.sort((a, b) => {
         const lastPointA = a.trackPoints[a.trackPoints.length - 1];
         const lastPointB = b.trackPoints[b.trackPoints.length - 1];
+        
+        // Handle participants with no track points
+        if (!lastPointA && !lastPointB) return 0;
+        if (!lastPointA) return 1; // Move a to end
+        if (!lastPointB) return -1; // Move b to end
+        
         return lastPointB.timestamp - lastPointA.timestamp;
       }));
       setLoading(false);
