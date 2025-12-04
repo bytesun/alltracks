@@ -492,7 +492,7 @@ export const TrackathonDetail: React.FC = () => {
                               Current Position<br />
                               Lat: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lat.toFixed(6)}, 
                               Lng: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lng.toFixed(6)}<br />
-                              Elevation: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].elevation}m<br />
+                              Elevation: {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].elevation ?? 0}m<br />
                               {formatTime(selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].timestamp)}<br />
                               {selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].note && 
                                 <em>{selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].note}</em>}
@@ -522,7 +522,7 @@ export const TrackathonDetail: React.FC = () => {
                                   <strong>{participant.username}</strong><br />
                                   Point {idx + 1}{isLastPoint ? ' (Current)' : ''}<br />
                                   Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
-                                  Elevation: {point.elevation}m<br />
+                                  Elevation: {point.elevation ?? 0}m<br />
                                   {formatTime(point.timestamp)}<br />
                                   {point.note && <em>{point.note}</em>}
                                 </Popup>
@@ -638,7 +638,7 @@ export const TrackathonDetail: React.FC = () => {
                               <strong>Point {idx + 1}</strong>
                               {isFirstPoint && ' (Start)'}{isLastPoint && ' (End)'}<br />
                               Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
-                              Elevation: {point.elevation}m<br />
+                              Elevation: {point.elevation ?? 0}m<br />
                               {formatTime(point.timestamp)}<br />
                               {point.note && <em>{point.note}</em>}
                             </Popup>
