@@ -468,7 +468,7 @@ export const idlFactory = ({ IDL }) => {
         [Result_2],
         [],
       ),
-    'registerForTrackathon' : IDL.Func([IDL.Text], [Result_2], []),
+    'registerForTrackathon' : IDL.Func([IDL.Text, IDL.Text], [Result_2], []),
     'savePoints' : IDL.Func([IDL.Vec(NewSavedPoint)], [Result_1], []),
     'searchPhotosByTags' : IDL.Func(
         [IDL.Vec(IDL.Text)],

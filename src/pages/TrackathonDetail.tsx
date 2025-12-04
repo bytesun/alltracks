@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import { useAlltracks, useGlobalContext } from '../components/Store';
 import { Trackathon, TrackathonParticipant, TrackathonPoint, ActivityType } from '../types/Trackathon';
 import { MintBadgeModal } from '../components/MintBadgeModal';
@@ -14,6 +14,26 @@ const SECONDS_PER_MINUTE = 60;
 const MILLISECONDS_PER_SECOND = 1000;
 const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
 
+// Component to update map view when participant is selected
+const MapUpdater: React.FC<{ participant: TrackathonParticipant | null }> = ({ participant }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (participant && participant.trackPoints.length > 0) {
+      // Calculate bounds to fit all track points
+      const bounds: [[number, number], [number, number]] = [
+        [Math.min(...participant.trackPoints.map(p => p.lat)), Math.min(...participant.trackPoints.map(p => p.lng))],
+        [Math.max(...participant.trackPoints.map(p => p.lat)), Math.max(...participant.trackPoints.map(p => p.lng))]
+      ];
+      
+      // Fit bounds with padding
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+  }, [participant, map]);
+
+  return null;
+};
+
 export const TrackathonDetail: React.FC = () => {
   const { trackathonId } = useParams<{ trackathonId: string }>();
   const navigate = useNavigate();
@@ -26,6 +46,8 @@ export const TrackathonDetail: React.FC = () => {
   const [selectedParticipant, setSelectedParticipant] = useState<TrackathonParticipant | null>(null);
   const [showMintModal, setShowMintModal] = useState(false);
   const [showRecordModal, setShowRecordModal] = useState(false);
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [username, setUsername] = useState('');
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number; elevation?: number } | null>(null);
   const [recordNote, setRecordNote] = useState('');
   const [loading, setLoading] = useState(true);
@@ -114,13 +136,17 @@ export const TrackathonDetail: React.FC = () => {
     }
   };
 
-  const handleRegister = async () => {
+  const handleRegister = async (providedUsername: string) => {
     setIsRegistering(true);
     try {
-      const result = await alltracks.registerForTrackathon(trackathonId!);
+      // TODO: Update API call to include username when backend supports it
+      // For now, the backend will need to be updated to accept username parameter
+      const result = await alltracks.registerForTrackathon(providedUsername,trackathonId!);
       
       if ('ok' in result) {
-        showNotification('Successfully registered! You can start tracking once the trackathon begins.', 'success');
+        showNotification(`Successfully registered as ${providedUsername}! You can start tracking once the trackathon begins.`, 'success');
+        setShowUsernameModal(false);
+        setUsername('');
         loadTrackathonData();
       } else {
         showNotification('Failed to register: ' + result.err, 'error');
@@ -131,6 +157,26 @@ export const TrackathonDetail: React.FC = () => {
     } finally {
       setIsRegistering(false);
     }
+  };
+
+  const handleRegisterClick = () => {
+    setShowUsernameModal(true);
+  };
+
+  const handleUsernameSubmit = () => {
+    if (!username.trim()) {
+      showNotification('Please enter your name', 'error');
+      return;
+    }
+    if (username.trim().length < 2) {
+      showNotification('name must be at least 2 characters', 'error');
+      return;
+    }
+    if (username.trim().length > 30) {
+      showNotification('name must be less than 30 characters', 'error');
+      return;
+    }
+    handleRegister(username.trim());
   };
 
   const handleRecordPoint = async () => {
@@ -347,7 +393,7 @@ export const TrackathonDetail: React.FC = () => {
           <div className="section-header">
             <h2>Registration</h2>
             {principal && !isRegistered && (
-              <button className="register-button" onClick={handleRegister} disabled={isRegistering}>
+              <button className="register-button" onClick={handleRegisterClick} disabled={isRegistering}>
                 {isRegistering ? (
                   <>
                     <span className="spinner"></span>
@@ -374,7 +420,7 @@ export const TrackathonDetail: React.FC = () => {
           <div className="registered-users">
             <h3>Registered Participants ({trackathon.registrations.length})</h3>
             <div className="user-list">
-              {trackathon.registrations.map((userId) => (
+              {trackathon.registrations.map((userId,username) => (
                 <div key={userId} className="user-item">
                   <span className="material-icons">person</span>
                   <span>{formatPrincipalId(userId)}</span>
@@ -410,6 +456,9 @@ export const TrackathonDetail: React.FC = () => {
                 <h3>Active Participants</h3>
                 <div className="participants-list">
                   {participants.map((participant) => {
+                    if (participant.trackPoints.length === 0) {
+                      return null; // Skip participants with no track points
+                      }
                     const lastPoint = participant.trackPoints[participant.trackPoints.length - 1];
                     const isSelected = selectedParticipant?.principal === participant.principal;
                     return (
@@ -424,8 +473,9 @@ export const TrackathonDetail: React.FC = () => {
                         <div className="participant-header">
                           <span className="material-icons">person</span>
                           <strong>{participant.username}</strong>
-                          <span className="participant-principal">{formatPrincipalId(participant.principal)}</span>
+                          
                         </div>
+
                         <div className="participant-stats">
                           <div className="stat-item">
                             <span className="material-icons">straighten</span>
@@ -480,6 +530,7 @@ export const TrackathonDetail: React.FC = () => {
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     />
+                    <MapUpdater participant={selectedParticipant} />
                     {selectedParticipant ? (
                       <React.Fragment>
                         <Polyline
@@ -609,6 +660,7 @@ export const TrackathonDetail: React.FC = () => {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       />
+                      <MapUpdater participant={selectedParticipant} />
                       <Polyline
                         positions={selectedParticipant.trackPoints.map(p => [p.lat, p.lng])}
                         color="#007bff"
@@ -699,6 +751,60 @@ export const TrackathonDetail: React.FC = () => {
               </button>
               <button className="cancel-button" onClick={() => setShowRecordModal(false)} disabled={isSavingPoint}>
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Username Modal */}
+      {showUsernameModal && (
+        <div className="modal-overlay" onClick={() => !isRegistering && setShowUsernameModal(false)}>
+          <div className="modal-content username-modal" onClick={(e) => e.stopPropagation()}>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <input
+                  id="username-input"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your name (2-30 characters)"
+                  maxLength={30}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !isRegistering) {
+                      handleUsernameSubmit();
+                    }
+                  }}
+                  autoFocus
+                  disabled={isRegistering}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="cancel-button" 
+                onClick={() => setShowUsernameModal(false)} 
+                disabled={isRegistering}
+              >
+                Cancel
+              </button>
+              <button 
+                className="submit-button" 
+                onClick={handleUsernameSubmit}
+                disabled={isRegistering}
+              >
+                {isRegistering ? (
+                  <>
+                    <span className="spinner"></span>
+                    Registering...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons">check</span>
+                    Register
+                  </>
+                )}
               </button>
             </div>
           </div>

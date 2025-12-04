@@ -483,7 +483,7 @@ service : {
   mintTrackathonBadge: (trackathonId: text) -> (Result_3);
   recordTrackathonPoint: (trackathonId: text, point: TrackathonPoint) ->
    (Result_2);
-  registerForTrackathon: (trackathonId: text) -> (Result_2);
+  registerForTrackathon: (username: text, trackathonId: text) -> (Result_2);
   savePoints: (points: vec NewSavedPoint) -> (Result_1);
   searchPhotosByTags: (searchTags: vec text) -> (vec Photo) query;
   searchSpotsByTag: (tag: text, page: nat, pageSize: nat) ->

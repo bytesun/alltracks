@@ -405,7 +405,7 @@ export interface _SERVICE {
   'getUserstats' : ActorMethod<[string], [] | [UserStats]>,
   'mintTrackathonBadge' : ActorMethod<[string], Result_3>,
   'recordTrackathonPoint' : ActorMethod<[string, TrackathonPoint], Result_2>,
-  'registerForTrackathon' : ActorMethod<[string], Result_2>,
+  'registerForTrackathon' : ActorMethod<[string, string], Result_2>,
   'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchSpotsByTag' : ActorMethod<[string, bigint, bigint], Array<SpotV2>>,
