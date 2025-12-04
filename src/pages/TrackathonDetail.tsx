@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { useAlltracks, useGlobalContext } from '../components/Store';
@@ -7,6 +7,12 @@ import { MintBadgeModal } from '../components/MintBadgeModal';
 import { useNotification } from '../context/NotificationContext';
 import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
 import '../styles/TrackathonDetail.css';
+
+// Time conversion constants
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
 
 export const TrackathonDetail: React.FC = () => {
   const { trackathonId } = useParams<{ trackathonId: string }>();
@@ -226,6 +232,24 @@ export const TrackathonDetail: React.FC = () => {
     return trackathon?.registrations.includes(principal?.toText() || '');
   };
 
+  const isUserChallengeOver = useMemo(() => {
+    if (!trackathon || !principal) return false;
+    
+    // Find the current user's participant data
+    const currentUserParticipant = participants.find(p => p.principal === principal.toText());
+    
+    // If user hasn't started tracking yet, challenge is not over
+    if (!currentUserParticipant || !currentUserParticipant.startedAt) return false;
+    
+    // Calculate when the challenge ends for this participant
+    // startedAt is in milliseconds, duration is in hours
+    const challengeEndTime = currentUserParticipant.startedAt + (trackathon.duration * MILLISECONDS_PER_HOUR);
+    const now = Date.now();
+    
+    // Challenge is over if current time exceeds the end time
+    return now > challengeEndTime;
+  }, [trackathon, principal, participants]);
+
   const getMapCenter = (): [number, number] => {
     if (selectedParticipant && selectedParticipant.trackPoints.length > 0) {
       const lastPoint = selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1];
@@ -364,7 +388,7 @@ export const TrackathonDetail: React.FC = () => {
         <div className="live-section">
           <div className="section-header">
             <h2>Live Tracking</h2>
-            {principal && isRegistered && (
+            {principal && isRegistered && !isUserChallengeOver && (
               <button className="start-button" onClick={handleRecordPoint}>
                 <span className="material-icons">add_location</span>
                 Record Point
