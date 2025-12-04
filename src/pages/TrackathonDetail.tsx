@@ -140,6 +140,7 @@ export const TrackathonDetail: React.FC = () => {
           setCurrentLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
+            // Convert null altitude to undefined for optional field handling
             elevation: position.coords.altitude || undefined
           });
           setShowRecordModal(true);
