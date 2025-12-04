@@ -491,7 +491,7 @@ export const TrackathonDetail: React.FC = () => {
                           const isLastPoint = idx === selectedParticipant.trackPoints.length - 1;
                           return (
                             <Marker 
-                              key={idx}
+                              key={`${point.timestamp}-${idx}`}
                               position={[point.lat, point.lng]}
                               icon={isLastPoint ? hikingHumanIcon : locationIcon}
                               zIndexOffset={isLastPoint ? 1000 : 0}
@@ -500,7 +500,9 @@ export const TrackathonDetail: React.FC = () => {
                                 <strong>{selectedParticipant.username}</strong><br />
                                 Point {idx + 1}{isLastPoint ? ' (Current)' : ''}<br />
                                 Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
-                                Elevation: {point.elevation ?? 0}m<br />
+                                {point.elevation !== undefined && (
+                                  <>Elevation: {point.elevation.toFixed(1)}m<br /></>
+                                )}
                                 {formatTime(point.timestamp)}<br />
                                 {point.note && <em>{point.note}</em>}
                               </Popup>
