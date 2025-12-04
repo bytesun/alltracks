@@ -5,6 +5,7 @@ import { useAlltracks, useGlobalContext } from '../components/Store';
 import { Trackathon, TrackathonParticipant, TrackathonPoint, ActivityType } from '../types/Trackathon';
 import { MintBadgeModal } from '../components/MintBadgeModal';
 import { useNotification } from '../context/NotificationContext';
+import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
 import '../styles/TrackathonDetail.css';
 
 export const TrackathonDetail: React.FC = () => {
@@ -460,6 +461,7 @@ export const TrackathonDetail: React.FC = () => {
                               selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lat,
                               selectedParticipant.trackPoints[selectedParticipant.trackPoints.length - 1].lng
                             ]}
+                            icon={hikingHumanIcon}
                           >
                             <Popup>
                               <strong>{selectedParticipant.username}</strong><br />
@@ -483,18 +485,26 @@ export const TrackathonDetail: React.FC = () => {
                             weight={3}
                             opacity={0.7}
                           />
-                          {participant.trackPoints.map((point, idx) => (
-                            <Marker key={`${participant.principal}-${idx}`} position={[point.lat, point.lng]}>
-                              <Popup>
-                                <strong>{participant.username}</strong><br />
-                                Point {idx + 1}<br />
-                                Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
-                                Elevation: {point.elevation}m<br />
-                                {formatTime(point.timestamp)}<br />
-                                {point.note && <em>{point.note}</em>}
-                              </Popup>
-                            </Marker>
-                          ))}
+                          {participant.trackPoints.map((point, idx) => {
+                            const isLastPoint = idx === participant.trackPoints.length - 1;
+                            return (
+                              <Marker 
+                                key={`${participant.principal}-${idx}`} 
+                                position={[point.lat, point.lng]}
+                                icon={isLastPoint ? hikingHumanIcon : locationIcon}
+                                zIndexOffset={isLastPoint ? 1000 : 0}
+                              >
+                                <Popup>
+                                  <strong>{participant.username}</strong><br />
+                                  Point {idx + 1}{isLastPoint ? ' (Current)' : ''}<br />
+                                  Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
+                                  Elevation: {point.elevation}m<br />
+                                  {formatTime(point.timestamp)}<br />
+                                  {point.note && <em>{point.note}</em>}
+                                </Popup>
+                              </Marker>
+                            );
+                          })}
                         </React.Fragment>
                       ))
                     )}
@@ -590,17 +600,27 @@ export const TrackathonDetail: React.FC = () => {
                         color="#007bff"
                         weight={4}
                       />
-                      {selectedParticipant.trackPoints.map((point, idx) => (
-                        <Marker key={idx} position={[point.lat, point.lng]}>
-                          <Popup>
-                            <strong>Point {idx + 1}</strong><br />
-                            Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
-                            Elevation: {point.elevation}m<br />
-                            {formatTime(point.timestamp)}<br />
-                            {point.note && <em>{point.note}</em>}
-                          </Popup>
-                        </Marker>
-                      ))}
+                      {selectedParticipant.trackPoints.map((point, idx) => {
+                        const isFirstPoint = idx === 0;
+                        const isLastPoint = idx === selectedParticipant.trackPoints.length - 1;
+                        return (
+                          <Marker 
+                            key={idx} 
+                            position={[point.lat, point.lng]}
+                            icon={isLastPoint ? hikingHumanIcon : isFirstPoint ? selectedLocationIcon : locationIcon}
+                            zIndexOffset={isLastPoint || isFirstPoint ? 1000 : 0}
+                          >
+                            <Popup>
+                              <strong>Point {idx + 1}</strong>
+                              {isFirstPoint && ' (Start)'}{isLastPoint && ' (End)'}<br />
+                              Lat: {point.lat.toFixed(6)}, Lng: {point.lng.toFixed(6)}<br />
+                              Elevation: {point.elevation}m<br />
+                              {formatTime(point.timestamp)}<br />
+                              {point.note && <em>{point.note}</em>}
+                            </Popup>
+                          </Marker>
+                        );
+                      })}
                     </MapContainer>
                   ) : (
                     <div className="map-placeholder">
