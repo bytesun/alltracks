@@ -8,6 +8,12 @@ import { useNotification } from '../context/NotificationContext';
 import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
 import '../styles/TrackathonDetail.css';
 
+// Time conversion constants
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+
 export const TrackathonDetail: React.FC = () => {
   const { trackathonId } = useParams<{ trackathonId: string }>();
   const navigate = useNavigate();
@@ -237,7 +243,7 @@ export const TrackathonDetail: React.FC = () => {
     
     // Calculate when the challenge ends for this participant
     // startedAt is in milliseconds, duration is in hours
-    const challengeEndTime = currentUserParticipant.startedAt + (trackathon.duration * 60 * 60 * 1000);
+    const challengeEndTime = currentUserParticipant.startedAt + (trackathon.duration * MILLISECONDS_PER_HOUR);
     const now = Date.now();
     
     // Challenge is over if current time exceeds the end time
