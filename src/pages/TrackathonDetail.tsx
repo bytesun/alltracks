@@ -26,7 +26,7 @@ export const TrackathonDetail: React.FC = () => {
   const [selectedParticipant, setSelectedParticipant] = useState<TrackathonParticipant | null>(null);
   const [showMintModal, setShowMintModal] = useState(false);
   const [showRecordModal, setShowRecordModal] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number; elevation?: number } | null>(null);
   const [recordNote, setRecordNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -139,7 +139,8 @@ export const TrackathonDetail: React.FC = () => {
         (position) => {
           setCurrentLocation({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
+            elevation: position.coords.altitude || undefined
           });
           setShowRecordModal(true);
         },
@@ -167,7 +168,7 @@ export const TrackathonDetail: React.FC = () => {
       const apiPoint = {
         lat: currentLocation.lat,
         lng: currentLocation.lng,
-        elevation: [], // Will be calculated by backend or can be added from device
+        elevation: currentLocation.elevation !== undefined ? [currentLocation.elevation] : [],
         timestamp: BigInt(Date.now() * 1000000), // Convert to nanoseconds
         note: recordNote ? [recordNote] : [],
       } as any;
