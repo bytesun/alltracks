@@ -30,8 +30,13 @@ export const Navbar = () => {
       const authClient = await AuthClient.create(
         {
           idleOptions: {
-            disableIdle: true,
-            disableDefaultIdleCallback: true
+            idleTimeout: 1000 * 60 * 30, // 30 minutes idle timeout
+            disableDefaultIdleCallback: true,
+            onIdle: () => {
+              // Session expired due to inactivity
+              console.log('Session expired due to inactivity');
+              handleSessionExpired(authClient);
+            }
           }
         }
       );
@@ -56,6 +61,30 @@ export const Navbar = () => {
     });
 
   };
+
+  const handleSessionExpired = async (authClient: AuthClient) => {
+    await authClient.logout();
+    setAgent({ agent: null });
+    console.log('Session expired - signed out');
+  };
+
+  // Periodic session validation check
+  useEffect(() => {
+    if (!authClient || !isAuthed) return;
+
+    const checkSession = async () => {
+      const isAuthenticated = await authClient.isAuthenticated();
+      if (!isAuthenticated && isAuthed) {
+        // Session has expired
+        console.log('Session validation failed - signing out');
+        handleSessionExpired(authClient);
+      }
+    };
+
+    // Check every 60 seconds
+    const interval = setInterval(checkSession, 60000);
+    return () => clearInterval(interval);
+  }, [authClient, isAuthed]);
 
   let windowFeatures = undefined
   const isDesktop = window.innerWidth > 768
