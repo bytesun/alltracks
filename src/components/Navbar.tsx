@@ -30,7 +30,7 @@ export const Navbar = () => {
       const authClient = await AuthClient.create(
         {
           idleOptions: {
-            idleTimeout: 1000 * 60 * 30, // 30 minutes idle timeout
+            idleTimeout: 1000 * 60, // 30 minutes idle timeout
             disableDefaultIdleCallback: true,
             onIdle: () => {
               // Session expired due to inactivity
