@@ -147,7 +147,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
               <option value="running">Running</option>
               <option value="cycling">Cycling</option>
               <option value="rowing">Rowing</option>
-              <option value="other">Other / Mixed</option>
+              <option value="track">Other / Mixed</option>
             </select>
           </div>
 
