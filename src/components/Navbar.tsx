@@ -23,117 +23,6 @@ export const Navbar = () => {
 
   const [authClient, setAuthClient] = useState<AuthClient>(null);
 
-
-  // Auth on refresh
-  useEffect(() => {
-    (async () => {
-      const authClient = await AuthClient.create(
-        {
-          idleOptions: {
-            idleTimeout: 1000 * 60 * 60 * 24, // 24 hours idle timeout
-            disableDefaultIdleCallback: true,
-            onIdle: () => {
-              // Session expired due to inactivity
-              console.log('Session expired due to inactivity');
-              handleSessionExpired(authClient);
-            }
-          }
-        }
-      );
-      setAuthClient(authClient);
-      if (await authClient.isAuthenticated()) {
-        handleAuthenticated(authClient);
-      }
-
-    })();
-  }, []);
-
-  const handleAuthenticated = async (authClient) => {
-    // auth.signin(authClient,()=>{});
-    const identity = authClient.getIdentity();
-    setAgent({
-      agent: new HttpAgent({
-        identity,
-        host: HOST,
-      }),
-      isAuthed: true,
-
-    });
-
-  };
-
-  const handleSessionExpired = async (authClient: AuthClient) => {
-    await authClient.logout();
-    setAgent({ agent: null });
-    console.log('Session expired - signed out');
-  };
-
-  // Periodic session validation check
-  useEffect(() => {
-    if (!authClient || !isAuthed) return;
-
-    const checkSession = async () => {
-      const isAuthenticated = await authClient.isAuthenticated();
-      if (!isAuthenticated && isAuthed) {
-        // Session has expired
-        console.log('Session validation failed - signing out');
-        handleSessionExpired(authClient);
-      }
-    };
-
-    // Check every 60 seconds
-    const interval = setInterval(checkSession, 60000);
-    return () => clearInterval(interval);
-  }, [authClient, isAuthed]);
-
-  let windowFeatures = undefined
-  const isDesktop = window.innerWidth > 768
-  if (isDesktop) {
-    const width = 500
-    const height = 600
-    const left = window.screenX + (window.innerWidth - width) / 2
-    const top = window.screenY + (window.innerHeight - height) / 2
-    windowFeatures = `left=${left},top=${top},width=${width},height=${height}`
-  }
-  const handleIILogin = async () => {
-
-    authClient.login({
-      derivationOrigin: DERIVATION_ORIGION,
-      identityProvider: IDENTITY_PROVIDER,
-      maxTimeToLive: ONE_WEEK_NS,
-      windowOpenerFeatures: windowFeatures,
-      onSuccess: () => {
-        const identity = authClient.getIdentity();
-        setAgent({
-          agent: new HttpAgent({
-            identity,
-            host: HOST,
-          }),
-          isAuthed: true,
-        });
-      },
-    });
-  };
-
-  const handleIIV2Login = async () => {
-
-    authClient.login({
-      // derivationOrigin: DERIVATION_ORIGION,
-      identityProvider: IDENTITY_PROVIDER_v2,
-      maxTimeToLive: ONE_WEEK_NS,
-      windowOpenerFeatures: windowFeatures,
-      onSuccess: () => {
-        const identity = authClient.getIdentity();
-        setAgent({
-          agent: new HttpAgent({
-            identity,
-            host: HOST,
-          }),
-          isAuthed: true,
-        });
-      },
-    });
-  };
   const handleIILogout = async () => {
     await authClient.logout();
     setAgent({ agent: null });
@@ -147,73 +36,6 @@ export const Navbar = () => {
       handleIIV2Login()
     }
   };
-  const APPLICATION_NAME = "AllTracks";
-  const APPLICATION_LOGO_URL = "/192x192.png";
-
-  const AUTH_PATH = "/authenticate/?applicationName=" + APPLICATION_NAME + "&applicationLogo=" + APPLICATION_LOGO_URL + "#authorize";
-  const handleNFIDLogin = async () => {
-    authClient.login({
-      identityProvider: "https://nfid.one" + AUTH_PATH,
-      maxTimeToLive: ONE_WEEK_NS,
-      // derivationOrigin: DERIVATION_ORIGION,
-      windowOpenerFeatures:
-        `left=${window.screen.width / 2 - 525}, ` +
-        `top=${window.screen.height / 2 - 705},` +
-        `toolbar=0,location=0,menubar=0,width=525,height=705`,
-      onSuccess: () => {
-        const identity = authClient.getIdentity();
-        setAgent({
-          agent: new HttpAgent({
-            identity,
-            host: HOST,
-          }),
-          isAuthed: true,
-        });
-      }
-    });
-  };
-
-  const handleLogin = (method: string) => {
-    if (method === 'ii') {
-      handleIILogin();
-    } else if (method === 'iiv2') {
-      // Implement II v2 login
-      handleIIV2Login();
-    } else if (method === 'google') {
-      // Implement Google login
-      handleNFIDLogin();
-    }
-    setLoginModal(false);
-  };
-
-  // useEffect(() => {
-  //   const loadUserSettings = async () => {
-  //     if (user?.key) {
-  //       const statDoc = await getDoc<ProfileSettings>({
-  //         collection: "profiles",
-  //         key: user.key,
-  //       });
-
-  //       if (statDoc?.data) {
-  //         updateSettings(statDoc.data);
-  //       }
-  //     }
-  //   };
-
-  //   loadUserSettings();
-  // }, [user]);
-
-
-  // if (user) {
-  //   await signOut();
-  // } else {
-  //   await signIn({
-  //     derivationOrigin:"https://32pz7-5qaaa-aaaag-qacra-cai.raw.ic0.app", 
-  //     maxTimeToLive: BigInt(24 * 60 * 60 * 1000 * 1000 * 1000) //24 hours
-  //   });
-  //   //navigate('/profile');
-  // }
-  // };
 
   return (
     <>
@@ -237,16 +59,16 @@ export const Navbar = () => {
             <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
             {principal && <Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
             {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
-            {isAuthed && <button className="auth-button" onClick={handleAuth}>
+            {isAuthed && <button className="auth-button" onClick={(handleAuth)}>
               Sign Out
             </button>}
-            {!isAuthed && <button className="auth-button" onClick={handleIIV2Login}>
+            {!isAuthed && <button className="auth-button" onClick={() => setLoginModal(true)}>
               Sign In
             </button>}
           </div>
 
           <div className="mobile-menu">
-            <DropdownMenu isAuthed={isAuthed} onAuth={isAuthed ? handleAuth : handleIIV2Login} />
+            <DropdownMenu isAuthed={isAuthed} onAuth={isAuthed ? handleAuth : () => setLoginModal(true)} />
           </div>
         </div>
       </nav>

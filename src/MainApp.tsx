@@ -1047,16 +1047,7 @@ function MainApp() {
           <span className="material-icons">feedback</span>
           Feedback
         </a>
-        <a
-          href="#"
-          className="footer-link" 
-          rel="noopener noreferrer"
-          onClick={()=>setLoginModal(true)}
-        >
-          <span className="material-icons">login</span>
-          Legacy II
-        </a>
-
+     
       </footer>
 
 
