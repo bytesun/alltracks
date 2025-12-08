@@ -65,6 +65,7 @@ type Action =
       loading: boolean
     }
   | { type: "SET_WALLET"; wallet: any }
+  | { type: "LOGOUT" }
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "SET_AGENT":
@@ -96,6 +97,11 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         wallet: action.wallet,
+      }
+    case "LOGOUT":
+      return {
+        ...initialState,
+        ...createActors(defaultAgent),
       }
     default:
       return { ...state }
@@ -198,4 +204,10 @@ export const useLoading = () => {
     },
   }
 }
+
+export const useLogout = () => {
+  const { dispatch } = useGlobalContext()
+  return () => dispatch({ type: "LOGOUT" })
+}
+
 export default Store

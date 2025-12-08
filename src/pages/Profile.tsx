@@ -12,6 +12,7 @@ import { useNotification } from '../context/NotificationContext';
 import { TrackAchievements } from '../components/TrackAchievements';
 import { ArStorage } from '../components/ArStorage';
 import { SavedPoints } from '../components/SavedPoints';
+import { Wallet } from '../components/Wallet';
 
 import { UserStats } from '../types/UserStats';
 import { useGlobalContext, useAlltracks } from '../components/Store';
@@ -96,6 +97,14 @@ export const Profile: React.FC = () => {
             </div>
 
             <div
+              className={`sidebar-item ${activeTab === 'wallet' ? 'active' : ''}`}
+              onClick={() => setActiveTab('wallet')}
+            >
+              <span className="material-icons">account_balance_wallet</span>
+              NFT Badges
+            </div>
+
+            <div
               className={`sidebar-item ${activeTab === 'arstorage' ? 'active' : ''}`}
               onClick={() => setActiveTab('arstorage')}
             >
@@ -140,6 +149,10 @@ export const Profile: React.FC = () => {
             )}
             {/* {activeTab === 'tracks' && <Tracks />} */}
             {activeTab === 'trails' && <Trails />}
+
+            {activeTab === 'wallet' && (
+              <Wallet />
+            )}
 
             {activeTab === 'arstorage' && (
               <ArStorage

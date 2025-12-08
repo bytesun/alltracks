@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { HttpAgent } from "@dfinity/agent";
-import { AuthClient } from "@dfinity/auth-client";
+import {  useNavigate } from 'react-router-dom';
+
 import '../styles/Navbar.css';
 
 import { DropdownMenu } from './DropdownMenu';
 import { Link } from 'react-router-dom';
 
-import { useGlobalContext, useSetLoginModal, useSetAgent } from "./Store";
+import { useGlobalContext, useSetLoginModal, useLogout } from "./Store";
 
-import { HOST, IDENTITY_PROVIDER, IDENTITY_PROVIDER_v2 } from "../lib/canisters";
-import { DERIVATION_ORIGION, ONE_WEEK_NS } from "../lib/constants";
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -18,22 +15,23 @@ export const Navbar = () => {
   const {
     state: { isAuthed, principal },
   } = useGlobalContext();
-  const setAgent = useSetAgent();
+  const logout = useLogout();
   const [loginModal, setLoginModal] = useSetLoginModal();
 
-  const [authClient, setAuthClient] = useState<AuthClient>(null);
-
-  const handleIILogout = async () => {
+  const handleLogout = async () => {
+    // Get AuthClient and logout
+    const AuthClient = (await import('@dfinity/auth-client')).AuthClient;
+    const authClient = await AuthClient.create();
     await authClient.logout();
-    setAgent({ agent: null });
+    // Clear global state
+    logout();
   };
 
   const handleAuth = async () => {
     if (isAuthed) {
-      handleIILogout();
+      handleLogout();
     } else {
-      // setLoginModal(true);
-      handleIIV2Login()
+      setLoginModal(true);
     }
   };
 
@@ -50,7 +48,6 @@ export const Navbar = () => {
           {/* Desktop menu items */}
           <div className="desktop-menu">
             <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Trackathons</Link>
-
             {/* <Link to="/everpeace" className="nav-link"><span className="material-icons">terrain</span>Everpeace</Link> */}
             {/* <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link> */}
             <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Spots</Link>
@@ -59,7 +56,7 @@ export const Navbar = () => {
             <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
             {principal && <Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
             {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
-            {isAuthed && <button className="auth-button" onClick={(handleAuth)}>
+            {isAuthed && <button className="auth-button" onClick={handleAuth}>
               Sign Out
             </button>}
             {!isAuthed && <button className="auth-button" onClick={() => setLoginModal(true)}>
