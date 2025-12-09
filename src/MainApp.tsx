@@ -156,6 +156,9 @@ function MainApp() {
       if (result.points.length > 0) {
         setTrackPoints(result.points);
         setTrackType(result.trackType);
+        // Auto-center map to the last point when loading saved track
+        setAutoCenter(true);
+        setTimeout(() => setAutoCenter(false), 500);
       }
     };
     if (trackId) {
@@ -281,6 +284,10 @@ function MainApp() {
   }
 
   const getMapCenter = () => {
+    if (autoCenter && trackPoints.length > 0) {
+      const lastPoint = trackPoints[trackPoints.length - 1];
+      return [lastPoint.latitude, lastPoint.longitude];
+    }
     if (isTracking) {
       return userLocation;
     }
@@ -982,7 +989,7 @@ function MainApp() {
           {/* <button onClick={clearPoints} disabled={!trackId && (trackPoints.length === 0 || isExporting)}>
             Clear
           </button> */}
-          <button onClick={() => setShowClearModal(true)} disabled={isExporting}>
+          <button onClick={() => setShowClearModal(true)} disabled={!trackId && trackPoints.length === 0}>
             Clear
           </button>
         </div>

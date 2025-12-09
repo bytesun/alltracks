@@ -479,11 +479,11 @@ export const TrackathonDetail: React.FC = () => {
                         <div className="participant-stats">
                           <div className="stat-item">
                             <span className="material-icons">straighten</span>
-                            <span>{participant.totalDistance.toFixed(2)} km</span>
+                            <span>{Math.ceil(participant.totalDistance * 100) / 100} km</span>
                           </div>
                           <div className="stat-item">
                             <span className="material-icons">terrain</span>
-                            <span>{participant.totalElevationGain} m</span>
+                            <span>{Math.ceil(participant.totalElevationGain)} m</span>
                           </div>
                         </div>
                         {lastPoint?.note && (
@@ -630,11 +630,11 @@ export const TrackathonDetail: React.FC = () => {
                         <div className="leaderboard-stats">
                           <span className="stat-item">
                             <span className="material-icons">straighten</span>
-                            {participant.totalDistance.toFixed(2)} km
+                            {Math.ceil(participant.totalDistance * 100) / 100} km
                           </span>
                           <span className="stat-item">
                             <span className="material-icons">terrain</span>
-                            {participant.totalElevationGain} m
+                            {Math.ceil(participant.totalElevationGain)} m
                           </span>
                         </div>
                       </div>
