@@ -28,6 +28,29 @@
   font-size: 16px;
 }
 
+.description-section {
+  margin-top: 8px;
+}
+
+.description-text {
+  margin: 0;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.toggle-description {
+  color: #1976d2;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.toggle-description:hover {
+  text-decoration: underline;
+}
+
 .create-trackathon-btn {
   display: flex;
   align-items: center;

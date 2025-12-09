@@ -17,6 +17,7 @@ export const Trackathons: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'past'>('active');
   const [userScore, setUserScore] = useState<number>(0);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     loadTrackathons();
@@ -185,7 +186,31 @@ export const Trackathons: React.FC = () => {
       <div className="trackathons-header">
         <div className="header-content">
           <h1>Trackathons</h1>
-          <p className="subtitle">Join anytime during the event window. Once you start, you have a fixed duration to track maximum distance and elevation gain!</p>
+          <div className="description-section">
+            <p className="description-text">
+              {isDescriptionExpanded ? (
+                <>
+                  Trackathon is an open, flexible movement challenge where anyone can join by simply tracking their route. Whether you're hiking, running, sailing, cycling, or even delivering packages, every journey counts.
+                  <br /><br />
+                  Instead of gathering at the same place or struggling with time zones, participants only need to complete any specific time (e.g 8hours) activity window of their choice. During that period, your route becomes your adventure — and your achievement.
+                  <br /><br />
+                  At the end, Trackathon highlights individual and collective performance across multiple dimensions such as distance, speed, elevation, and creativity of route.
+                  <br /><br />
+                  Trackathon celebrates persistence, exploration, and the spirit of moving forward — step by step, track by track.
+                </>
+              ) : (
+                <>
+                  Trackathon is an open, flexible movement challenge where anyone can join by simply tracking their route. Whether you're hiking, running, sailing, cycling, or even delivering packages, every journey counts.
+                </>
+              )}
+              <span 
+                className="toggle-description"
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+              >
+                {isDescriptionExpanded ? ' less' : ' more...'}
+              </span>
+            </p>
+          </div>
         </div>
         {isAuthed && (
           <button 
