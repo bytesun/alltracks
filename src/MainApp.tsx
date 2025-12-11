@@ -1035,10 +1035,7 @@ function MainApp() {
                 <a
           href="/everpeace"
           className="footer-link"
-          onClick={(e) => {
-            e.preventDefault();
-            setShowFeedbackModal(true);
-          }}
+          target="_blank"
         >
           <span className="material-icons">terrain</span>
           Everpeace
