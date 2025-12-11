@@ -72,3 +72,39 @@
 .stat .material-icons {
   font-size: 18px;
 }
+
+@media (max-width: 768px) {
+  .tracks-section {
+    padding: 0 16px;
+  }
+
+  .tracks-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .tracks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .track-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tracks-section {
+    margin: 16px auto;
+    padding: 0 12px;
+  }
+
+  .track-stats {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .stat {
+    font-size: 0.9em;
+  }
+}

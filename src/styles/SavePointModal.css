@@ -30,3 +30,25 @@
   text-align: center;
   margin: 10px 0;
 }
+
+@media (max-width: 768px) {
+  .category-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .category-selector {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .category-btn {
+    padding: 8px;
+    font-size: 0.9em;
+  }
+
+  .category-btn .material-icons {
+    font-size: 20px;
+  }
+}

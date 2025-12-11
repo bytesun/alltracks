@@ -20,10 +20,7 @@ export const LoginModal: React.FC<{ isOpen: boolean; onClose: () => void; onLogi
             <img src="/dfinity.ico" alt="Internet Identity" />
             Internet Identity (Legacy)
           </button>          
-          <button className="login-button google" onClick={() => onLogin('google')}>
-          <img src="/google.png" alt="Google" />
-           Google
-          </button>
+
         </div>
         <button className="close-button" onClick={onClose}>
           <span className="material-icons">close</span>

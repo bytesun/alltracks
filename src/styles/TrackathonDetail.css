@@ -251,6 +251,122 @@
   font-size: 0.9rem;
 }
 
+@media (max-width: 1024px) {
+  .trackathon-detail-container {
+    padding: 1.5rem;
+  }
+
+  .layout-columns {
+    flex-direction: column;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .trackathon-detail-container {
+    padding: 1rem;
+  }
+
+  .title-row h1 {
+    font-size: 1.5rem;
+  }
+
+  .trackathon-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .register-button,
+  .start-button,
+  .mint-badge-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .user-list {
+    grid-template-columns: 1fr;
+  }
+
+  .participant-item {
+    padding: 1rem;
+  }
+
+  .participant-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .trackathon-detail-container {
+    padding: 0.75rem;
+  }
+
+  .title-row h1 {
+    font-size: 1.3rem;
+  }
+
+  .title-row .status-badge {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .trackathon-info-grid {
+    padding: 0.75rem;
+  }
+
+  .info-item .material-icons {
+    font-size: 1.5rem;
+  }
+
+  .info-item span:last-child {
+    font-size: 1rem;
+  }
+
+  .registration-section,
+  .live-section,
+  .completed-section {
+    padding: 1rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .register-button,
+  .start-button,
+  .mint-badge-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .info-text {
+    font-size: 0.9rem;
+  }
+
+  .map-container {
+    height: 300px;
+  }
+}
+
 .point-location,
 .point-note {
   display: flex;
