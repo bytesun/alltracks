@@ -2,7 +2,8 @@
 .feedback-modal {
   position: relative;
   max-width: 500px;
-  width: 90%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .feedback-form {
@@ -73,7 +74,7 @@
 
 @media (max-width: 480px) {
   .feedback-modal {
-    width: 95%;
+    max-width: 100%;
   }
   
   .feedback-form {

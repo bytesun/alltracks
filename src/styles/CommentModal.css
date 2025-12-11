@@ -9,14 +9,16 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 20px;
   }
   
   .modal-content {
     background: white;
     padding: 24px;
     border-radius: 8px;
-    width: 90%;
+    width: 100%;
     max-width: 500px;
+    box-sizing: border-box;
   }
   
   .modal-content h3 {
@@ -209,8 +211,7 @@
 
 @media (max-width: 768px) {
   .modal-content {
-    width: 95%;
-    max-width: none;
+    max-width: 100%;
     padding: 20px;
   }
 

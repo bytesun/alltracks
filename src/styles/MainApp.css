@@ -36,14 +36,15 @@
   }
   
   .modal-content {
-    max-width: 90%;
-    width: 350px;
+    max-width: 350px;
+    width: 100%;
     margin: 0 auto;
+    box-sizing: border-box;
   }
   
   @media screen and (max-width: 480px) {
     .modal-content {
-      width: 85%;
+      max-width: 100%;
       padding: 15px;
     }
   }

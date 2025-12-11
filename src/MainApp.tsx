@@ -1035,7 +1035,7 @@ function MainApp() {
                 <a
           href="/everpeace"
           className="footer-link"
-          target="_blank"
+    
         >
           <span className="material-icons">terrain</span>
           Everpeace

@@ -88,6 +88,7 @@
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  padding: 20px;
 }
 
 .modal-content {
@@ -97,6 +98,7 @@
     position: relative;
     max-width: 90vw;
     max-height: 90vh;
+    box-sizing: border-box;
 }
 
 .modal-content img {

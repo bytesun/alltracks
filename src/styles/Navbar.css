@@ -3,7 +3,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  height: 20px;
+  min-height: 64px;
   color:rgb(4, 114, 4);
   position: sticky;
   top: 0;
@@ -111,6 +111,7 @@
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  padding: 20px;
 }
 
 
