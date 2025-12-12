@@ -159,6 +159,17 @@ function MainApp() {
         // Auto-center map to the last point when loading saved track
         setAutoCenter(true);
         setTimeout(() => setAutoCenter(false), 500);
+        
+        // Load track name from the tracks store
+        try {
+          const { getTrackMetadataFromIndexDB } = await import('./utils/IndexDBHandler');
+          const metadata = await getTrackMetadataFromIndexDB(trackId!);
+          if (metadata?.name) {
+            setTrackName(metadata.name);
+          }
+        } catch (error) {
+          console.error('Error loading track metadata:', error);
+        }
       }
     };
     if (trackId) {
@@ -849,7 +860,7 @@ function MainApp() {
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
-            {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Live</a>}
+            {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Share</a>}
           </div>}
 
         {viewMode === 'map' ? (

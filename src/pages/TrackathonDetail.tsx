@@ -53,6 +53,8 @@ export const TrackathonDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSavingPoint, setIsSavingPoint] = useState(false);
+  const [showLiveInfoTooltip, setShowLiveInfoTooltip] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     loadTrackathonData();
@@ -340,7 +342,30 @@ export const TrackathonDetail: React.FC = () => {
               {status === 'upcoming' ? 'Registration Open' : status === 'live' ? 'Live Now' : 'Completed'}
             </span>
           </div>
-          <p className="description">{trackathon.description}</p>
+          <div className="description">
+            <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+              {isDescriptionExpanded || trackathon.description.length <= 150
+                ? trackathon.description
+                : `${trackathon.description.substring(0, 150)}...`}
+            </p>
+            {trackathon.description.length > 150 && (
+              <span
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                style={{
+                  color: '#007bff',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  marginLeft: '4px',
+                  textDecoration: 'none',
+                  fontWeight: 500
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+              >
+                {isDescriptionExpanded ? 'show less' : 'more...'}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -435,7 +460,47 @@ export const TrackathonDetail: React.FC = () => {
       {status === 'live' && (
         <div className="live-section">
           <div className="section-header">
-            <h2>Live Tracking</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }}>
+              <h2>Live Tracking</h2>
+              <span 
+                className="material-icons" 
+                style={{ 
+                  fontSize: '20px', 
+                  color: '#666', 
+                  cursor: 'pointer',
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#007bff'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#666'}
+                onClick={() => setShowLiveInfoTooltip(!showLiveInfoTooltip)}
+                title="Information"
+              >
+                info
+              </span>
+              {showLiveInfoTooltip && (
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '0',
+                    marginTop: '8px',
+                    padding: '12px 16px',
+                    background: 'white',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 1000,
+                    minWidth: '300px',
+                    fontSize: '0.9rem',
+                    color: '#666',
+                    lineHeight: '1.5'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Recording ends at {formatDate(trackathon.endTime)}. After this time, no more track points can be recorded.
+                </div>
+              )}
+            </div>
             {principal && isRegistered && !isUserChallengeOver && (
               <button className="start-button" onClick={handleRecordPoint}>
                 <span className="material-icons">add_location</span>
@@ -443,10 +508,6 @@ export const TrackathonDetail: React.FC = () => {
               </button>
               )}  
           </div>
-
-          <p className="info-text">
-            Recording ends at {formatDate(trackathon.endTime)}. After this time, no more track points can be recorded.
-          </p>
 
           {participants.length === 0 ? (
             <p className="info-text">No participants have started tracking yet. Be the first!</p>

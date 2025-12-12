@@ -76,6 +76,18 @@ export const getAllTracksFromIndexDB = async () => {
   return allTracks || [];
 };
 
+// Get track metadata (name, type, etc.)
+export const getTrackMetadataFromIndexDB = async (trackId: string) => {
+  try {
+    const db = await openDB('tracks-db', 2);
+    const track = await db.get('tracks', trackId);
+    return track || null;
+  } catch (error) {
+    console.error('Error getting track metadata:', error);
+    return null;
+  }
+};
+
 // Spots helpers
 export const saveSpotToIndexDB = async (spot: { id: string; name: string; latitude: number; longitude: number; timestamp: number }) => {
   const db = await openDB(DB_NAME, DB_VERSION);
