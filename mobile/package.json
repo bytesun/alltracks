@@ -1,12 +1,30 @@
 {
-  "name": "mobile",
+  "name": "alltracks-mobile",
   "version": "1.0.0",
+  "description": "React Native mobile app for AllTracks - GPS tracking, checkpoints, and export",
   "main": "index.ts",
+  "author": "AllTracks Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bytesun/alltracks"
+  },
+  "keywords": [
+    "gps",
+    "tracking",
+    "outdoor",
+    "hiking",
+    "navigation",
+    "react-native",
+    "expo",
+    "mobile"
+  ],
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest",
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
