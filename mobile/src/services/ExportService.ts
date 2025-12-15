@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Track, TrackPoint, ExportFormat } from '../types';
 
@@ -10,15 +10,15 @@ export class ExportService {
     try {
       const content = this.generateContent(track, format);
       const filename = `${track.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.${format}`;
-      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
-
-      await FileSystem.writeAsStringAsync(fileUri, content, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
+      
+      // Create a file in the cache directory
+      const file = new File(Paths.cache, filename);
+      await file.create();
+      await file.write(content);
 
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
-        await Sharing.shareAsync(fileUri, {
+        await Sharing.shareAsync(file.uri, {
           mimeType: this.getMimeType(format),
           dialogTitle: `Export ${track.name}`,
           UTI: this.getUTI(format),
