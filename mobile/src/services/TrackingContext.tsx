@@ -104,12 +104,13 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       LocationService.stopTracking();
 
+      const endTime = new Date();
       const finalTrack: Track = {
         ...activeTrack,
-        endTime: new Date().toISOString(),
+        endTime: endTime.toISOString(),
         isRecording: false,
         duration: activeTrack.points.length > 0
-          ? Date.now() - new Date(activeTrack.startTime).getTime()
+          ? endTime.getTime() - new Date(activeTrack.startTime).getTime()
           : 0,
       };
 

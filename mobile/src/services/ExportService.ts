@@ -11,9 +11,8 @@ export class ExportService {
       const content = this.generateContent(track, format);
       const filename = `${track.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.${format}`;
       
-      // Create a file in the cache directory
-      const file = new File(Paths.cache, filename);
-      await file.create();
+      // Create a file in the document directory
+      const file = new File(Paths.document, filename);
       await file.write(content);
 
       const canShare = await Sharing.isAvailableAsync();

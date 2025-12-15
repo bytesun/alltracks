@@ -10,6 +10,11 @@ export class LocationService {
     return status === 'granted';
   }
 
+  static async requestBackgroundPermissions(): Promise<boolean> {
+    const { status } = await Location.requestBackgroundPermissionsAsync();
+    return status === 'granted';
+  }
+
   static async getCurrentLocation(): Promise<TrackPoint | null> {
     try {
       const hasPermission = await this.requestPermissions();
@@ -46,6 +51,9 @@ export class LocationService {
     if (!hasPermission) {
       throw new Error('Location permission not granted');
     }
+
+    // Request background permission for continuous tracking
+    await this.requestBackgroundPermissions();
 
     const { distanceInterval = 10, timeInterval = 5000 } = options;
 
