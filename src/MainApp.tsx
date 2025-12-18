@@ -273,11 +273,16 @@ function MainApp() {
     const endTime = trackPoints[trackPoints.length - 1].timestamp;
     let durationMs = endTime - startTime;
     
-    // Subtract paused time
+    // Subtract paused time that occurred during tracking
     pausedIntervals.forEach(interval => {
       const pauseEnd = interval.end || Date.now();
-      const pauseDuration = pauseEnd - interval.start;
-      durationMs -= pauseDuration;
+      // Only count pauses that overlap with the tracking period
+      const overlapStart = Math.max(interval.start, startTime);
+      const overlapEnd = Math.min(pauseEnd, endTime);
+      if (overlapStart < overlapEnd) {
+        const pauseDuration = overlapEnd - overlapStart;
+        durationMs -= pauseDuration;
+      }
     });
     
     return Math.max(0, durationMs / (1000 * 60 * 60)); // Convert milliseconds to hours
