@@ -102,6 +102,9 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       if (!activeTrack) return;
 
+      // Update state immediately to reflect UI change
+      setIsTracking(false);
+      
       LocationService.stopTracking();
 
       const endTime = new Date();

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline, Marker } from '../components/MapView';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { StorageService } from '../services/StorageService';

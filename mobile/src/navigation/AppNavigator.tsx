@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 
-import HomeScreen from '../screens/HomeScreen';
 import TrackingScreen from '../screens/TrackingScreen';
 import TracksListScreen from '../screens/TracksListScreen';
 import TrackDetailScreen from '../screens/TrackDetailScreen';
@@ -18,7 +17,6 @@ export type RootStackParamList = {
 };
 
 export type TabParamList = {
-  Home: undefined;
   Tracking: undefined;
   Tracks: undefined;
   Settings: undefined;
@@ -32,11 +30,9 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'home';
+          let iconName: keyof typeof Ionicons.glyphMap = 'location';
 
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Tracking') {
+          if (route.name === 'Tracking') {
             iconName = focused ? 'location' : 'location-outline';
           } else if (route.name === 'Tracks') {
             iconName = focused ? 'list' : 'list-outline';
@@ -51,7 +47,6 @@ function TabNavigator() {
         headerShown: true,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Tracking" component={TrackingScreen} />
       <Tab.Screen name="Tracks" component={TracksListScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />

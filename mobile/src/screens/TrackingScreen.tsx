@@ -8,8 +8,9 @@ import {
   Modal,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline, Marker } from '../components/MapView';
 import { Ionicons } from '@expo/vector-icons';
 import { useTracking } from '../services/TrackingContext';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,6 +31,8 @@ export default function TrackingScreen() {
   const [showCheckpointModal, setShowCheckpointModal] = useState(false);
   const [checkpointNote, setCheckpointNote] = useState('');
   const [checkpointPhoto, setCheckpointPhoto] = useState<string | undefined>();
+  const [selectedPoint, setSelectedPoint] = useState<any>(null);
+  const [showPointDetail, setShowPointDetail] = useState(false);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -92,7 +95,6 @@ export default function TrackingScreen() {
       setShowCheckpointModal(false);
       setCheckpointNote('');
       setCheckpointPhoto(undefined);
-      Alert.alert('Success', 'Checkpoint added');
     } catch (error) {
       Alert.alert('Error', 'Failed to add checkpoint');
     }
@@ -138,6 +140,15 @@ export default function TrackingScreen() {
         region={mapRegion}
         showsUserLocation
         showsMyLocationButton
+        onMarkerPress={(marker: any) => {
+          const pointIndex = activeTrack?.points.findIndex(
+            p => p.latitude === marker.coordinate.latitude && p.longitude === marker.coordinate.longitude
+          );
+          if (pointIndex !== undefined && pointIndex >= 0 && activeTrack?.points[pointIndex]) {
+            setSelectedPoint(activeTrack.points[pointIndex]);
+            setShowPointDetail(true);
+          }
+        }}
       >
         {activeTrack && activeTrack.points.length > 0 && (
           <>
@@ -184,14 +195,43 @@ export default function TrackingScreen() {
           <>
             <View style={styles.statsBar}>
               <View style={styles.stat}>
+                <Text style={styles.statLabel}>Duration</Text>
+                <Text style={styles.statValue}>
+                  {activeTrack ? formatDuration(Date.now() - new Date(activeTrack.startTime).getTime()) : '0:00'}
+                </Text>
+              </View>
+              <View style={styles.stat}>
                 <Text style={styles.statLabel}>Points</Text>
                 <Text style={styles.statValue}>{activeTrack?.points.length || 0}</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statLabel}>Mode</Text>
-                <Text style={styles.statValue}>{settings.mode}</Text>
+                <Text style={styles.statLabel}>Elevation</Text>
+                <Text style={styles.statValue}>
+                  {activeTrack?.points[activeTrack.points.length - 1]?.elevation?.toFixed(0) || 0}m
+                </Text>
               </View>
             </View>
+
+            {/* Point List */}
+            {activeTrack && activeTrack.points.length > 0 && (
+              <ScrollView style={styles.pointList} horizontal showsHorizontalScrollIndicator={false}>
+                {activeTrack.points.filter(p => p.comment || p.photo).map((point, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.pointCard}
+                    onPress={() => {
+                      setSelectedPoint(point);
+                      setShowPointDetail(true);
+                    }}
+                  >
+                    <Ionicons name="location" size={20} color="#007AFF" />
+                    <Text style={styles.pointIndex}>#{index + 1}</Text>
+                    {point.photo && <Ionicons name="camera" size={16} color="#34C759" />}
+                    {point.comment && <Ionicons name="text" size={16} color="#FF9500" />}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -291,12 +331,20 @@ export default function TrackingScreen() {
               numberOfLines={3}
             />
 
-            <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-              <Ionicons name="camera" size={24} color="#007AFF" />
-              <Text style={styles.photoButtonText}>
-                {checkpointPhoto ? 'Photo Added' : 'Add Photo'}
-              </Text>
-            </TouchableOpacity>
+            {checkpointPhoto ? (
+              <View>
+                <Image source={{ uri: checkpointPhoto }} style={styles.photoPreview} />
+                <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                  <Ionicons name="camera" size={24} color="#007AFF" />
+                  <Text style={styles.photoButtonText}>Change Photo</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                <Ionicons name="camera" size={24} color="#007AFF" />
+                <Text style={styles.photoButtonText}>Add Photo</Text>
+              </TouchableOpacity>
+            )}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -313,6 +361,68 @@ export default function TrackingScreen() {
                 <Text style={styles.confirmButtonText}>Add</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Point Detail Modal */}
+      <Modal
+        visible={showPointDetail}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowPointDetail(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Point Details</Text>
+
+            {selectedPoint && (
+              <ScrollView>
+                <View style={styles.pointDetailInfo}>
+                  <Text style={styles.detailLabel}>Location</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedPoint.latitude?.toFixed(6)}, {selectedPoint.longitude?.toFixed(6)}
+                  </Text>
+                </View>
+
+                {selectedPoint.elevation && (
+                  <View style={styles.pointDetailInfo}>
+                    <Text style={styles.detailLabel}>Elevation</Text>
+                    <Text style={styles.detailValue}>{selectedPoint.elevation.toFixed(0)}m</Text>
+                  </View>
+                )}
+
+                {selectedPoint.timestamp && (
+                  <View style={styles.pointDetailInfo}>
+                    <Text style={styles.detailLabel}>Time</Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(selectedPoint.timestamp).toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+
+                {selectedPoint.comment && (
+                  <View style={styles.pointDetailInfo}>
+                    <Text style={styles.detailLabel}>Note</Text>
+                    <Text style={styles.detailValue}>{selectedPoint.comment}</Text>
+                  </View>
+                )}
+
+                {selectedPoint.photo && (
+                  <View style={styles.pointDetailInfo}>
+                    <Text style={styles.detailLabel}>Photo</Text>
+                    <Image source={{ uri: selectedPoint.photo }} style={styles.pointPhoto} />
+                  </View>
+                )}
+              </ScrollView>
+            )}
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.confirmButton]}
+              onPress={() => setShowPointDetail(false)}
+            >
+              <Text style={styles.confirmButtonText}>Close</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -341,6 +451,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
+    zIndex: 1000,
   },
   startButton: {
     backgroundColor: '#34C759',
@@ -480,5 +591,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007AFF',
     marginLeft: 8,
+  },
+  pointList: {
+    maxHeight: 80,
+    marginVertical: 8,
+  },
+  pointCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    gap: 6,
+  },
+  pointIndex: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  pointDetailInfo: {
+    marginBottom: 16,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#333',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 12,
+    resizeMode: 'cover',
+  },
+  pointPhoto: {
+    width: '100%',
+    height: 250,
+    borderRadius: 8,
+    marginTop: 8,
+    resizeMode: 'cover',
   },
 });
