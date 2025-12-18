@@ -85,6 +85,8 @@ function MainApp() {
 
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<'idle' | 'tracking' | 'paused'>('idle');
+  const [pausedIntervals, setPausedIntervals] = useState<Array<{start: number, end?: number}>>([]);
+  const [pauseStartTime, setPauseStartTime] = useState<number | null>(null);
   const [autoRecordingSettings, setAutoRecordingSettings] = useState({
     minDistance: 10, // meters
     minTime: 10, // seconds
@@ -269,8 +271,34 @@ function MainApp() {
     if (trackPoints.length < 2) return 0;
     const startTime = trackPoints[0].timestamp;
     const endTime = trackPoints[trackPoints.length - 1].timestamp;
-    const durationMs = endTime - startTime;
-    return durationMs / (1000 * 60 * 60); // Convert milliseconds to hours
+    let durationMs = endTime - startTime;
+    
+    // Subtract paused time
+    pausedIntervals.forEach(interval => {
+      const pauseEnd = interval.end || Date.now();
+      const pauseDuration = pauseEnd - interval.start;
+      durationMs -= pauseDuration;
+    });
+    
+    return Math.max(0, durationMs / (1000 * 60 * 60)); // Convert milliseconds to hours
+  };
+
+  // Helper function to check if a time range overlaps with pause intervals
+  const getTimeDuringPause = (startTime: number, endTime: number): number => {
+    let pausedTime = 0;
+    pausedIntervals.forEach(interval => {
+      const pauseStart = interval.start;
+      const pauseEnd = interval.end || Date.now();
+      
+      // Calculate overlap between [startTime, endTime] and [pauseStart, pauseEnd]
+      const overlapStart = Math.max(startTime, pauseStart);
+      const overlapEnd = Math.min(endTime, pauseEnd);
+      
+      if (overlapStart < overlapEnd) {
+        pausedTime += overlapEnd - overlapStart;
+      }
+    });
+    return pausedTime;
   };
 
   // Improved moving time calculation: only sum intervals where distance > threshold (e.g., 5 meters)
@@ -282,10 +310,12 @@ function MainApp() {
       const curr = trackPoints[i];
       const dist = calculateDistance(prev.latitude, prev.longitude, curr.latitude, curr.longitude) * 1000;
       if (dist > distanceThreshold) {
-        movingTimeMs += curr.timestamp - prev.timestamp;
+        const intervalTime = curr.timestamp - prev.timestamp;
+        const pausedTime = getTimeDuringPause(prev.timestamp, curr.timestamp);
+        movingTimeMs += intervalTime - pausedTime;
       }
     }
-    return movingTimeMs / (1000 * 60 * 60); // hours
+    return Math.max(0, movingTimeMs / (1000 * 60 * 60)); // hours
   };
 
   function RecenterMap({ position }: { position: [number, number] }) {
@@ -337,18 +367,27 @@ function MainApp() {
     setIsTracking(false);
     setTrackingStatus('paused');
     stopAutoRecording();
+    setPauseStartTime(Date.now());
   };
 
   const resumeTracking = () => {
     setIsTracking(true);
     setTrackingStatus('tracking');
     startAutoRecording();
+    if (pauseStartTime) {
+      setPausedIntervals(prev => [...prev, { start: pauseStartTime, end: Date.now() }]);
+      setPauseStartTime(null);
+    }
   };
 
   const stopTracking = () => {
     setIsTracking(false);
     setTrackingStatus('idle');
     stopAutoRecording();
+    if (pauseStartTime) {
+      setPausedIntervals(prev => [...prev, { start: pauseStartTime, end: Date.now() }]);
+      setPauseStartTime(null);
+    }
   };
 
   const shouldRecordNewPoint = (newPosition: GeolocationPosition): boolean => {
@@ -626,6 +665,8 @@ function MainApp() {
     setHasCloudPoints(false);
     setMessage(undefined);
     setTrackName(null);
+    setPausedIntervals([]);
+    setPauseStartTime(null);
     showNotification('Track cleared', 'success');
 
   };
@@ -779,6 +820,9 @@ function MainApp() {
     setShowStartModal(false);
     if (trackSettings.recordingMode === 'auto') {
       startTracking();
+    } else {
+      // For manual mode, set tracking status to 'tracking' so pause/resume buttons work
+      setTrackingStatus('tracking');
     }
   };
 
@@ -826,9 +870,17 @@ function MainApp() {
 
         {!showStartModal && trackId && <div className="controls">
           {recordingMode === 'manual' ? (
-            <button onClick={recordPoint} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>
-              Record Point
-            </button>
+            <div className="auto-controls">
+              <button onClick={recordPoint} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>
+                Record Point
+              </button>
+              {trackingStatus === 'tracking' && (
+                <button onClick={pauseTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Pause</button>
+              )}
+              {trackingStatus === 'paused' && (
+                <button onClick={resumeTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Resume</button>
+              )}
+            </div>
           ) : (
             <div className="auto-controls">
               {trackingStatus === 'idle' && (
@@ -854,12 +906,6 @@ function MainApp() {
             <p>Moving Time: {getMovingTime().toFixed(2)} hours</p>
             <p>Distance: {getTotalDistance().toFixed(2)} km</p>
             <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
-            <p
-              onClick={() => setShowPointsModal(true)}
-              className="points-count-link"
-            >
-              Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
-            </p>
             {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Share</a>}
           </div>}
 
