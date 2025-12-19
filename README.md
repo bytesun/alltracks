@@ -1,6 +1,17 @@
 # AllTracks
 
-A web application for outdoor activities tracking and safety.
+A web and mobile application for outdoor activities tracking and safety.
+
+## 📱 Mobile App
+
+AllTracks now includes a React Native mobile app for iOS and Android! The mobile app provides:
+- GPS tracking with automatic and manual modes
+- Checkpoint recording with notes and photos
+- Track export in GPX, KML, and CSV formats
+- Offline data storage
+- Real-time map visualization
+
+See the [mobile README](./mobile/README.md) for setup and usage instructions.
 
 ## Core Features
 

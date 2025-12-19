@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "AllTracks Mobile",
+    "slug": "alltracks-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#007AFF"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.alltracks.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "AllTracks needs access to your location to record your tracks and checkpoints.",
+        "NSLocationAlwaysUsageDescription": "AllTracks needs access to your location to record your tracks in the background.",
+        "NSCameraUsageDescription": "AllTracks needs access to your camera to take photos at checkpoints.",
+        "NSPhotoLibraryUsageDescription": "AllTracks needs access to your photo library to save checkpoint photos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#007AFF"
+      },
+      "package": "com.alltracks.mobile",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow AllTracks to use your location to record tracks."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6d3df57e-7559-463b-af88-aced2b383ca1"
+      }
+    }
+  }
+}
