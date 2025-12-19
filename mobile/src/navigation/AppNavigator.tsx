@@ -45,6 +45,7 @@ function TabNavigator() {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
         headerShown: true,
+        headerTitle: 'Alltracks',
       })}
     >
       <Tab.Screen name="Tracking" component={TrackingScreen} />
