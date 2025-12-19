@@ -19,8 +19,11 @@ export default function TrackingScreen() {
   const {
     activeTrack,
     isTracking,
+    isPaused,
     startTracking,
     stopTracking,
+    pauseTracking,
+    resumeTracking,
     addCheckpoint,
     settings,
   } = useTracking();
@@ -133,6 +136,31 @@ export default function TrackingScreen() {
     return `${(meters / 1000).toFixed(2)}km`;
   };
 
+  const calculateCurrentDistance = () => {
+    if (!activeTrack || activeTrack.points.length < 2) return 0;
+    
+    let totalDistance = 0;
+    for (let i = 1; i < activeTrack.points.length; i++) {
+      const p1 = activeTrack.points[i - 1];
+      const p2 = activeTrack.points[i];
+      
+      // Haversine formula for distance calculation
+      const R = 6371e3; // Earth's radius in meters
+      const φ1 = (p1.latitude * Math.PI) / 180;
+      const φ2 = (p2.latitude * Math.PI) / 180;
+      const Δφ = ((p2.latitude - p1.latitude) * Math.PI) / 180;
+      const Δλ = ((p2.longitude - p1.longitude) * Math.PI) / 180;
+
+      const a =
+        Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      totalDistance += R * c;
+    }
+    return totalDistance;
+  };
+
   return (
     <View style={styles.container}>
       <MapView
@@ -201,8 +229,8 @@ export default function TrackingScreen() {
                 </Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statLabel}>Points</Text>
-                <Text style={styles.statValue}>{activeTrack?.points.length || 0}</Text>
+                <Text style={styles.statLabel}>Distance</Text>
+                <Text style={styles.statValue}>{formatDistance(calculateCurrentDistance())}</Text>
               </View>
               <View style={styles.stat}>
                 <Text style={styles.statLabel}>Elevation</Text>
@@ -240,6 +268,14 @@ export default function TrackingScreen() {
               >
                 <Ionicons name="pin" size={24} color="white" />
                 <Text style={styles.buttonText}>Checkpoint</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.pauseButton}
+                onPress={isPaused ? resumeTracking : pauseTracking}
+              >
+                <Ionicons name={isPaused ? "play" : "pause"} size={24} color="white" />
+                <Text style={styles.buttonText}>{isPaused ? "Resume" : "Pause"}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -472,6 +508,16 @@ const styles = StyleSheet.create({
   },
   checkpointButton: {
     backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    flex: 1,
+    marginRight: 8,
+  },
+  pauseButton: {
+    backgroundColor: '#FF9500',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

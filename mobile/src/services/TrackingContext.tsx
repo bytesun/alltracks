@@ -9,8 +9,11 @@ interface TrackingContextType {
   checkpoints: CheckPoint[];
   settings: RecordingSettings;
   isTracking: boolean;
+  isPaused: boolean;
   startTracking: (trackName: string, description?: string) => Promise<void>;
   stopTracking: () => Promise<void>;
+  pauseTracking: () => void;
+  resumeTracking: () => void;
   addCheckpoint: (note?: string, photo?: string) => Promise<void>;
   loadTracks: () => Promise<void>;
   deleteTrack: (trackId: string) => Promise<void>;
@@ -30,6 +33,9 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     recordElevation: true,
   });
   const [isTracking, setIsTracking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseStartTime, setPauseStartTime] = useState<number | null>(null);
+  const [totalPausedDuration, setTotalPausedDuration] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -69,6 +75,9 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         setActiveTrack(newTrack);
         setIsTracking(true);
+        setIsPaused(false);
+        setPauseStartTime(null);
+        setTotalPausedDuration(0);
         await StorageService.setActiveTrack(newTrack);
 
         if (settings.mode === 'auto') {
@@ -98,23 +107,73 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [settings]
   );
 
+  const pauseTracking = useCallback(() => {
+    if (!isTracking || isPaused) return;
+    setIsPaused(true);
+    setPauseStartTime(Date.now());
+    LocationService.stopTracking();
+  }, [isTracking, isPaused]);
+
+  const resumeTracking = useCallback(() => {
+    if (!isTracking || !isPaused) return;
+    
+    // Calculate total paused duration
+    if (pauseStartTime) {
+      const pauseDuration = Date.now() - pauseStartTime;
+      setTotalPausedDuration((prev) => prev + pauseDuration);
+    }
+    
+    setIsPaused(false);
+    setPauseStartTime(null);
+    
+    // Resume location tracking in auto mode
+    if (settings.mode === 'auto') {
+      LocationService.startTracking(
+        async (point) => {
+          setActiveTrack((prev) => {
+            if (!prev) return null;
+            const updatedTrack = {
+              ...prev,
+              points: [...prev.points, point],
+            };
+            StorageService.setActiveTrack(updatedTrack);
+            return updatedTrack;
+          });
+        },
+        {
+          distanceInterval: settings.minDistance,
+          timeInterval: settings.minTime * 1000,
+        }
+      );
+    }
+  }, [isTracking, isPaused, pauseStartTime, settings]);
+
   const stopTracking = useCallback(async () => {
     try {
       if (!activeTrack) return;
 
       // Update state immediately to reflect UI change
       setIsTracking(false);
+      setIsPaused(false);
       
       LocationService.stopTracking();
 
       const endTime = new Date();
+      
+      // Calculate actual duration excluding paused time
+      let actualDuration = endTime.getTime() - new Date(activeTrack.startTime).getTime();
+      if (pauseStartTime) {
+        // If currently paused, add the current pause duration
+        actualDuration -= (Date.now() - pauseStartTime) + totalPausedDuration;
+      } else {
+        actualDuration -= totalPausedDuration;
+      }
+      
       const finalTrack: Track = {
         ...activeTrack,
         endTime: endTime.toISOString(),
         isRecording: false,
-        duration: activeTrack.points.length > 0
-          ? endTime.getTime() - new Date(activeTrack.startTime).getTime()
-          : 0,
+        duration: activeTrack.points.length > 0 ? actualDuration : 0,
       };
 
       // Calculate distance
@@ -145,11 +204,13 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setTracks((prev) => [...prev, finalTrack]);
       setActiveTrack(null);
       setIsTracking(false);
+      setPauseStartTime(null);
+      setTotalPausedDuration(0);
     } catch (error) {
       console.error('Error stopping tracking:', error);
       throw error;
     }
-  }, [activeTrack, settings]);
+  }, [activeTrack, settings, pauseStartTime, totalPausedDuration]);
 
   const addCheckpoint = useCallback(
     async (note?: string, photo?: string) => {
@@ -243,8 +304,11 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         checkpoints,
         settings,
         isTracking,
+        isPaused,
         startTracking,
         stopTracking,
+        pauseTracking,
+        resumeTracking,
         addCheckpoint,
         loadTracks,
         deleteTrack,
