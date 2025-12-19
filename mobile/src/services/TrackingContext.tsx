@@ -179,7 +179,7 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       let actualDuration = endTime.getTime() - new Date(activeTrack.startTime).getTime();
       if (pauseStartTime) {
         // If currently paused, add the current pause duration
-        actualDuration -= (Date.now() - pauseStartTime) + totalPausedDuration;
+        actualDuration -= (endTime.getTime() - pauseStartTime) + totalPausedDuration;
       } else {
         actualDuration -= totalPausedDuration;
       }
