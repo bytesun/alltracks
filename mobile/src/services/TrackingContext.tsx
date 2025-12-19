@@ -10,6 +10,7 @@ interface TrackingContextType {
   settings: RecordingSettings;
   isTracking: boolean;
   isPaused: boolean;
+  getActiveDuration: () => number;
   startTracking: (trackName: string, description?: string) => Promise<void>;
   stopTracking: () => Promise<void>;
   pauseTracking: () => void;
@@ -106,6 +107,20 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
     [settings]
   );
+
+  const getActiveDuration = useCallback(() => {
+    if (!activeTrack) return 0;
+    
+    const elapsedTime = Date.now() - new Date(activeTrack.startTime).getTime();
+    let pausedTime = totalPausedDuration;
+    
+    // If currently paused, add the current pause duration
+    if (isPaused && pauseStartTime) {
+      pausedTime += Date.now() - pauseStartTime;
+    }
+    
+    return elapsedTime - pausedTime;
+  }, [activeTrack, isPaused, pauseStartTime, totalPausedDuration]);
 
   const pauseTracking = useCallback(() => {
     if (!isTracking || isPaused) return;
@@ -305,6 +320,7 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         settings,
         isTracking,
         isPaused,
+        getActiveDuration,
         startTracking,
         stopTracking,
         pauseTracking,

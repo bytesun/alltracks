@@ -20,6 +20,7 @@ export default function TrackingScreen() {
     activeTrack,
     isTracking,
     isPaused,
+    getActiveDuration,
     startTracking,
     stopTracking,
     pauseTracking,
@@ -144,7 +145,7 @@ export default function TrackingScreen() {
       const p1 = activeTrack.points[i - 1];
       const p2 = activeTrack.points[i];
       
-      // Haversine formula for distance calculation
+      // Use Haversine formula to calculate distance between two points
       const R = 6371e3; // Earth's radius in meters
       const φ1 = (p1.latitude * Math.PI) / 180;
       const φ2 = (p2.latitude * Math.PI) / 180;
@@ -225,7 +226,7 @@ export default function TrackingScreen() {
               <View style={styles.stat}>
                 <Text style={styles.statLabel}>Duration</Text>
                 <Text style={styles.statValue}>
-                  {activeTrack ? formatDuration(Date.now() - new Date(activeTrack.startTime).getTime()) : '0:00'}
+                  {formatDuration(getActiveDuration())}
                 </Text>
               </View>
               <View style={styles.stat}>
