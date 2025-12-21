@@ -94,15 +94,36 @@
 }
 
 .share-button {
-  background: transparent;
+  background: #1976d2;
   border: none;
-  color: #1976d2;
+  color: #fff;
   cursor: pointer;
-  font-size: 14px;
-  text-decoration: underline;
-  padding: 4px 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 12px auto 0;
+  transition: background 0.3s ease;
 }
 
 .share-button:hover {
-  opacity: 0.8;
+  background: #1565c0;
+}
+
+.share-button .material-icons {
+  font-size: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  .share-button {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .share-button .material-icons {
+    font-size: 24px;
+  }
 }

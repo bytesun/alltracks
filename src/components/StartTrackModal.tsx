@@ -158,7 +158,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                     <option value="new">➕ Create New Track</option>
                     {existingTracks.map(track => (
                       <option key={track.id} value={track.id}>
-                        {track.name ? `🕒 ${track.name} (${track.id})` : `🕒 ${track.id}`}  ({new Date(track.timestamp).toLocaleDateString()})
+                        {track.name || track.id}
                       </option>
                     ))}
                   </select>
@@ -367,7 +367,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                       }
                     }
                   });
-                  const record = { id: idToSave, timestamp: Date.now(), name: trackName, type: trackType };
+                  const record = { id: idToSave, timestamp: Date.now(), name: trackName, trackType: trackType };
                   await db.put('tracks', record);
                 }
               } catch (err) {

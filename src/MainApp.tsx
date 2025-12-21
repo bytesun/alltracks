@@ -766,6 +766,7 @@ function MainApp() {
 
   setTrackId(trackSettings.trackId);
   if (trackSettings.trackName) setTrackName(trackSettings.trackName);
+  setTrackType(trackSettings.trackType);
     setGroupId(trackSettings.groupId);
     // setWallet(trackSettings.wallet);
     setRecordingMode(trackSettings.recordingMode);
@@ -844,6 +845,7 @@ function MainApp() {
         {trackPoints.length > 0 &&
           <div className="stats">
             {trackName && <h3 style={{ margin: 0, marginBottom: 8 }}>{trackName}</h3>}
+            {trackType && <p style={{ margin: 0, marginBottom: 12, fontSize: '14px', color: '#666', textTransform: 'capitalize' }}>{trackType}</p>}
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
             <p>Moving Time: {getMovingTime().toFixed(2)} hours</p>
             <p>Distance: {getTotalDistance().toFixed(2)} km</p>
@@ -862,8 +864,9 @@ function MainApp() {
                   showNotification('Link copied to clipboard!', 'success');
                 }}
                 className="share-button"
+                title="Share track"
               >
-                Share
+                <span className="material-icons">share</span>
               </button>
             )}
           </div>}
