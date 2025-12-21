@@ -30,6 +30,9 @@ For device testing:
    npm start
    ```
 
+ cd /home/orcsun/projects/suntrack/mobile && pkill -f "expo start" 2>/dev/null; npx expo start --tunnel
+
+
 ## Running on Different Platforms
 
 ### iOS Simulator (Mac only)

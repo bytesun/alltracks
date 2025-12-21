@@ -826,7 +826,7 @@ function MainApp() {
 
         {!showStartModal && trackId && <div className="controls">
           {recordingMode === 'manual' ? (
-            <button onClick={recordPoint} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>
+            <button onClick={recordPoint} className="record-point-button" style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>
               Record Point
             </button>
           ) : (
@@ -860,7 +860,18 @@ function MainApp() {
             >
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
-            {isAuthed && hasCloudPoints && <a href={'/live/' + trackId} target="_blank">Share</a>}
+            {isAuthed && hasCloudPoints && (
+              <button 
+                onClick={() => {
+                  const link = `${window.location.origin}/live/${trackId}`;
+                  navigator.clipboard.writeText(link);
+                  showNotification('Link copied to clipboard!', 'success');
+                }}
+                className="share-button"
+              >
+                Share
+              </button>
+            )}
           </div>}
 
         {viewMode === 'map' ? (
