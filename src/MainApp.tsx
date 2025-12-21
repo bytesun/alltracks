@@ -159,17 +159,17 @@ function MainApp() {
         // Auto-center map to the last point when loading saved track
         setAutoCenter(true);
         setTimeout(() => setAutoCenter(false), 500);
-        
-        // Load track name from the tracks store
-        try {
-          const { getTrackMetadataFromIndexDB } = await import('./utils/IndexDBHandler');
-          const metadata = await getTrackMetadataFromIndexDB(trackId!);
-          if (metadata?.name) {
-            setTrackName(metadata.name);
-          }
-        } catch (error) {
-          console.error('Error loading track metadata:', error);
+      }
+      
+      // Load track name from the tracks store (regardless of points)
+      try {
+        const { getTrackMetadataFromIndexDB } = await import('./utils/IndexDBHandler');
+        const metadata = await getTrackMetadataFromIndexDB(trackId!);
+        if (metadata?.name) {
+          setTrackName(metadata.name);
         }
+      } catch (error) {
+        console.error('Error loading track metadata:', error);
       }
     };
     if (trackId) {

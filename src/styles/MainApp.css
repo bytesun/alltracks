@@ -74,6 +74,23 @@
     font-size: 18px;
     padding: 12px 20px;
   }
+  
+  /* Make all buttons bigger on mobile */
+  .controls button,
+  .auto-controls button,
+  .bottom-controls button,
+  .import-dropdown-trigger {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 10px 16px;
+    font-weight: 500;
+  }
+  
+  .import-dropdown-menu button {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 16px;
+  }
 }
 
 .share-button {
