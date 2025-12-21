@@ -161,15 +161,9 @@ function MainApp() {
         setTimeout(() => setAutoCenter(false), 500);
       }
       
-      // Load track name from the tracks store (regardless of points)
-      try {
-        const { getTrackMetadataFromIndexDB } = await import('./utils/IndexDBHandler');
-        const metadata = await getTrackMetadataFromIndexDB(trackId!);
-        if (metadata?.name) {
-          setTrackName(metadata.name);
-        }
-      } catch (error) {
-        console.error('Error loading track metadata:', error);
+      // Load track name from result
+      if (result.name) {
+        setTrackName(result.name);
       }
     };
     if (trackId) {
@@ -189,10 +183,10 @@ function MainApp() {
   useEffect(() => {
     const saveIndexdb = async () => {
       if (!trackId) return; // don't write an entry with null id
-      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType);
+      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType, trackName || undefined);
     }
     saveIndexdb();
-  }, [trackPoints, trackType])
+  }, [trackPoints, trackType, trackName])
 
 
 
@@ -477,7 +471,7 @@ function MainApp() {
         // }
         //save to  IndexDB
         const updatedPoints = [...trackPoints, newPoint];
-  await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType);
+  await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined);
         if (data.photo) {
           // if (data.cloudEnabled) {
           //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
@@ -524,7 +518,7 @@ function MainApp() {
                     ? { ...point, photo: photoUrl }
                     : point
                 );
-                await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType);
+                await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined);
                 showNotification('Photo uploaded to Arweave:', "success");
               }
             } catch (error) {
