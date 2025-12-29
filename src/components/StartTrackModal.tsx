@@ -106,6 +106,10 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
             setTrackName(rec.name || '');
             // some records use 'type' or 'trackType'
             setTrackType(rec.type || rec.trackType || 'hiking');
+            // Load groupId if it exists
+            if (rec.groupId) {
+              setGroupId(rec.groupId);
+            }
           } else {
             setTrackId(value);
           }
@@ -367,7 +371,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
                       }
                     }
                   });
-                  const record = { id: idToSave, timestamp: Date.now(), name: trackName, trackType: trackType };
+                  const record = { id: idToSave, timestamp: Date.now(), name: trackName, trackType: trackType, groupId: groupId };
                   await db.put('tracks', record);
                 }
               } catch (err) {
