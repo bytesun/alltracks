@@ -29,7 +29,7 @@ export const Profile: React.FC = () => {
     totalHours: 0,
     totalElevation: 0,
     completedTrails: 0,
-    firstHikeDate: new Date().toDateString(),
+    firstHikeDate: new Date().toISOString(),
   });
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export const Profile: React.FC = () => {
           totalHours: uss.totalHours,
           totalElevation: uss.totalElevation,
           completedTrails: Number(uss.completedTrails),
-          firstHikeDate: new Date(Number(uss.firstHikeDate) / 1000000).toLocaleDateString(),
+          firstHikeDate: new Date(Number(uss.firstHikeDate) / 1000000).toISOString(),
         });
       };
 

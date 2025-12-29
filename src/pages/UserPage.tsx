@@ -29,7 +29,7 @@ export const UserPage: React.FC = () => {
         totalHours: 0,
         totalElevation: 0,
         completedTrails: 0,
-        firstHikeDate: new Date().toDateString(),
+        firstHikeDate: new Date().toISOString(),
     });
 
     useEffect(() => {
@@ -44,7 +44,7 @@ export const UserPage: React.FC = () => {
                     totalHours: userstats[0].totalHours,
                     totalElevation: userstats[0].totalElevation,
                     completedTrails: Number(userstats[0].completedTrails),
-                    firstHikeDate: new Date(Number(userstats[0].firstHikeDate)/1000000).toLocaleDateString(),
+                    firstHikeDate: new Date(Number(userstats[0].firstHikeDate)/1000000).toISOString(),
                 });
             }else{
                 setUserStats({
@@ -52,7 +52,7 @@ export const UserPage: React.FC = () => {
                     totalHours: 0,
                     totalElevation: 0,
                     completedTrails: 0,
-                    firstHikeDate: new Date().toDateString(),
+                    firstHikeDate: new Date().toISOString(),
                 });
             }
         };

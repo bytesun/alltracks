@@ -13,7 +13,8 @@ export const TrackAchievements: React.FC<{ stats: UserStats; userId: string }> =
     const hoursPoints = totalHours * 0.01;  
 
     // Calculate experience bonus based on first hike date
-    const daysSinceFirstHike = Math.floor((new Date().getTime() - new Date(firstHikeDate).getTime()) / (1000 * 60 * 60 * 24));
+    const firstHikeTime = new Date(firstHikeDate).getTime();
+    const daysSinceFirstHike = isNaN(firstHikeTime) ? 0 : Math.floor((new Date().getTime() - firstHikeTime) / (1000 * 60 * 60 * 24));
     const experienceBonus = daysSinceFirstHike * 0.005;  // 0.5 points per day since first hike
 
     return Math.floor(distancePoints + elevationPoints + trailPoints + hoursPoints + experienceBonus);
