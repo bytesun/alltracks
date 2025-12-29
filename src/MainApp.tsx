@@ -165,6 +165,11 @@ function MainApp() {
       if (result.name) {
         setTrackName(result.name);
       }
+      
+      // Load groupId from result
+      if (result.groupId) {
+        setGroupId(result.groupId);
+      }
     };
     if (trackId) {
       loadPoints();
@@ -183,10 +188,10 @@ function MainApp() {
   useEffect(() => {
     const saveIndexdb = async () => {
       if (!trackId) return; // don't write an entry with null id
-      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType, trackName || undefined);
+      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType, trackName || undefined, groupId);
     }
     saveIndexdb();
-  }, [trackPoints, trackType, trackName])
+  }, [trackPoints, trackType, trackName, groupId])
 
 
 
@@ -471,7 +476,7 @@ function MainApp() {
         // }
         //save to  IndexDB
         const updatedPoints = [...trackPoints, newPoint];
-  await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined);
+  await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined, groupId);
         if (data.photo) {
           // if (data.cloudEnabled) {
           //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
@@ -518,7 +523,7 @@ function MainApp() {
                     ? { ...point, photo: photoUrl }
                     : point
                 );
-                await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined);
+                await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined, groupId);
                 showNotification('Photo uploaded to Arweave:', "success");
               }
             } catch (error) {
