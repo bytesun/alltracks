@@ -28,6 +28,9 @@ export const TrackView = () => {
     }
     return [49.2827, -123.1207];
   };
+  // Optionally, set activityType here or get from props/context
+  const activityType: string = 'hiking'; // TODO: Replace with real source if available
+
   const getDuration = (): string => {
     if (trackPoints.length < 2) return '0:00';
     const startTime = trackPoints[0].timestamp;
@@ -36,6 +39,44 @@ export const TrackView = () => {
     const hours = Math.floor(durationMs / (1000 * 60 * 60));
     const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  // Calculate pace (min/km) and filter out unrealistic points for each activity type
+  const getPaceAndFilteredDistance = () => {
+    if (trackPoints.length < 2) return { total: 0, pace: 0, filtered: false };
+    let total = 0;
+    let totalTime = 0;
+    let filtered = false;
+    // Reasonable pace thresholds (min/km) for each activity
+    const paceThresholds: Record<string, { min: number; max: number }> = {
+      hiking: { min: 6, max: 30 }, // ignore <6 (too fast), >30 (too slow)
+      running: { min: 2.5, max: 20 }, // ignore <2.5 (world record), >20 (too slow)
+      cycling: { min: 1, max: 10 }, // ignore <1 (too fast), >10 (too slow)
+      rowing: { min: 1.5, max: 15 }, // ignore <1.5, >15
+      track: { min: 2.5, max: 20 }, // use running thresholds
+    };
+    const { min, max } = paceThresholds[activityType] || { min: 2.5, max: 20 };
+    for (let i = 1; i < trackPoints.length; i++) {
+      const dist = calculateDistance(
+        trackPoints[i - 1].latitude,
+        trackPoints[i - 1].longitude,
+        trackPoints[i].latitude,
+        trackPoints[i].longitude
+      );
+      const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
+      if (dist > 0) {
+        const pace = (timeSec / 60) / dist; // min/km
+        // No filtering for 'track' type
+        if (activityType !== 'track' && (pace < min || pace > max)) {
+          filtered = true;
+          continue;
+        }
+        total += dist;
+        totalTime += timeSec;
+      }
+    }
+    const avgPace = total > 0 ? (totalTime / 60) / total : 0;
+    return { total, pace: avgPace, filtered };
   };
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
@@ -50,17 +91,16 @@ export const TrackView = () => {
   };
   
   const getTotalDistance = (): string => {
-    if (trackPoints.length < 2) return '0.00';
-    let total = 0;
-    for (let i = 1; i < trackPoints.length; i++) {
-      total += calculateDistance(
-        trackPoints[i - 1].latitude,
-        trackPoints[i - 1].longitude,
-        trackPoints[i].latitude,
-        trackPoints[i].longitude
-      );
-    }
+    const { total } = getPaceAndFilteredDistance();
     return total.toFixed(2);
+  };
+
+  const getPaceDisplay = (): string => {
+    const { pace, filtered } = getPaceAndFilteredDistance();
+    if (!pace || pace === Infinity) return '-';
+    const min = Math.floor(pace);
+    const sec = Math.round((pace - min) * 60);
+    return `${min}:${sec.toString().padStart(2, '0')} min/km` + (filtered ? ' (filtered)' : '');
   };
 
   const downloadTrackAsGPX = () => {
@@ -140,6 +180,7 @@ export const TrackView = () => {
               <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
               <p>Duration: {getDuration()} hours</p>
               <p>Distance: {getTotalDistance()} km</p>
+              <p>Pace: {getPaceDisplay()}</p>
               <p>Recorded Points: {trackPoints.length}</p>
             </>
           )}

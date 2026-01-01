@@ -1,3 +1,59 @@
+// --- Helper functions for pace and distance ---
+// Haversine formula for distance (km)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Calculate pace for a participant, filtering out segments with pace < 6 min/km for hiking
+function getParticipantPaceDisplay(participant: any, activityType: string): string {
+  if (!participant.trackPoints || participant.trackPoints.length < 2) return '-';
+  let total = 0;
+  let totalTime = 0;
+  let filtered = false;
+  // Reasonable pace thresholds (min/km) for each activity
+  const paceThresholds: Record<string, { min: number; max: number }> = {
+    hiking: { min: 6, max: 30 }, // ignore <6 (too fast), >30 (too slow)
+    running: { min: 2.5, max: 20 }, // ignore <2.5 (world record), >20 (too slow)
+    cycling: { min: 1, max: 10 }, // ignore <1 (too fast), >10 (too slow)
+    rowing: { min: 1.5, max: 15 }, // ignore <1.5, >15
+    track: { min: 2.5, max: 20 }, // use running thresholds
+  };
+  const { min, max } = paceThresholds[activityType] || { min: 2.5, max: 20 };
+  for (let i = 1; i < participant.trackPoints.length; i++) {
+    const prev = participant.trackPoints[i - 1];
+    const curr = participant.trackPoints[i];
+    const dist = calculateDistance(
+      prev.lat,
+      prev.lng,
+      curr.lat,
+      curr.lng
+    );
+    const timeSec = (curr.timestamp - prev.timestamp) / 1000;
+    if (dist > 0) {
+      const pace = (timeSec / 60) / dist; // min/km
+      // No filtering for 'track' type
+      if (activityType !== 'track' && (pace < min || pace > max)) {
+        filtered = true;
+        continue;
+      }
+      total += dist;
+      totalTime += timeSec;
+    }
+  }
+  const avgPace = total > 0 ? (totalTime / 60) / total : 0;
+  if (!avgPace || avgPace === Infinity) return '-';
+  const minP = Math.floor(avgPace);
+  const secP = Math.round((avgPace - minP) * 60);
+  return `${minP}:${secP.toString().padStart(2, '0')} min/km` + (filtered ? ' (filtered)' : '');
+}
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
@@ -546,7 +602,12 @@ export const TrackathonDetail: React.FC = () => {
                             <span className="material-icons">terrain</span>
                             <span>{Math.ceil(participant.totalElevationGain)} m</span>
                           </div>
+                          <div className="stat-item">
+                            <span className="material-icons">speed</span>
+                            <span>{getParticipantPaceDisplay(participant, trackathon.activityType)}</span>
+                          </div>
                         </div>
+                        
                         {lastPoint?.note && (
                           <div className="participant-note">
                             <span className="material-icons">chat_bubble</span>

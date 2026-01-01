@@ -240,19 +240,75 @@ function MainApp() {
     return R * c;
   };
 
+  // Calculate total distance with pace filtering for all types except 'track'
   const getTotalDistance = (): number => {
     if (trackPoints.length < 2) return 0;
     let total = 0;
+    // Reasonable pace thresholds (min/km) for each activity
+    const paceThresholds: Record<string, { min: number; max: number }> = {
+      hiking: { min: 6, max: 30 },
+      running: { min: 2.5, max: 20 },
+      cycling: { min: 1, max: 10 },
+      rowing: { min: 1.5, max: 15 },
+      track: { min: 2.5, max: 20 },
+    };
+    const { min, max } = paceThresholds[trackType] || { min: 2.5, max: 20 };
     for (let i = 1; i < trackPoints.length; i++) {
-      total += calculateDistance(
+      const dist = calculateDistance(
         trackPoints[i - 1].latitude,
         trackPoints[i - 1].longitude,
         trackPoints[i].latitude,
         trackPoints[i].longitude
       );
+      const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
+      if (dist > 0) {
+        const pace = (timeSec / 60) / dist; // min/km
+        if (trackType !== 'track' && (pace < min || pace > max)) {
+          continue;
+        }
+        total += dist;
+      }
     }
     return total;
   };
+    // Optionally, add a pace display function for UI
+    const getPaceDisplay = (): string => {
+      if (trackPoints.length < 2) return '-';
+      let total = 0;
+      let totalTime = 0;
+      let filtered = false;
+      const paceThresholds: Record<string, { min: number; max: number }> = {
+        hiking: { min: 6, max: 30 },
+        running: { min: 2.5, max: 20 },
+        cycling: { min: 1, max: 10 },
+        rowing: { min: 1.5, max: 15 },
+        track: { min: 2.5, max: 20 },
+      };
+      const { min, max } = paceThresholds[trackType] || { min: 2.5, max: 20 };
+      for (let i = 1; i < trackPoints.length; i++) {
+        const dist = calculateDistance(
+          trackPoints[i - 1].latitude,
+          trackPoints[i - 1].longitude,
+          trackPoints[i].latitude,
+          trackPoints[i].longitude
+        );
+        const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
+        if (dist > 0) {
+          const pace = (timeSec / 60) / dist;
+          if (trackType !== 'track' && (pace < min || pace > max)) {
+            filtered = true;
+            continue;
+          }
+          total += dist;
+          totalTime += timeSec;
+        }
+      }
+      const avgPace = total > 0 ? (totalTime / 60) / total : 0;
+      if (!avgPace || avgPace === Infinity) return '-';
+      const minP = Math.floor(avgPace);
+      const secP = Math.round((avgPace - minP) * 60);
+      return `${minP}:${secP.toString().padStart(2, '0')} min/km` + (filtered ? ' (filtered)' : '');
+    };
   const getElevationGain = (): number => {
     let elevationGain = 0;
     for (let i = 1; i < trackPoints.length; i++) {
@@ -854,6 +910,7 @@ function MainApp() {
             <p>Start time: {new Date(trackPoints[0].timestamp).toLocaleString()}</p>
             <p>Moving Time: {getMovingTime().toFixed(2)} hours</p>
             <p>Distance: {getTotalDistance().toFixed(2)} km</p>
+            <p>Pace: {getPaceDisplay()}</p>
             <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
             <p
               onClick={() => setShowPointsModal(true)}
