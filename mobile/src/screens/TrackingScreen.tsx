@@ -1,3 +1,11 @@
+function getPaceDisplay(distance: number, duration: number) {
+  if (!distance || !duration || distance < 10 || duration < 10000) return 'N/A';
+  const pace = duration / 60000 / (distance / 1000);
+  if (!isFinite(pace)) return 'N/A';
+  const min = Math.floor(pace);
+  const sec = Math.round((pace - min) * 60);
+  return `${min}:${sec.toString().padStart(2, '0')} min/km`;
+}
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -236,7 +244,10 @@ export default function TrackingScreen() {
               <View style={styles.stat}>
                 <Text style={styles.statLabel}>Elevation</Text>
                 <Text style={styles.statValue}>
-                  {activeTrack?.points[activeTrack.points.length - 1]?.elevation?.toFixed(0) || 0}m
+                  {getPaceDisplay(
+                    calculateCurrentDistance(),
+                    getActiveDuration()
+                  )}
                 </Text>
               </View>
             </View>

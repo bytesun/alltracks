@@ -45,6 +45,14 @@ interface ProfileSettings {
   trackFileCollection: string;
 }
 
+type ListCounts = {
+  incidentPoints: bigint;
+  tracks: bigint;
+  trails: bigint;
+  checkpoints: bigint;
+  photos: bigint;
+};
+
 
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
@@ -109,6 +117,10 @@ function MainApp() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [showImportOptions, setShowImportOptions] = useState(false);
   const [message, setMessage] = useState<String | undefined>(undefined);
+  const [networkCounts, setNetworkCounts] = useState<ListCounts | null>(null);
+  const [isCountsLoading, setIsCountsLoading] = useState(false);
+  const [countsError, setCountsError] = useState<string | null>(null);
+  const [countsUpdatedAt, setCountsUpdatedAt] = useState<Date | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { showNotification } = useNotification();
@@ -184,6 +196,35 @@ function MainApp() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchListCounts = async () => {
+      setIsCountsLoading(true);
+      try {
+        const counts = await alltracks.getListCounts();
+        if (!isMounted) return;
+        setNetworkCounts(counts);
+        setCountsUpdatedAt(new Date());
+        setCountsError(null);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('Failed to load network stats', error);
+        setCountsError('Unable to load network stats right now.');
+      } finally {
+        if (isMounted) {
+          setIsCountsLoading(false);
+        }
+      }
+    };
+
+    fetchListCounts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [alltracks]);
 
   useEffect(() => {
     const saveIndexdb = async () => {
@@ -262,10 +303,10 @@ function MainApp() {
       );
       const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
       if (dist > 0) {
-        const pace = (timeSec / 60) / dist; // min/km
-        if (trackType !== 'track' && (pace < min || pace > max)) {
-          continue;
-        }
+        // const pace = (timeSec / 60) / dist; // min/km
+        // if (trackType !== 'track' && (pace < min || pace > max)) {
+        //   continue;
+        // }
         total += dist;
       }
     }
@@ -294,11 +335,11 @@ function MainApp() {
         );
         const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
         if (dist > 0) {
-          const pace = (timeSec / 60) / dist;
-          if (trackType !== 'track' && (pace < min || pace > max)) {
-            filtered = true;
-            continue;
-          }
+          // const pace = (timeSec / 60) / dist;
+          // if (trackType !== 'track' && (pace < min || pace > max)) {
+          //   filtered = true;
+          //   continue;
+          // }
           total += dist;
           totalTime += timeSec;
         }
@@ -367,9 +408,20 @@ function MainApp() {
   const getPolylinePoints = () => {
     return trackPoints.map(point => [point.latitude, point.longitude]);
   };
+
   const getPolylineImportPoints = () => {
     return importPoints.map(point => [point.latitude, point.longitude]);
   };
+
+  const formatCount = (value?: bigint) => {
+    if (value === undefined || value === null) return '--';
+    try {
+      return value.toLocaleString('en-US');
+    } catch {
+      return value.toString();
+    }
+  };
+
   const startAutoRecording = () => {
     const interval = setInterval(recordPoint, autoRecordingSettings.minTime * 1000);
     setRecordingInterval(interval);
@@ -381,6 +433,7 @@ function MainApp() {
       setRecordingInterval(null);
     }
   };
+
   const startTracking = () => {
     setTrackPoints([]);
     setIsTracking(true);
@@ -1076,6 +1129,55 @@ function MainApp() {
         </div>
 
       </header>
+      {/* <section className="network-stats">
+        <div className="network-stats__header">
+          <div>
+            <p className="network-stats__eyebrow">Overall statistics</p>
+            <h2 className="network-stats__title">Community footprint</h2>
+            <p className="network-stats__subtext">Live totals from the AllTracks network.</p>
+          </div>
+          <div className="network-stats__meta">
+            <span className={`pill ${isCountsLoading ? 'pill-neutral' : 'pill-live'}`}>
+              {isCountsLoading ? 'Updating' : 'Live'}
+            </span>
+            {countsUpdatedAt && (
+              <span className="network-stats__timestamp">Updated {countsUpdatedAt.toLocaleTimeString()}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="network-stats__grid">
+          <div className="network-stats__card network-stats__card--primary">
+            <div className="network-stats__card-top">
+              <span className="material-icons">alt_route</span>
+              <span className="pill pill-ghost">Total tracks</span>
+            </div>
+            <div className="network-stats__value">
+              {isCountsLoading && !networkCounts ? '--' : formatCount(networkCounts?.tracks)}
+            </div>
+            <p className="network-stats__caption">All tracks recorded across the network.</p>
+          </div>
+
+          <div className="network-stats__card">
+            <div className="network-stats__label">Trails</div>
+            <div className="network-stats__value-sm">{formatCount(networkCounts?.trails)}</div>
+            <p className="network-stats__caption">Curated routes ready to explore.</p>
+          </div>
+
+          <div className="network-stats__card">
+            <div className="network-stats__label">Checkpoints</div>
+            <div className="network-stats__value-sm">{formatCount(networkCounts?.checkpoints)}</div>
+            <p className="network-stats__caption">Shared markers from recent outings.</p>
+          </div>
+        </div>
+
+        {countsError && (
+          <div className="network-stats__error">
+            <span className="material-icons">info</span>
+            <span>{countsError}</span>
+          </div>
+        )}
+      </section> */}
       <div className="feature-highlights">
         <div className="feature-card">
           <span className="material-icons">location_history</span>

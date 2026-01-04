@@ -18,6 +18,14 @@ type NavigationProp = StackNavigationProp<RootStackParamList, 'TrackDetail'>;
 type RouteProps = RouteProp<RootStackParamList, 'TrackDetail'>;
 
 export default function TrackDetailScreen() {
+    function getPaceDisplay(distance: number, duration: number) {
+      if (!distance || !duration || distance < 10 || duration < 10000) return 'N/A';
+      const pace = duration / 60000 / (distance / 1000);
+      if (!isFinite(pace)) return 'N/A';
+      const min = Math.floor(pace);
+      const sec = Math.round((pace - min) * 60);
+      return `${min}:${sec.toString().padStart(2, '0')} min/km`;
+    }
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
   const { trackId } = route.params;
@@ -130,8 +138,8 @@ export default function TrackDetailScreen() {
 
         <View style={styles.statCard}>
           <Ionicons name="location" size={32} color="#FF9500" />
-          <Text style={styles.statValue}>{track.points.length}</Text>
-          <Text style={styles.statLabel}>Points</Text>
+          <Text style={styles.statValue}>{getPaceDisplay(track.distance || 0, track.duration || 0)}</Text>
+          <Text style={styles.statLabel}>Pace</Text>
         </View>
 
         {track.elevationGain !== undefined && (

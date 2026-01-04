@@ -38,12 +38,12 @@ function getParticipantPaceDisplay(participant: any, activityType: string): stri
     );
     const timeSec = (curr.timestamp - prev.timestamp) / 1000;
     if (dist > 0) {
-      const pace = (timeSec / 60) / dist; // min/km
-      // No filtering for 'track' type
-      if (activityType !== 'track' && (pace < min || pace > max)) {
-        filtered = true;
-        continue;
-      }
+      // const pace = (timeSec / 60) / dist; // min/km
+      // // No filtering for 'track' type
+      // if (activityType !== 'track' && (pace < min || pace > max)) {
+      //   filtered = true;
+      //   continue;
+      // }
       total += dist;
       totalTime += timeSec;
     }

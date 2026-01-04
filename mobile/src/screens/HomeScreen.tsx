@@ -1,7 +1,17 @@
+
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTracking } from '../services/TrackingContext';
 import { Ionicons } from '@expo/vector-icons';
+
+function getPaceDisplay(distance: number, duration: number) {
+  if (!distance || !duration || distance < 10 || duration < 10000) return 'N/A';
+  const pace = duration / 60000 / (distance / 1000);
+  if (!isFinite(pace)) return 'N/A';
+  const min = Math.floor(pace);
+  const sec = Math.round((pace - min) * 60);
+  return `${min}:${sec.toString().padStart(2, '0')} min/km`;
+}
 
 export default function HomeScreen() {
   const { tracks, activeTrack, isTracking } = useTracking();
@@ -9,6 +19,7 @@ export default function HomeScreen() {
   const completedTracks = tracks.filter(t => !t.isRecording);
   const totalDistance = completedTracks.reduce((sum, t) => sum + (t.distance || 0), 0);
   const totalDuration = completedTracks.reduce((sum, t) => sum + (t.duration || 0), 0);
+  const lastTrack = completedTracks.length > 0 ? completedTracks[completedTracks.length - 1] : undefined;
 
   return (
     <ScrollView style={styles.container}>
@@ -25,8 +36,18 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.trackName}>{activeTrack.name}</Text>
           <Text style={styles.trackInfo}>
-            {activeTrack.points.length} points recorded
+            {getPaceDisplay(
+              activeTrack.distance || 0,
+              activeTrack.duration || 0
+            )} pace
           </Text>
+              <View style={styles.statCard}>
+                <Ionicons name="speedometer" size={32} color="#8e44ad" />
+                <Text style={styles.statNumber}>
+                  {lastTrack ? getPaceDisplay(lastTrack.distance || 0, lastTrack.duration || 0) : 'N/A'}
+                </Text>
+                <Text style={styles.statLabel}>Pace</Text>
+              </View>
         </View>
       )}
 
