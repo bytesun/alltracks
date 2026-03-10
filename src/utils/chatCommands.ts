@@ -20,6 +20,7 @@ export type ChatIntent =
   | 'action_report_incident'
   | 'action_share_location'
   | 'query_status'
+  | 'query_signin_info'
   | 'query_help'
   | 'unknown';
 
@@ -112,6 +113,12 @@ const intentPatterns: IntentPattern[] = [
       /\b(stop track|stop tracking|end track|end tracking|finish track|finish tracking|pause track|save track)\b/i,
     ],
     intent: 'action_stop_tracking',
+  },
+  {
+    patterns: [
+      /\b(how does sign.?in work|how do i sign in|what is internet identity|explain sign.?in|sign.?in process|how to sign in|why sign in|how does login work|how do i log in|what is ii|how does auth work|how does authentication work|explain login|what is the login|how does identity work)\b/i,
+    ],
+    intent: 'query_signin_info',
   },
   {
     patterns: [
@@ -329,6 +336,27 @@ const intentResponses: Record<ChatIntent, (isAuthed: boolean, principal?: string
     requiresAuth: !isAuthed,
     quickReplies: isAuthed ? ['Go to Map'] : ['Sign In'],
   }),
+  query_signin_info: () => ({
+    intent: 'query_signin_info',
+    message: `🔐 Here's how signing in works on AllTracks:
+
+**AllTracks uses Internet Identity** — a secure, privacy-preserving authentication system built on the Internet Computer blockchain.
+
+**How it works:**
+1. Click **"Sign In"** in the top navigation bar (or say "sign in" here)
+2. A popup opens at **https://id.ai** — the Internet Identity service
+3. You authenticate using your device's built-in biometrics (Face ID, fingerprint, Windows Hello) or a hardware security key
+4. Once verified, you're signed in — no password needed!
+
+**Why Internet Identity?**
+- 🔒 No passwords to remember or leak
+- 🕵️ No tracking across sites — each app gets a unique ID
+- ⏱️ Sessions last up to 7 days; the app auto-renews on revisit
+- 🌐 Decentralized — your identity isn't stored by AllTracks
+
+**First time?** Create a free Internet Identity anchor at https://id.ai — it takes about 30 seconds.`,
+    quickReplies: ['Sign In', 'What is my status?'],
+  }),
   query_status: (isAuthed, principal) => ({
     intent: 'query_status',
     message: isAuthed
@@ -355,9 +383,10 @@ const intentResponses: Record<ChatIntent, (isAuthed: boolean, principal?: string
 
 **Account:**
 - "Sign in" / "Sign out" / "What's my status"
+- "How does signin work?"
 
 Just type what you'd like to do!`,
-    quickReplies: ['Start Tracking', 'Browse Trails', 'View Profile', 'View Guide'],
+    quickReplies: ['Start Tracking', 'Browse Trails', 'View Profile', 'How does signin work?'],
   }),
   unknown: () => ({
     intent: 'unknown',
@@ -395,5 +424,6 @@ export const SUGGESTED_COMMANDS = [
   'View trackathons',
   'Report incident',
   'Share my location',
+  'How does signin work?',
   'Help',
 ];
