@@ -24,7 +24,11 @@ const normalizeTime = (raw: unknown): number => {
     let n: number;
     if (typeof raw === 'bigint') n = Number(raw);
     else if (typeof raw === 'string' && /^\d+$/.test(raw)) n = Number(raw);
-    else if (typeof raw === 'object') n = Number(String(raw));
+    else if (raw instanceof Date) n = raw.getTime();
+    else if (typeof raw === 'object') {
+      const primitive = (raw as { valueOf?: () => unknown }).valueOf?.();
+      n = typeof primitive === 'number' ? primitive : Number(String(raw));
+    }
     else n = Number(raw);
 
     if (!Number.isFinite(n)) return Date.now();
