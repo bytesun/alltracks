@@ -62,6 +62,7 @@ import { Trackathon, TrackathonParticipant, TrackathonPoint, ActivityType } from
 import { MintBadgeModal } from '../components/MintBadgeModal';
 import { useNotification } from '../context/NotificationContext';
 import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
+import type { Comment } from '../api/comment/comment.did';
 import '../styles/TrackathonDetail.css';
 
 // Time conversion constants
@@ -112,7 +113,7 @@ export const TrackathonDetail: React.FC = () => {
   const [isSavingPoint, setIsSavingPoint] = useState(false);
   const [showLiveInfoTooltip, setShowLiveInfoTooltip] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [trackathonComments, setTrackathonComments] = useState<any[]>([]);
+  const [trackathonComments, setTrackathonComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [savingComment, setSavingComment] = useState(false);
 
@@ -868,7 +869,7 @@ export const TrackathonDetail: React.FC = () => {
           <p className="info-text">No comments yet. Be the first to comment!</p>
         )}
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {trackathonComments.map((c: any, i: number) => (
+          {trackathonComments.map((c: Comment, i: number) => (
             <li key={i} style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 8 }}>
               <div style={{ fontSize: 14 }}>{c.comment}</div>
               <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
