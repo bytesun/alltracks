@@ -5,11 +5,13 @@ import { Principal } from "@dfinity/principal"
 
 import ICEventService from "../api/icevent/service.did";
 import AlltracksService from "../api/alltracks/service.did";
+import CommentService from "../api/comment/comment.did";
 
 import { defaultAgent } from "../lib/canisters"
 
 import * as ICEvent from "../api/icevent/index";
 import * as Alltracks from "../api/alltracks/index";
+import * as Comment from "../api/comment/index";
 
 import React, { createContext, useContext, useReducer } from "react"
 import { ROLE_VIEWER } from "../lib/constants"
@@ -19,6 +21,7 @@ export type State = {
   agent: HttpAgent
   icevent: ActorSubclass<ICEventService._SERVICE>  
   alltracks: ActorSubclass<AlltracksService._SERVICE>
+  comment: ActorSubclass<CommentService._SERVICE>
 
   isAuthed: boolean
   principal: Principal | null
@@ -30,6 +33,7 @@ export type State = {
 const createActors = (agent: HttpAgent = defaultAgent) => ({
   icevent: ICEvent.createActor(agent, { actorOptions: {} }),
   alltracks: Alltracks.createActor(agent, { actorOptions: {} }),
+  comment: Comment.createActor(agent, { actorOptions: {} }),
 })
 
 const initialState: State = {
@@ -154,6 +158,11 @@ export const useICEvent = () => {
 export const useAlltracks = () => {
   const context = useGlobalContext()
   return context.state.alltracks
+}
+
+export const useComment = () => {
+  const context = useGlobalContext()
+  return context.state.comment
 }
 
 // export const useFidenza = () => {

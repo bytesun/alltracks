@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import './Spots.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAlltracks, useGlobalContext } from '../components/Store';
+import { useAlltracks, useComment, useGlobalContext } from '../components/Store';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { locationIcon } from '../lib/markerIcons';
-import { getCommentsForSpot, saveCommentToIndexDB } from '../utils/IndexDBHandler';
 
 type Spot = {
   id: string;
@@ -26,6 +25,7 @@ export default function SpotDetail() {
   const [saving, setSaving] = useState(false);
 
   const alltracks = useAlltracks();
+  const commentActor = useComment();
   const { state: { isAuthed } } = useGlobalContext();
 
   const load = async () => {
@@ -76,7 +76,7 @@ export default function SpotDetail() {
       console.error('Failed to load spot from backend', err);
       setSpot(null);
     }
-    const cs = await getCommentsForSpot(spotId);
+    const cs = await commentActor.getComments({ other: `spot:${spotId}` }, BigInt(0));
     setComments(cs || []);
   };
 
@@ -89,7 +89,11 @@ export default function SpotDetail() {
     if (!spotId || !text.trim()) return;
     setSaving(true);
     try {
-      await saveCommentToIndexDB(spotId, { author: 'Anonymous', text: text.trim(), timestamp: Date.now() });
+      await commentActor.addComment({
+        comment: text.trim(),
+        comto: { other: `spot:${spotId}` },
+        attachments: [],
+      });
       setText('');
       await load();
     } finally {
@@ -170,8 +174,8 @@ export default function SpotDetail() {
       <ul>
         {comments.map((c: any, i: number) => (
           <li key={i} style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 14 }}>{c.text}</div>
-            <div style={{ color: '#666', fontSize: 12 }}>{c.author} — {new Date(c.timestamp).toLocaleString()}</div>
+            <div style={{ fontSize: 14 }}>{c.comment}</div>
+            <div style={{ color: '#666', fontSize: 12 }}>{c.user} — {new Date(Number(c.timestamp) / 1e6).toLocaleString()}</div>
           </li>
         ))}
       </ul>
