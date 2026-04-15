@@ -118,24 +118,25 @@ export default function Spots() {
     return Array.from(unique).sort((a, b) => a.localeCompare(b));
   }, [spots]);
 
+  const normalizedSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+
   const filteredSpots = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
     return spots.filter((spot) => {
       if (activeTag !== 'all' && !(spot.tags || []).includes(activeTag)) return false;
       if (onlyMappable && (spot.latitude === 0 || spot.longitude === 0)) return false;
-      if (!q) return true;
+      if (!normalizedSearchTerm) return true;
 
       return (
-        (spot.name || '').toLowerCase().includes(q) ||
-        (spot.description || '').toLowerCase().includes(q) ||
-        (spot.tags || []).join(' ').toLowerCase().includes(q)
+        (spot.name || '').toLowerCase().includes(normalizedSearchTerm) ||
+        (spot.description || '').toLowerCase().includes(normalizedSearchTerm) ||
+        (spot.tags || []).join(' ').toLowerCase().includes(normalizedSearchTerm)
       );
     });
-  }, [spots, searchTerm, activeTag, onlyMappable]);
+  }, [spots, normalizedSearchTerm, activeTag, onlyMappable]);
 
   const hasActiveFilters = useMemo(
-    () => !!searchTerm.trim() || activeTag !== 'all' || onlyMappable,
-    [searchTerm, activeTag, onlyMappable]
+    () => !!normalizedSearchTerm || activeTag !== 'all' || onlyMappable,
+    [normalizedSearchTerm, activeTag, onlyMappable]
   );
 
   const visibleSpots = useMemo(
@@ -147,6 +148,13 @@ export default function Spots() {
     () => visibleSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
     [visibleSpots]
   );
+
+  const spotsCountLabel = useMemo(() => {
+    if (!hasActiveFilters && filteredSpots.length > 10) {
+      return `${visibleSpots.length} / ${filteredSpots.length}`;
+    }
+    return String(visibleSpots.length);
+  }, [hasActiveFilters, filteredSpots.length, visibleSpots.length]);
 
   const mapCenter = useMemo<[number, number]>(() => {
     const selected = mappableSpots.find((spot) => spot.id === selectedSpotId);
@@ -160,12 +168,6 @@ export default function Spots() {
       setSelectedSpotId(null);
     }
   }, [visibleSpots, selectedSpotId]);
-
-  useEffect(() => {
-    if (!selectedSpotId && mappableSpots.length > 0) {
-      setSelectedSpotId(mappableSpots[0].id);
-    }
-  }, [mappableSpots, selectedSpotId]);
 
   const addCurrentLocation = async () => {
     setAdding(true);
@@ -359,9 +361,7 @@ export default function Spots() {
         </div>
 
         <div className="spots-card list-card">
-          <div className="section-title">
-            Spots ({visibleSpots.length}{!hasActiveFilters && filteredSpots.length > 10 ? ` / ${filteredSpots.length}` : ''})
-          </div>
+          <div className="section-title">Spots ({spotsCountLabel})</div>
           {visibleSpots.length === 0 ? (
             <p className="empty-state">No spots found.</p>
           ) : (
@@ -374,7 +374,6 @@ export default function Spots() {
                     key={spot.id}
                     className={selectedSpotId === spot.id ? 'is-selected' : ''}
                     onClick={() => setSelectedSpotId(spot.id)}
-                    onMouseEnter={() => setSelectedSpotId(spot.id)}
                   >
                     <div className="spot-card-content">
                       <div className="spot-title-row">
