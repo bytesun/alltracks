@@ -4,7 +4,8 @@ import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useAlltracks, useGlobalContext } from '../components/Store';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { useNotification } from '../context/NotificationContext';
-import { locationIcon } from '../lib/markerIcons';
+import { locationIcon, selectedLocationIcon } from '../lib/markerIcons';
+import { RecenterMap } from '../components/RecenterMap';
 import './Spots.css';
 
 type Spot = {
@@ -117,25 +118,43 @@ export default function Spots() {
     return Array.from(unique).sort((a, b) => a.localeCompare(b));
   }, [spots]);
 
+  const normalizedSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+
   const filteredSpots = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
     return spots.filter((spot) => {
       if (activeTag !== 'all' && !(spot.tags || []).includes(activeTag)) return false;
       if (onlyMappable && (spot.latitude === 0 || spot.longitude === 0)) return false;
-      if (!q) return true;
+      if (!normalizedSearchTerm) return true;
 
       return (
-        (spot.name || '').toLowerCase().includes(q) ||
-        (spot.description || '').toLowerCase().includes(q) ||
-        (spot.tags || []).join(' ').toLowerCase().includes(q)
+        (spot.name || '').toLowerCase().includes(normalizedSearchTerm) ||
+        (spot.description || '').toLowerCase().includes(normalizedSearchTerm) ||
+        (spot.tags || []).join(' ').toLowerCase().includes(normalizedSearchTerm)
       );
     });
-  }, [spots, searchTerm, activeTag, onlyMappable]);
+  }, [spots, normalizedSearchTerm, activeTag, onlyMappable]);
+
+  const hasActiveFilters = useMemo(
+    () => !!normalizedSearchTerm || activeTag !== 'all' || onlyMappable,
+    [normalizedSearchTerm, activeTag, onlyMappable]
+  );
+
+  const visibleSpots = useMemo(
+    () => (hasActiveFilters ? filteredSpots : filteredSpots.slice(0, 10)),
+    [filteredSpots, hasActiveFilters]
+  );
 
   const mappableSpots = useMemo(
-    () => filteredSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
-    [filteredSpots]
+    () => visibleSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
+    [visibleSpots]
   );
+
+  const spotsCountLabel = useMemo(() => {
+    if (!hasActiveFilters && filteredSpots.length > 10) {
+      return `${visibleSpots.length} / ${filteredSpots.length}`;
+    }
+    return String(visibleSpots.length);
+  }, [hasActiveFilters, filteredSpots.length, visibleSpots.length]);
 
   const mapCenter = useMemo<[number, number]>(() => {
     const selected = mappableSpots.find((spot) => spot.id === selectedSpotId);
@@ -145,10 +164,10 @@ export default function Spots() {
   }, [mappableSpots, selectedSpotId]);
 
   useEffect(() => {
-    if (selectedSpotId && !filteredSpots.some((spot) => spot.id === selectedSpotId)) {
+    if (selectedSpotId && !visibleSpots.some((spot) => spot.id === selectedSpotId)) {
       setSelectedSpotId(null);
     }
-  }, [filteredSpots, selectedSpotId]);
+  }, [visibleSpots, selectedSpotId]);
 
   const addCurrentLocation = async () => {
     setAdding(true);
@@ -317,11 +336,12 @@ export default function Spots() {
                   attribution="&copy; OpenStreetMap contributors"
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <RecenterMap position={mapCenter} />
                 {mappableSpots.map((spot) => (
                   <Marker
                     key={spot.id}
                     position={[spot.latitude, spot.longitude]}
-                    icon={locationIcon}
+                    icon={selectedSpotId === spot.id ? selectedLocationIcon : locationIcon}
                     eventHandlers={{ click: () => setSelectedSpotId(spot.id) }}
                   >
                     <Popup>
@@ -341,19 +361,19 @@ export default function Spots() {
         </div>
 
         <div className="spots-card list-card">
-          <div className="section-title">Spots ({filteredSpots.length})</div>
-          {filteredSpots.length === 0 ? (
+          <div className="section-title">Spots ({spotsCountLabel})</div>
+          {visibleSpots.length === 0 ? (
             <p className="empty-state">No spots found.</p>
           ) : (
             <ul className="spots-list">
-              {filteredSpots.map((spot) => {
+              {visibleSpots.map((spot) => {
                 const isOwner = !!principal && spot.createdBy === principal.toText();
                 const spotTags = spot.tags || [];
                 return (
                   <li
                     key={spot.id}
                     className={selectedSpotId === spot.id ? 'is-selected' : ''}
-                    onMouseEnter={() => setSelectedSpotId(spot.id)}
+                    onClick={() => setSelectedSpotId(spot.id)}
                   >
                     <div className="spot-card-content">
                       <div className="spot-title-row">
