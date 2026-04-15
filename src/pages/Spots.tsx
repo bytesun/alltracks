@@ -24,7 +24,7 @@ const normalizeTime = (raw: unknown): number => {
     let n: number;
     if (typeof raw === 'bigint') n = Number(raw);
     else if (typeof raw === 'string' && /^\d+$/.test(raw)) n = Number(raw);
-    else if (typeof raw === 'object' && raw !== null && 'toString' in raw) n = Number(String(raw));
+    else if (typeof raw === 'object') n = Number(String(raw));
     else n = Number(raw);
 
     if (!Number.isFinite(n)) return Date.now();
@@ -344,6 +344,7 @@ export default function Spots() {
             <ul className="spots-list">
               {filteredSpots.map((spot) => {
                 const isOwner = !!principal && spot.createdBy === principal.toText();
+                const spotTags = spot.tags || [];
                 return (
                   <li
                     key={spot.id}
@@ -353,9 +354,9 @@ export default function Spots() {
                     <div className="spot-card-content">
                       <div className="spot-title-row">
                         <Link to={`/spots/${encodeURIComponent(spot.id)}`}>{spot.name || 'Unnamed spot'}</Link>
-                        {(spot.tags || []).length > 0 && (
+                        {spotTags.length > 0 && (
                           <div className="tags-row">
-                            {(spot.tags || []).map((tag) => (
+                            {spotTags.map((tag) => (
                               <span key={tag} className="tag-chip">
                                 {tag}
                               </span>
