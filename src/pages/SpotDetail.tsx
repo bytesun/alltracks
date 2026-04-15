@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import './Spots.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAlltracks, useGlobalContext } from '../components/Store';
+import { useAlltracks, useComment, useGlobalContext } from '../components/Store';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { locationIcon } from '../lib/markerIcons';
-import { getCommentsForSpot, saveCommentToIndexDB } from '../utils/IndexDBHandler';
+import type { Comment } from '../api/comment/comment.did';
 
 type Spot = {
   id: string;
@@ -21,11 +21,12 @@ export default function SpotDetail() {
   const { spotId } = useParams();
   const navigate = useNavigate();
   const [spot, setSpot] = useState<Spot | null>(null);
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
 
   const alltracks = useAlltracks();
+  const commentActor = useComment();
   const { state: { isAuthed } } = useGlobalContext();
 
   const load = async () => {
@@ -76,7 +77,7 @@ export default function SpotDetail() {
       console.error('Failed to load spot from backend', err);
       setSpot(null);
     }
-    const cs = await getCommentsForSpot(spotId);
+    const cs = await commentActor.getComments({ other: `spot:${spotId}` }, BigInt(0));
     setComments(cs || []);
   };
 
@@ -89,9 +90,17 @@ export default function SpotDetail() {
     if (!spotId || !text.trim()) return;
     setSaving(true);
     try {
-      await saveCommentToIndexDB(spotId, { author: 'Anonymous', text: text.trim(), timestamp: Date.now() });
-      setText('');
-      await load();
+      const result = await commentActor.addComment({
+        comment: text.trim(),
+        comto: { other: `spot:${spotId}` },
+        attachments: [],
+      });
+      if ('ok' in result) {
+        setText('');
+        await load();
+      } else {
+        alert('Failed to save comment: ' + result.err);
+      }
     } finally {
       setSaving(false);
     }
@@ -168,10 +177,10 @@ export default function SpotDetail() {
       <h3>Comments</h3>
       {comments.length === 0 && <p>No comments yet.</p>}
       <ul>
-        {comments.map((c: any, i: number) => (
+        {comments.map((c: Comment, i: number) => (
           <li key={i} style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 14 }}>{c.text}</div>
-            <div style={{ color: '#666', fontSize: 12 }}>{c.author} — {new Date(c.timestamp).toLocaleString()}</div>
+            <div style={{ fontSize: 14 }}>{c.comment}</div>
+            <div style={{ color: '#666', fontSize: 12 }}>{c.user} — {new Date(Number(c.timestamp) / 1e6).toLocaleString()}</div>
           </li>
         ))}
       </ul>

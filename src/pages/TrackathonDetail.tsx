@@ -57,11 +57,12 @@ function getParticipantPaceDisplay(participant: any, activityType: string): stri
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { useAlltracks, useGlobalContext } from '../components/Store';
+import { useAlltracks, useComment, useGlobalContext } from '../components/Store';
 import { Trackathon, TrackathonParticipant, TrackathonPoint, ActivityType } from '../types/Trackathon';
 import { MintBadgeModal } from '../components/MintBadgeModal';
 import { useNotification } from '../context/NotificationContext';
 import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
+import type { Comment } from '../api/comment/comment.did';
 import '../styles/TrackathonDetail.css';
 
 // Time conversion constants
@@ -94,7 +95,8 @@ export const TrackathonDetail: React.FC = () => {
   const { trackathonId } = useParams<{ trackathonId: string }>();
   const navigate = useNavigate();
   const alltracks = useAlltracks();
-  const { state: { principal } } = useGlobalContext();
+  const commentActor = useComment();
+  const { state: { principal, isAuthed } } = useGlobalContext();
   const { showNotification } = useNotification();
   
   const [trackathon, setTrackathon] = useState<Trackathon | null>(null);
@@ -111,9 +113,13 @@ export const TrackathonDetail: React.FC = () => {
   const [isSavingPoint, setIsSavingPoint] = useState(false);
   const [showLiveInfoTooltip, setShowLiveInfoTooltip] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [trackathonComments, setTrackathonComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [savingComment, setSavingComment] = useState(false);
 
   useEffect(() => {
     loadTrackathonData();
+    loadComments();
     // Auto-refresh every 10 seconds
     const interval = setInterval(loadTrackathonData, 10000);
     return () => clearInterval(interval);
@@ -191,6 +197,39 @@ export const TrackathonDetail: React.FC = () => {
     } catch (error) {
       console.error('Failed to load trackathon:', error);
       setLoading(false);
+    }
+  };
+
+  const loadComments = async () => {
+    if (!trackathonId) return;
+    try {
+      const cs = await commentActor.getComments({ other: `trackathon:${trackathonId}` }, BigInt(0));
+      setTrackathonComments(cs || []);
+    } catch (error) {
+      console.error('Failed to load comments:', error);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!trackathonId || !commentText.trim()) return;
+    setSavingComment(true);
+    try {
+      const result = await commentActor.addComment({
+        comment: commentText.trim(),
+        comto: { other: `trackathon:${trackathonId}` },
+        attachments: [],
+      });
+      if ('ok' in result) {
+        setCommentText('');
+        await loadComments();
+      } else {
+        showNotification('Failed to add comment: ' + result.err, 'error');
+      }
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      showNotification('Failed to add comment', 'error');
+    } finally {
+      setSavingComment(false);
     }
   };
 
@@ -822,6 +861,43 @@ export const TrackathonDetail: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Comments Section */}
+      <div className="comments-section" style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid #e0e0e0' }}>
+        <h2>Comments</h2>
+        {trackathonComments.length === 0 && (
+          <p className="info-text">No comments yet. Be the first to comment!</p>
+        )}
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {trackathonComments.map((c: Comment, i: number) => (
+            <li key={i} style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 8 }}>
+              <div style={{ fontSize: 14 }}>{c.comment}</div>
+              <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+                {c.user} — {new Date(Number(c.timestamp) / 1e6).toLocaleString()}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {isAuthed && (
+          <div style={{ marginTop: 12 }}>
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              rows={3}
+              placeholder="Write a comment..."
+              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', boxSizing: 'border-box' }}
+            />
+            <button
+              className="register-button"
+              onClick={handleAddComment}
+              disabled={savingComment || !commentText.trim()}
+              style={{ marginTop: 8 }}
+            >
+              {savingComment ? 'Saving…' : 'Add Comment'}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Mint Badge Modal */}
       {showMintModal && trackathon && principal && (
