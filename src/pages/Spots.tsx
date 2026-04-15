@@ -4,7 +4,8 @@ import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useAlltracks, useGlobalContext } from '../components/Store';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { useNotification } from '../context/NotificationContext';
-import { locationIcon } from '../lib/markerIcons';
+import { locationIcon, selectedLocationIcon } from '../lib/markerIcons';
+import { RecenterMap } from '../components/RecenterMap';
 import './Spots.css';
 
 type Spot = {
@@ -132,9 +133,19 @@ export default function Spots() {
     });
   }, [spots, searchTerm, activeTag, onlyMappable]);
 
+  const hasActiveFilters = useMemo(
+    () => !!searchTerm.trim() || activeTag !== 'all' || onlyMappable,
+    [searchTerm, activeTag, onlyMappable]
+  );
+
+  const visibleSpots = useMemo(
+    () => (hasActiveFilters ? filteredSpots : filteredSpots.slice(0, 10)),
+    [filteredSpots, hasActiveFilters]
+  );
+
   const mappableSpots = useMemo(
-    () => filteredSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
-    [filteredSpots]
+    () => visibleSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
+    [visibleSpots]
   );
 
   const mapCenter = useMemo<[number, number]>(() => {
@@ -145,10 +156,16 @@ export default function Spots() {
   }, [mappableSpots, selectedSpotId]);
 
   useEffect(() => {
-    if (selectedSpotId && !filteredSpots.some((spot) => spot.id === selectedSpotId)) {
+    if (selectedSpotId && !visibleSpots.some((spot) => spot.id === selectedSpotId)) {
       setSelectedSpotId(null);
     }
-  }, [filteredSpots, selectedSpotId]);
+  }, [visibleSpots, selectedSpotId]);
+
+  useEffect(() => {
+    if (!selectedSpotId && mappableSpots.length > 0) {
+      setSelectedSpotId(mappableSpots[0].id);
+    }
+  }, [mappableSpots, selectedSpotId]);
 
   const addCurrentLocation = async () => {
     setAdding(true);
@@ -317,11 +334,12 @@ export default function Spots() {
                   attribution="&copy; OpenStreetMap contributors"
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <RecenterMap position={mapCenter} />
                 {mappableSpots.map((spot) => (
                   <Marker
                     key={spot.id}
                     position={[spot.latitude, spot.longitude]}
-                    icon={locationIcon}
+                    icon={selectedSpotId === spot.id ? selectedLocationIcon : locationIcon}
                     eventHandlers={{ click: () => setSelectedSpotId(spot.id) }}
                   >
                     <Popup>
@@ -341,18 +359,21 @@ export default function Spots() {
         </div>
 
         <div className="spots-card list-card">
-          <div className="section-title">Spots ({filteredSpots.length})</div>
-          {filteredSpots.length === 0 ? (
+          <div className="section-title">
+            Spots ({visibleSpots.length}{!hasActiveFilters && filteredSpots.length > 10 ? ` / ${filteredSpots.length}` : ''})
+          </div>
+          {visibleSpots.length === 0 ? (
             <p className="empty-state">No spots found.</p>
           ) : (
             <ul className="spots-list">
-              {filteredSpots.map((spot) => {
+              {visibleSpots.map((spot) => {
                 const isOwner = !!principal && spot.createdBy === principal.toText();
                 const spotTags = spot.tags || [];
                 return (
                   <li
                     key={spot.id}
                     className={selectedSpotId === spot.id ? 'is-selected' : ''}
+                    onClick={() => setSelectedSpotId(spot.id)}
                     onMouseEnter={() => setSelectedSpotId(spot.id)}
                   >
                     <div className="spot-card-content">
