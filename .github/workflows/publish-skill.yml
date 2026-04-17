@@ -1,0 +1,33 @@
+name: Publish Skill to ClawHub
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Login to ClawHub
+        run: bunx clawhub login --token "${{ secrets.CLAWHUB_TOKEN }}"
+
+      - name: Sync skills to ClawHub
+        run: |
+          bunx clawhub sync \
+            --root ./skills \
+            --all \
+            --bump patch \
+            --changelog "Sync from GitHub" \
+            --no-input
