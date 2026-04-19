@@ -116,7 +116,12 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
               Sign In
             </li>}
             <li>
-              <a href="https://freeshare-2tk.caffeine.xyz/" onClick={() => setIsOpen(false)}>
+              <a
+                href="https://freeshare-2tk.caffeine.xyz/"
+                onClick={() => setIsOpen(false)}
+                aria-label="Free"
+                rel="noopener noreferrer"
+              >
                 <span className="material-icons">share</span>
                 Free
               </a>

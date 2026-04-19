@@ -62,7 +62,7 @@ export const Navbar = () => {
             {!isAuthed && <button className="auth-button" onClick={() => setLoginModal(true)}>
               Sign In
             </button>}
-            <a href="https://freeshare-2tk.caffeine.xyz/" className="nav-link" aria-label="Free">
+            <a href="https://freeshare-2tk.caffeine.xyz/" className="nav-link" aria-label="Free" rel="noopener noreferrer">
               <span className="material-icons">share</span>
               Free
             </a>
