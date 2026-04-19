@@ -121,6 +121,7 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
                 onClick={() => setIsOpen(false)}
                 aria-label="Free"
                 rel="noopener noreferrer"
+                target="_blank"
               >
                 <span className="material-icons">share</span>
                 Free
