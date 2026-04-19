@@ -119,7 +119,6 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
               <a
                 href="https://freeshare-2tk.caffeine.xyz/"
                 onClick={() => setIsOpen(false)}
-                aria-label="Free"
                 rel="noopener noreferrer"
                 target="_blank"
               >
