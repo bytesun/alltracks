@@ -115,6 +115,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
               </span>
               Sign In
             </li>}
+            <li onClick={() => {
+              setIsOpen(false);
+              window.location.href = 'https://freeshare-2tk.caffeine.xyz/';
+            }}>
+              <span className="material-icons">share</span>
+              Free
+            </li>
           </ul>
         </div>
 
