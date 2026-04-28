@@ -425,6 +425,7 @@ service : {
   deleteSpot: (name: text) -> (Result_1);
   deleteTrail: (id: nat) -> (Result_1);
   getAllTrackathons: () -> (vec Trackathon) query;
+  getTrackathons: (page: nat, pageSize: nat) -> (vec Trackathon) query;
   getCheckPointsByTrackId: (trackId: text) -> (vec CheckPoint) query;
   getCheckpointComments: (timestamp: Time, createdBy: principal) ->
    (vec CheckpointComment) query;

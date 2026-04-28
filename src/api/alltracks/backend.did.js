@@ -355,6 +355,7 @@ export const idlFactory = ({ IDL }) => {
     'deleteSpot' : IDL.Func([IDL.Text], [Result_1], []),
     'deleteTrail' : IDL.Func([IDL.Nat], [Result_1], []),
     'getAllTrackathons' : IDL.Func([], [IDL.Vec(Trackathon)], ['query']),
+    'getTrackathons' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Trackathon)], ['query']),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(CheckPoint)],
