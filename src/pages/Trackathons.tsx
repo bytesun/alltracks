@@ -18,6 +18,8 @@ export const Trackathons: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'past'>('active');
   const [userScore, setUserScore] = useState<number>(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
     loadTrackathons();
@@ -148,6 +150,21 @@ export const Trackathons: React.FC = () => {
     });
   };
 
+  const getPaginatedTrackathons = () => {
+    const filtered = getFilteredTrackathons();
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  };
+
+  const getTotalPages = () => {
+    return Math.ceil(getFilteredTrackathons().length / ITEMS_PER_PAGE);
+  };
+
+  const handleFilterChange = (newFilter: 'all' | 'active' | 'upcoming' | 'past') => {
+    setFilter(newFilter);
+    setCurrentPage(1);
+  };
+
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
@@ -226,27 +243,27 @@ export const Trackathons: React.FC = () => {
       <div className="filter-tabs">
         <button 
           className={filter === 'all' ? 'active' : ''}
-          onClick={() => setFilter('all')}
+          onClick={() => handleFilterChange('all')}
         >
           All
         </button>
         <button 
           className={filter === 'active' ? 'active' : ''}
-          onClick={() => setFilter('active')}
+          onClick={() => handleFilterChange('active')}
         >
           <span className="material-icons">sensors</span>
           Live
         </button>
         <button 
           className={filter === 'upcoming' ? 'active' : ''}
-          onClick={() => setFilter('upcoming')}
+          onClick={() => handleFilterChange('upcoming')}
         >
           <span className="material-icons">schedule</span>
           Upcoming
         </button>
         <button 
           className={filter === 'past' ? 'active' : ''}
-          onClick={() => setFilter('past')}
+          onClick={() => handleFilterChange('past')}
         >
           <span className="material-icons">history</span>
           Past
@@ -273,46 +290,75 @@ export const Trackathons: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="trackathons-grid">
-          {getFilteredTrackathons().map(trackathon => (
-            <div 
-              key={trackathon.id} 
-              className="trackathon-card"
-              onClick={() => navigate(`/trackathon/${trackathon.id}`)}
-            >
-              <div className="card-header">
-                <h3>{trackathon.name}</h3>
-                {getStatusBadge(trackathon)}
+        <>
+          <div className="trackathons-grid">
+            {getPaginatedTrackathons().map(trackathon => (
+              <div 
+                key={trackathon.id} 
+                className="trackathon-card"
+                onClick={() => navigate(`/trackathon/${trackathon.id}`)}
+              >
+                <div className="card-header">
+                  <h3>{trackathon.name}</h3>
+                  {getStatusBadge(trackathon)}
+                </div>
+                
+                <p className="description">{trackathon.description}</p>
+                
+                <div className="card-meta">
+                  <div className="meta-item">
+                    <span className="material-icons">event</span>
+                    <span>Join: {formatDate(trackathon.startTime)}</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="material-icons">schedule</span>
+                    <span>{trackathon.duration}h duration</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="material-icons">
+                      {trackathon.activityType === 'hiking' ? 'hiking' : 
+                       trackathon.activityType === 'running' ? 'directions_run' :
+                       trackathon.activityType === 'cycling' ? 'directions_bike' :
+                       trackathon.activityType === 'rowing' ? 'rowing' : 'fitness_center'}
+                    </span>
+                    <span>{trackathon.activityType.charAt(0).toUpperCase() + trackathon.activityType.slice(1)}</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="material-icons">group</span>
+                    <span>{trackathon.registrations.length} registered</span>
+                  </div>
+                </div>
               </div>
-              
-              <p className="description">{trackathon.description}</p>
-              
-              <div className="card-meta">
-                <div className="meta-item">
-                  <span className="material-icons">event</span>
-                  <span>Join: {formatDate(trackathon.startTime)}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="material-icons">schedule</span>
-                  <span>{trackathon.duration}h duration</span>
-                </div>
-                <div className="meta-item">
-                  <span className="material-icons">
-                    {trackathon.activityType === 'hiking' ? 'hiking' : 
-                     trackathon.activityType === 'running' ? 'directions_run' :
-                     trackathon.activityType === 'cycling' ? 'directions_bike' :
-                     trackathon.activityType === 'rowing' ? 'rowing' : 'fitness_center'}
-                  </span>
-                  <span>{trackathon.activityType.charAt(0).toUpperCase() + trackathon.activityType.slice(1)}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="material-icons">group</span>
-                  <span>{trackathon.registrations.length} registered</span>
-                </div>
-              </div>
+            ))}
+          </div>
+          {getTotalPages() > 1 && (
+            <div className="pagination">
+              <button
+                className="pagination-btn"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <span className="material-icons">chevron_left</span>
+              </button>
+              {Array.from({ length: getTotalPages() }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  className={`pagination-btn${currentPage === page ? ' active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                className="pagination-btn"
+                onClick={() => setCurrentPage(p => Math.min(getTotalPages(), p + 1))}
+                disabled={currentPage === getTotalPages()}
+              >
+                <span className="material-icons">chevron_right</span>
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {showCreateModal && (
