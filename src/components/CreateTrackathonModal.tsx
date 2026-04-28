@@ -39,7 +39,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
 
   useEffect(() => {
     // Load user's groups
-    alltracks.getMyGroups().then((data) => {
+    alltracks.getMyGroups(BigInt(0), BigInt(100)).then((data) => {
       setGroups(data.map(g => ({ id: g.id, name: g.name })));
     });
 

@@ -84,7 +84,7 @@ export const StartTrackModal: React.FC<StartTrackModalProps> = ({
   }, []);
 
   const fetchGroups = async () => {
-    const groups = await alltracks.getMyGroups();
+    const groups = await alltracks.getMyGroups(BigInt(0), BigInt(100));
     setGroups(groups);
   };
 

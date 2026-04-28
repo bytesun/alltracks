@@ -354,7 +354,7 @@ export const idlFactory = ({ IDL }) => {
     'deletePhoto' : IDL.Func([IDL.Text], [Result_1], []),
     'deleteSpot' : IDL.Func([IDL.Text], [Result_1], []),
     'deleteTrail' : IDL.Func([IDL.Nat], [Result_1], []),
-    'getAllTrackathons' : IDL.Func([], [IDL.Vec(Trackathon)], ['query']),
+    'getAllTrackathons' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Trackathon)], ['query']),
     'getTrackathons' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Trackathon)], ['query']),
     'getCheckPointsByTrackId' : IDL.Func(
         [IDL.Text],
@@ -417,7 +417,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getMyCredential' : IDL.Func([], [IDL.Opt(UserCredential)], ['query']),
-    'getMyGroups' : IDL.Func([], [IDL.Vec(Group)], ['query']),
+    'getMyGroups' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Group)], ['query']),
     'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),
     'getMySavedPoints' : IDL.Func([], [IDL.Vec(SavedPoint)], ['query']),
     'getMySpots' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(SpotV2)], ['query']),
@@ -426,8 +426,8 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(TrackathonParticipant)],
         ['query'],
       ),
-    'getMyTrackathons' : IDL.Func([], [IDL.Vec(Trackathon)], ['query']),
-    'getMyTrails' : IDL.Func([], [IDL.Vec(Trail)], ['query']),
+    'getMyTrackathons' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Trackathon)], ['query']),
+    'getMyTrails' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Trail)], ['query']),
     'getSavedPointsByCategory' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(SavedPoint)],
@@ -443,13 +443,13 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getTrackathon' : IDL.Func([IDL.Text], [IDL.Opt(Trackathon)], ['query']),
     'getTrackathonParticipants' : IDL.Func(
-        [IDL.Text],
+        [IDL.Text, IDL.Nat, IDL.Nat],
         [IDL.Vec(TrackathonParticipant)],
         ['query'],
       ),
-    'getTracks' : IDL.Func([TrackFilter], [IDL.Vec(Track)], ['query']),
+    'getTracks' : IDL.Func([TrackFilter, IDL.Nat, IDL.Nat], [IDL.Vec(Track)], ['query']),
     'getTrail' : IDL.Func([IDL.Nat], [IDL.Opt(Trail)], ['query']),
-    'getTrails' : IDL.Func([TrailFilter], [IDL.Vec(Trail)], ['query']),
+    'getTrails' : IDL.Func([TrailFilter, IDL.Nat, IDL.Nat], [IDL.Vec(Trail)], ['query']),
     'getTrailsInBounds' : IDL.Func(
         [
           IDL.Record({
@@ -481,7 +481,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(SpotV2)],
         ['query'],
       ),
-    'searchTrails' : IDL.Func([IDL.Text], [IDL.Vec(Trail)], ['query']),
+    'searchTrails' : IDL.Func([IDL.Text, IDL.Nat, IDL.Nat], [IDL.Vec(Trail)], ['query']),
     'updateGroup' : IDL.Func([IDL.Text, NewGroup], [Result_1], []),
     'updateSpot' : IDL.Func([IDL.Text, NewSpot], [Result], []),
   });

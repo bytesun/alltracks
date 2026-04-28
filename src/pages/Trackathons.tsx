@@ -96,7 +96,7 @@ export const Trackathons: React.FC = () => {
       let formattedTrackathons: Trackathon[];
       if (activeFilter === 'all') {
         // Fetch one extra item to detect whether a next page exists
-        const result = await alltracks.getTrackathons(
+        const result = await alltracks.getAllTrackathons(
           BigInt(page - 1),
           BigInt(ITEMS_PER_PAGE + 1)
         );
@@ -105,7 +105,7 @@ export const Trackathons: React.FC = () => {
         setHasMorePages(hasMore);
       } else {
         // Load all trackathons for filtered views so every matching item is visible
-        const result = await alltracks.getAllTrackathons();
+        const result = await alltracks.getAllTrackathons(BigInt(0), BigInt(1000));
         formattedTrackathons = convertTrackathons(result);
         setHasMorePages(false);
       }

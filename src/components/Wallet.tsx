@@ -19,13 +19,13 @@ export const Wallet: React.FC = () => {
     try {
       setLoading(true);
       // Get user's trackathons
-      const myTrackathons = await alltracks.getMyTrackathons();
+      const myTrackathons = await alltracks.getMyTrackathons(BigInt(0), BigInt(1000));
       
       const badgeData = [];
       
       for (const t of myTrackathons) {
         // Get participants for this trackathon
-        const participants = await alltracks.getTrackathonParticipants(t.id);
+        const participants = await alltracks.getTrackathonParticipants(t.id, BigInt(0), BigInt(1000));
         
         // Find current user in participants
         const userParticipant = participants.find(p => p.principal.toText() === principal.toText());

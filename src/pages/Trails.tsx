@@ -56,7 +56,7 @@ export const Trails = () => {
   const fetchTrails = async () => {
     setIsLoading(true);
 
-    const result = await alltracks.getTrails({ "ttype": { "tloop": null } });
+    const result = await alltracks.getTrails({ "ttype": { "tloop": null } }, BigInt(0), BigInt(1000));
     const formattedTrails = parseTrails(result);
     setTrails(formattedTrails);
     setIsLoading(false);
