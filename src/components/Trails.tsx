@@ -183,7 +183,7 @@ export const Trails: React.FC = () => {
     const loadTrails = async () => {
         setIsLoading(true);
         try {
-            const trails = await alltracks.getMyTrails();
+            const trails = await alltracks.getMyTrails(0n, 100n);
             const formatTrails = parseTrails(trails);
             console.log(formatTrails);
             setTrails(formatTrails);

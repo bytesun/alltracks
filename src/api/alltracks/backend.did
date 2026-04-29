@@ -424,7 +424,7 @@ service : {
   deletePhoto: (photoUrl: text) -> (Result_1);
   deleteSpot: (name: text) -> (Result_1);
   deleteTrail: (id: nat) -> (Result_1);
-  getAllTrackathons: () -> (vec Trackathon) query;
+  getAllTrackathons: (page: nat, pageSize: nat) -> (vec Trackathon) query;
   getCheckPointsByTrackId: (trackId: text) -> (vec CheckPoint) query;
   getCheckpointComments: (timestamp: Time, createdBy: principal) ->
    (vec CheckpointComment) query;
@@ -452,14 +452,14 @@ service : {
       trails: nat;
     }) query;
   getMyCredential: () -> (opt UserCredential) query;
-  getMyGroups: () -> (vec Group) query;
+  getMyGroups: (page: nat, pageSize: nat) -> (vec Group) query;
   getMyPhotos: (startTime: Time, endTime: Time) -> (vec Photo) query;
   getMySavedPoints: () -> (vec SavedPoint) query;
   getMySpots: (page: nat, pageSize: nat) -> (vec SpotV2) query;
   getMyTrackathonProgress: (trackathonId: text) ->
    (opt TrackathonParticipant) query;
-  getMyTrackathons: () -> (vec Trackathon) query;
-  getMyTrails: () -> (vec Trail) query;
+  getMyTrackathons: (page: nat, pageSize: nat) -> (vec Trackathon) query;
+  getMyTrails: (page: nat, pageSize: nat) -> (vec Trail) query;
   getSavedPointsByCategory: (category: text) -> (vec SavedPoint) query;
   getSpotById: (id: nat) -> (opt SpotV2) query;
   getSpots: (page: nat, pageSize: nat) -> (vec SpotV2) query;
@@ -467,11 +467,13 @@ service : {
   getTrackPhotos: (trackId: text, startTime: Time, endTime: Time) ->
    (vec Photo) query;
   getTrackathon: (trackathonId: text) -> (opt Trackathon) query;
-  getTrackathonParticipants: (trackathonId: text) ->
-   (vec TrackathonParticipant) query;
-  getTracks: (filter: TrackFilter) -> (vec Track) query;
+  getTrackathonParticipants: (trackathonId: text, page: nat, pageSize:
+   nat) -> (vec TrackathonParticipant) query;
+  getTracks: (filter: TrackFilter, page: nat, pageSize: nat) ->
+   (vec Track) query;
   getTrail: (id: nat) -> (opt Trail) query;
-  getTrails: (filter: TrailFilter) -> (vec Trail) query;
+  getTrails: (filter: TrailFilter, page: nat, pageSize: nat) ->
+   (vec Trail) query;
   getTrailsInBounds: (bounds:
    record {
      east: float64;
@@ -488,7 +490,7 @@ service : {
   searchPhotosByTags: (searchTags: vec text) -> (vec Photo) query;
   searchSpotsByTag: (tag: text, page: nat, pageSize: nat) ->
    (vec SpotV2) query;
-  searchTrails: (term: text) -> (vec Trail) query;
+  searchTrails: (term: text, page: nat, pageSize: nat) -> (vec Trail) query;
   updateGroup: (groupId: text, updates: NewGroup) -> (Result_1);
   updateSpot: (name: text, updates: NewSpot) -> (Result);
 }

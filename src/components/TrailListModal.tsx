@@ -36,7 +36,7 @@ export const TrailListModal: React.FC<TrailListModalProps> = ({ onSelect, onClos
 
     const loadTrails = async () => {    
         try {
-            const result = await alltracks.searchTrails(searchTerm);
+            const result = await alltracks.searchTrails(searchTerm, 0n, 100n);
             const parsedTrails = parseTrails(result);
             
             setTrails(parsedTrails);

@@ -27,7 +27,7 @@ export const Tracks: React.FC<{ userId?: string }> = ({userId}) => {
 
   const fetchTracks = async () => {
 
-    const tks = await alltracks.getTracks({ user: Principal.fromText(userId) })
+    const tks = await alltracks.getTracks({ user: Principal.fromText(userId) }, 0n, 100n)
   
     const formattedTracks = parseTracks(tks);
     setTracks(formattedTracks);

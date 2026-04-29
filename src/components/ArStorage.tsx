@@ -124,7 +124,7 @@ export const ArStorage: React.FC = () => {
   const loadUserGroups = async () => {
     if (!isAuthed) return;
     try {
-      const groups = await alltracks.getMyGroups();
+      const groups = await alltracks.getMyGroups(0n, 100n);
       setUserGroups(groups);
     } catch (error) {
       console.error('Error loading groups:', error);

@@ -69,7 +69,7 @@ export const Trackathons: React.FC = () => {
   const loadTrackathons = async () => {
     setIsLoading(true);
     try {
-      const result = await alltracks.getAllTrackathons();
+      const result = await alltracks.getAllTrackathons(0n, 100n);
       
       // Convert backend Trackathon format to frontend format
       const formattedTrackathons: Trackathon[] = result.map(t => ({

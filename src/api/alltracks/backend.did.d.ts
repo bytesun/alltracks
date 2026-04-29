@@ -340,7 +340,7 @@ export interface _SERVICE {
   'deletePhoto' : ActorMethod<[string], Result_1>,
   'deleteSpot' : ActorMethod<[string], Result_1>,
   'deleteTrail' : ActorMethod<[bigint], Result_1>,
-  'getAllTrackathons' : ActorMethod<[], Array<Trackathon>>,
+  'getAllTrackathons' : ActorMethod<[bigint, bigint], Array<Trackathon>>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpointComments' : ActorMethod<
     [Time, Principal],
@@ -375,7 +375,7 @@ export interface _SERVICE {
     }
   >,
   'getMyCredential' : ActorMethod<[], [] | [UserCredential]>,
-  'getMyGroups' : ActorMethod<[], Array<Group>>,
+  'getMyGroups' : ActorMethod<[bigint, bigint], Array<Group>>,
   'getMyPhotos' : ActorMethod<[Time, Time], Array<Photo>>,
   'getMySavedPoints' : ActorMethod<[], Array<SavedPoint>>,
   'getMySpots' : ActorMethod<[bigint, bigint], Array<SpotV2>>,
@@ -383,8 +383,8 @@ export interface _SERVICE {
     [string],
     [] | [TrackathonParticipant]
   >,
-  'getMyTrackathons' : ActorMethod<[], Array<Trackathon>>,
-  'getMyTrails' : ActorMethod<[], Array<Trail>>,
+  'getMyTrackathons' : ActorMethod<[bigint, bigint], Array<Trackathon>>,
+  'getMyTrails' : ActorMethod<[bigint, bigint], Array<Trail>>,
   'getSavedPointsByCategory' : ActorMethod<[string], Array<SavedPoint>>,
   'getSpotById' : ActorMethod<[bigint], [] | [SpotV2]>,
   'getSpots' : ActorMethod<[bigint, bigint], Array<SpotV2>>,
@@ -392,12 +392,12 @@ export interface _SERVICE {
   'getTrackPhotos' : ActorMethod<[string, Time, Time], Array<Photo>>,
   'getTrackathon' : ActorMethod<[string], [] | [Trackathon]>,
   'getTrackathonParticipants' : ActorMethod<
-    [string],
+    [string, bigint, bigint],
     Array<TrackathonParticipant>
   >,
-  'getTracks' : ActorMethod<[TrackFilter], Array<Track>>,
+  'getTracks' : ActorMethod<[TrackFilter, bigint, bigint], Array<Track>>,
   'getTrail' : ActorMethod<[bigint], [] | [Trail]>,
-  'getTrails' : ActorMethod<[TrailFilter], Array<Trail>>,
+  'getTrails' : ActorMethod<[TrailFilter, bigint, bigint], Array<Trail>>,
   'getTrailsInBounds' : ActorMethod<
     [{ 'east' : number, 'west' : number, 'south' : number, 'north' : number }],
     Array<Trail>
@@ -409,7 +409,7 @@ export interface _SERVICE {
   'savePoints' : ActorMethod<[Array<NewSavedPoint>], Result_1>,
   'searchPhotosByTags' : ActorMethod<[Array<string>], Array<Photo>>,
   'searchSpotsByTag' : ActorMethod<[string, bigint, bigint], Array<SpotV2>>,
-  'searchTrails' : ActorMethod<[string], Array<Trail>>,
+  'searchTrails' : ActorMethod<[string, bigint, bigint], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result_1>,
   'updateSpot' : ActorMethod<[string, NewSpot], Result>,
 }

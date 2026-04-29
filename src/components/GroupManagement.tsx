@@ -29,7 +29,7 @@ export const GroupManagement = () => {
 
   const fetchGroups = async () => {
     try {
-      const groups = await alltracks.getMyGroups();
+      const groups = await alltracks.getMyGroups(0n, 100n);
       
       // const { items } = await listDocs<Group>({
       //   collection: "groups",
