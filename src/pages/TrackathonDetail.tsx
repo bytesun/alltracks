@@ -162,7 +162,7 @@ export const TrackathonDetail: React.FC = () => {
       };
 
       // Get participants
-      const participantsResult = await alltracks.getTrackathonParticipants(trackathonId!, BigInt(0), BigInt(1000));
+      const participantsResult = await alltracks.getTrackathonParticipants(trackathonId!, 0n, 100n);
       
       const formattedParticipants: TrackathonParticipant[] = participantsResult.map(p => ({
         principal: p.principal.toText(),

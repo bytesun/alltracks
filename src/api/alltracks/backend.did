@@ -425,7 +425,6 @@ service : {
   deleteSpot: (name: text) -> (Result_1);
   deleteTrail: (id: nat) -> (Result_1);
   getAllTrackathons: (page: nat, pageSize: nat) -> (vec Trackathon) query;
-  getTrackathons: (page: nat, pageSize: nat) -> (vec Trackathon) query;
   getCheckPointsByTrackId: (trackId: text) -> (vec CheckPoint) query;
   getCheckpointComments: (timestamp: Time, createdBy: principal) ->
    (vec CheckpointComment) query;
@@ -468,11 +467,13 @@ service : {
   getTrackPhotos: (trackId: text, startTime: Time, endTime: Time) ->
    (vec Photo) query;
   getTrackathon: (trackathonId: text) -> (opt Trackathon) query;
-  getTrackathonParticipants: (trackathonId: text, page: nat, pageSize: nat) ->
-   (vec TrackathonParticipant) query;
-  getTracks: (filter: TrackFilter, page: nat, pageSize: nat) -> (vec Track) query;
+  getTrackathonParticipants: (trackathonId: text, page: nat, pageSize:
+   nat) -> (vec TrackathonParticipant) query;
+  getTracks: (filter: TrackFilter, page: nat, pageSize: nat) ->
+   (vec Track) query;
   getTrail: (id: nat) -> (opt Trail) query;
-  getTrails: (filter: TrailFilter, page: nat, pageSize: nat) -> (vec Trail) query;
+  getTrails: (filter: TrailFilter, page: nat, pageSize: nat) ->
+   (vec Trail) query;
   getTrailsInBounds: (bounds:
    record {
      east: float64;

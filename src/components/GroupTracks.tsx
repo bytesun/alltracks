@@ -27,7 +27,7 @@ export const GroupTracks: React.FC<GroupTracksProps> = ({ groupId }) => {
 
     const loadTracks = async () => {
         setIsLoading(true);
-        const tcs = await alltracks.getTracks({group: groupId}, BigInt(0), BigInt(1000));
+        const tcs = await alltracks.getTracks({group: groupId}, 0n, 100n);
         const parsedTracks = parseTracks(tcs);
         const sortedTracks = parsedTracks.sort((a, b) => 
             new Date(b.startime).getTime() - new Date(a.startime).getTime()

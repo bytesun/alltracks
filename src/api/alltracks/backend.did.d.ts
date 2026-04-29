@@ -341,7 +341,6 @@ export interface _SERVICE {
   'deleteSpot' : ActorMethod<[string], Result_1>,
   'deleteTrail' : ActorMethod<[bigint], Result_1>,
   'getAllTrackathons' : ActorMethod<[bigint, bigint], Array<Trackathon>>,
-  'getTrackathons' : ActorMethod<[bigint, bigint], Array<Trackathon>>,
   'getCheckPointsByTrackId' : ActorMethod<[string], Array<CheckPoint>>,
   'getCheckpointComments' : ActorMethod<
     [Time, Principal],

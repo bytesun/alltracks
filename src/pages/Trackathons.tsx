@@ -18,19 +18,13 @@ export const Trackathons: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'past'>('active');
   const [userScore, setUserScore] = useState<number>(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMorePages, setHasMorePages] = useState(false);
-  const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
+    loadTrackathons();
     if (isAuthed && principal) {
       loadUserScore();
     }
   }, [isAuthed, principal]);
-
-  useEffect(() => {
-    loadTrackathons(filter, currentPage);
-  }, [filter, currentPage]);
 
   const loadUserScore = async () => {
     if (!principal) {
@@ -72,43 +66,26 @@ export const Trackathons: React.FC = () => {
     }
   };
 
-  const convertTrackathons = (result: any[]): Trackathon[] =>
-    result.map(t => ({
-      id: t.id,
-      name: t.name,
-      description: t.description,
-      startTime: Number(t.startTime) / 1000000,
-      endTime: Number(t.endTime) / 1000000,
-      duration: t.duration,
-      activityType: Object.keys(t.activityType)[0] as ActivityType,
-      registrations: t.registrations.map((p: any) => p.toText()),
-      createdBy: t.createdBy.toText(),
-      createdAt: Number(t.createdAt) / 1000000,
-      groupId: t.groupId.length > 0 ? t.groupId[0] : undefined,
-    }));
-
-  const loadTrackathons = async (
-    activeFilter: 'all' | 'active' | 'upcoming' | 'past',
-    page: number
-  ) => {
+  const loadTrackathons = async () => {
     setIsLoading(true);
     try {
-      let formattedTrackathons: Trackathon[];
-      if (activeFilter === 'all') {
-        // Fetch one extra item to detect whether a next page exists
-        const result = await alltracks.getAllTrackathons(
-          BigInt(page - 1),
-          BigInt(ITEMS_PER_PAGE + 1)
-        );
-        const hasMore = result.length > ITEMS_PER_PAGE;
-        formattedTrackathons = convertTrackathons(result.slice(0, ITEMS_PER_PAGE));
-        setHasMorePages(hasMore);
-      } else {
-        // Load all trackathons for filtered views so every matching item is visible
-        const result = await alltracks.getAllTrackathons(BigInt(0), BigInt(1000));
-        formattedTrackathons = convertTrackathons(result);
-        setHasMorePages(false);
-      }
+      const result = await alltracks.getAllTrackathons(0n, 100n);
+      
+      // Convert backend Trackathon format to frontend format
+      const formattedTrackathons: Trackathon[] = result.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        startTime: Number(t.startTime) / 1000000, // Convert nanoseconds to milliseconds
+        endTime: Number(t.endTime) / 1000000,
+        duration: t.duration,
+        activityType: Object.keys(t.activityType)[0] as ActivityType,
+        registrations: t.registrations.map(p => p.toText()),
+        createdBy: t.createdBy.toText(),
+        createdAt: Number(t.createdAt) / 1000000,
+        groupId: t.groupId.length > 0 ? t.groupId[0] : undefined,
+      }));
+      
       setTrackathons(formattedTrackathons);
     } catch (error) {
       showNotification('Failed to load trackathons', 'error');
@@ -143,7 +120,7 @@ export const Trackathons: React.FC = () => {
 
       if ('ok' in result) {
         // Reload trackathons to get the newly created one
-        await loadTrackathons(filter, currentPage);
+        await loadTrackathons();
         setShowCreateModal(false);
         showNotification('Trackathon created successfully', 'success');
       } else {
@@ -157,10 +134,6 @@ export const Trackathons: React.FC = () => {
 
   const getFilteredTrackathons = () => {
     const now = Date.now();
-    if (filter === 'all') {
-      // Data already paginated by backend; return as-is
-      return trackathons;
-    }
     return trackathons.filter(t => {
       switch (filter) {
         case 'active':
@@ -173,36 +146,6 @@ export const Trackathons: React.FC = () => {
           return true;
       }
     });
-  };
-
-  const getPaginatedTrackathons = () => {
-    const filtered = getFilteredTrackathons();
-    if (filter === 'all') {
-      // Backend already returns the correct page
-      return filtered;
-    }
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  };
-
-  const getTotalPages = () => {
-    if (filter === 'all') {
-      // Total unknown for backend pagination; not used (we use hasMorePages instead)
-      return currentPage + (hasMorePages ? 1 : 0);
-    }
-    return Math.ceil(getFilteredTrackathons().length / ITEMS_PER_PAGE);
-  };
-
-  const handleFilterChange = (newFilter: 'all' | 'active' | 'upcoming' | 'past') => {
-    setFilter(newFilter);
-    setCurrentPage(1);
-  };
-
-  const shouldShowPagination = () => {
-    if (filter === 'all') {
-      return currentPage > 1 || hasMorePages;
-    }
-    return getTotalPages() > 1;
   };
 
   const formatDate = (timestamp: number) => {
@@ -283,27 +226,27 @@ export const Trackathons: React.FC = () => {
       <div className="filter-tabs">
         <button 
           className={filter === 'all' ? 'active' : ''}
-          onClick={() => handleFilterChange('all')}
+          onClick={() => setFilter('all')}
         >
           All
         </button>
         <button 
           className={filter === 'active' ? 'active' : ''}
-          onClick={() => handleFilterChange('active')}
+          onClick={() => setFilter('active')}
         >
           <span className="material-icons">sensors</span>
           Live
         </button>
         <button 
           className={filter === 'upcoming' ? 'active' : ''}
-          onClick={() => handleFilterChange('upcoming')}
+          onClick={() => setFilter('upcoming')}
         >
           <span className="material-icons">schedule</span>
           Upcoming
         </button>
         <button 
           className={filter === 'past' ? 'active' : ''}
-          onClick={() => handleFilterChange('past')}
+          onClick={() => setFilter('past')}
         >
           <span className="material-icons">history</span>
           Past
@@ -330,99 +273,46 @@ export const Trackathons: React.FC = () => {
           )}
         </div>
       ) : (
-        <>
-          <div className="trackathons-grid">
-            {getPaginatedTrackathons().map(trackathon => (
-              <div 
-                key={trackathon.id} 
-                className="trackathon-card"
-                onClick={() => navigate(`/trackathon/${trackathon.id}`)}
-              >
-                <div className="card-header">
-                  <h3>{trackathon.name}</h3>
-                  {getStatusBadge(trackathon)}
+        <div className="trackathons-grid">
+          {getFilteredTrackathons().map(trackathon => (
+            <div 
+              key={trackathon.id} 
+              className="trackathon-card"
+              onClick={() => navigate(`/trackathon/${trackathon.id}`)}
+            >
+              <div className="card-header">
+                <h3>{trackathon.name}</h3>
+                {getStatusBadge(trackathon)}
+              </div>
+              
+              <p className="description">{trackathon.description}</p>
+              
+              <div className="card-meta">
+                <div className="meta-item">
+                  <span className="material-icons">event</span>
+                  <span>Join: {formatDate(trackathon.startTime)}</span>
                 </div>
-                
-                <p className="description">{trackathon.description}</p>
-                
-                <div className="card-meta">
-                  <div className="meta-item">
-                    <span className="material-icons">event</span>
-                    <span>Join: {formatDate(trackathon.startTime)}</span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="material-icons">schedule</span>
-                    <span>{trackathon.duration}h duration</span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="material-icons">
-                      {trackathon.activityType === 'hiking' ? 'hiking' : 
-                       trackathon.activityType === 'running' ? 'directions_run' :
-                       trackathon.activityType === 'cycling' ? 'directions_bike' :
-                       trackathon.activityType === 'rowing' ? 'rowing' : 'fitness_center'}
-                    </span>
-                    <span>{trackathon.activityType.charAt(0).toUpperCase() + trackathon.activityType.slice(1)}</span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="material-icons">group</span>
-                    <span>{trackathon.registrations.length} registered</span>
-                  </div>
+                <div className="meta-item">
+                  <span className="material-icons">schedule</span>
+                  <span>{trackathon.duration}h duration</span>
+                </div>
+                <div className="meta-item">
+                  <span className="material-icons">
+                    {trackathon.activityType === 'hiking' ? 'hiking' : 
+                     trackathon.activityType === 'running' ? 'directions_run' :
+                     trackathon.activityType === 'cycling' ? 'directions_bike' :
+                     trackathon.activityType === 'rowing' ? 'rowing' : 'fitness_center'}
+                  </span>
+                  <span>{trackathon.activityType.charAt(0).toUpperCase() + trackathon.activityType.slice(1)}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="material-icons">group</span>
+                  <span>{trackathon.registrations.length} registered</span>
                 </div>
               </div>
-            ))}
-          </div>
-          {shouldShowPagination() && (
-            <div className="pagination">
-              <button
-                className="pagination-btn"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <span className="material-icons">chevron_left</span>
-              </button>
-              {filter === 'all' ? (
-                // Backend pagination: show prev page, current page, next page buttons
-                <>
-                  {currentPage > 1 && (
-                    <button
-                      className="pagination-btn"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                    >
-                      {currentPage - 1}
-                    </button>
-                  )}
-                  <button className="pagination-btn active">{currentPage}</button>
-                  {hasMorePages && (
-                    <button
-                      className="pagination-btn"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                    >
-                      {currentPage + 1}
-                    </button>
-                  )}
-                </>
-              ) : (
-                // Client-side pagination: show all page numbers
-                Array.from({ length: getTotalPages() }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    className={`pagination-btn${currentPage === page ? ' active' : ''}`}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))
-              )}
-              <button
-                className="pagination-btn"
-                onClick={() => setCurrentPage(p => p + 1)}
-                disabled={filter === 'all' ? !hasMorePages : currentPage === getTotalPages()}
-              >
-                <span className="material-icons">chevron_right</span>
-              </button>
             </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
 
       {showCreateModal && (
