@@ -3,6 +3,7 @@ import { Navbar } from './Navbar';
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
 import { LoginModal } from './LoginModal';
+import { Chat } from './Chat';
 import { useGlobalContext, useSetAgent, useSetLoginModal } from './Store';
 
 import { HOST, IDENTITY_PROVIDER, IDENTITY_PROVIDER_v2 } from "../lib/canisters";
@@ -179,6 +180,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <>
       <Navbar />
       {children}
+      <Chat />
       <LoginModal
         isOpen={loginModal}
         onClose={() => setLoginModal(false)}
