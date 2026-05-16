@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAlltracks } from './Store';
 import { useNotification } from '../context/NotificationContext';
-import { ActivityType } from '../types/Trackathon';
+import { ActivityType, Trackathon } from '../types/Trackathon';
 import '../styles/CreateTrackathonModal.css';
 
 interface CreateTrackathonModalProps {
@@ -15,12 +15,15 @@ interface CreateTrackathonModalProps {
     activityType: ActivityType;
     groupId?: string;
   }) => void;
+  initialData?: Trackathon;
 }
 
 export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
   onClose,
   onCreate,
+  initialData,
 }) => {
+  const isEditMode = !!initialData;
   const alltracks = useAlltracks();
   const { showNotification } = useNotification();
   const [isCreating, setIsCreating] = useState(false);
@@ -43,22 +46,39 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
       setGroups(data.map(g => ({ id: g.id, name: g.name })));
     });
 
-    // Set default start time - tomorrow at 8am
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(8, 0, 0, 0);
+    if (initialData) {
+      // Pre-fill form with existing data
+      const start = new Date(initialData.startTime);
+      const end = new Date(initialData.endTime);
+      setFormData({
+        name: initialData.name,
+        description: initialData.description,
+        startDate: start.toISOString().split('T')[0],
+        startTime: start.toTimeString().split(' ')[0].substring(0, 5),
+        endDate: end.toISOString().split('T')[0],
+        endTime: end.toTimeString().split(' ')[0].substring(0, 5),
+        duration: initialData.duration,
+        activityType: initialData.activityType,
+        groupId: initialData.groupId || '',
+      });
+    } else {
+      // Set default start time - tomorrow at 8am
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(8, 0, 0, 0);
 
-    // Set default end time - tomorrow at 8am + 24 hours (default duration)
-    const endDate = new Date(tomorrow);
-    endDate.setHours(endDate.getHours() + 24);
+      // Set default end time - tomorrow at 8am + 24 hours (default duration)
+      const endDate = new Date(tomorrow);
+      endDate.setHours(endDate.getHours() + 24);
 
-    setFormData(prev => ({
-      ...prev,
-      startDate: tomorrow.toISOString().split('T')[0],
-      startTime: '08:00',
-      endDate: endDate.toISOString().split('T')[0],
-      endTime: endDate.toTimeString().split(' ')[0].substring(0, 5),
-    }));
+      setFormData(prev => ({
+        ...prev,
+        startDate: tomorrow.toISOString().split('T')[0],
+        startTime: '08:00',
+        endDate: endDate.toISOString().split('T')[0],
+        endTime: endDate.toTimeString().split(' ')[0].substring(0, 5),
+      }));
+    }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,7 +87,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
     const startTime = new Date(`${formData.startDate}T${formData.startTime}`);
     const endTime = new Date(`${formData.endDate}T${formData.endTime}`);
 
-    if (startTime < new Date()) {
+    if (!isEditMode && startTime < new Date()) {
       showNotification('Start time must be in the future', 'error');
       return;
     }
@@ -98,7 +118,7 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
     <div className="modal-overlay">
       <div className="modal-content trackathon-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Create New Trackathon</h2>
+          <h2>{isEditMode ? 'Edit Trackathon' : 'Create New Trackathon'}</h2>
           <button className="close-button" onClick={onClose}>
             <span className="material-icons">close</span>
           </button>
@@ -250,12 +270,12 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
               {isCreating ? (
                 <>
                   <span className="spinner"></span>
-                  Creating...
+                  {isEditMode ? 'Saving...' : 'Creating...'}
                 </>
               ) : (
                 <>
-                  <span className="material-icons">add</span>
-                  Create Trackathon
+                  <span className="material-icons">{isEditMode ? 'save' : 'add'}</span>
+                  {isEditMode ? 'Save Changes' : 'Create Trackathon'}
                 </>
               )}
             </button>

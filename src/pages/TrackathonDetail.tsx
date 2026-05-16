@@ -60,6 +60,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import { useAlltracks, useComment, useGlobalContext } from '../components/Store';
 import { Trackathon, TrackathonParticipant, TrackathonPoint, ActivityType } from '../types/Trackathon';
 import { MintBadgeModal } from '../components/MintBadgeModal';
+import { CreateTrackathonModal } from '../components/CreateTrackathonModal';
 import { useNotification } from '../context/NotificationContext';
 import { locationIcon, selectedLocationIcon, hikingHumanIcon } from '../lib/markerIcons';
 import type { Comment } from '../api/comment/comment.did';
@@ -116,6 +117,7 @@ export const TrackathonDetail: React.FC = () => {
   const [trackathonComments, setTrackathonComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [savingComment, setSavingComment] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadTrackathonData();
@@ -207,6 +209,40 @@ export const TrackathonDetail: React.FC = () => {
       setTrackathonComments(cs || []);
     } catch (error) {
       console.error('Failed to load comments:', error);
+    }
+  };
+
+  const handleUpdateTrackathon = async (data: {
+    name: string;
+    description: string;
+    startTime: Date;
+    endTime: Date;
+    duration: number;
+    activityType: ActivityType;
+    groupId?: string;
+  }) => {
+    try {
+      const activityTypeObj = { [data.activityType]: null };
+      const result = await alltracks.updateTrackathon(trackathonId!, {
+        name: data.name,
+        description: data.description,
+        startTime: BigInt(data.startTime.getTime() * 1000000),
+        endTime: BigInt(data.endTime.getTime() * 1000000),
+        duration: data.duration,
+        activityType: activityTypeObj,
+        groupId: data.groupId ? [data.groupId] : [],
+      });
+
+      if ('ok' in result) {
+        await loadTrackathonData();
+        setShowEditModal(false);
+        showNotification('Trackathon updated successfully', 'success');
+      } else {
+        showNotification('Failed to update trackathon: ' + result.err, 'error');
+      }
+    } catch (error) {
+      showNotification('Failed to update trackathon', 'error');
+      console.error('Error updating trackathon:', error);
     }
   };
 
@@ -436,6 +472,16 @@ export const TrackathonDetail: React.FC = () => {
             <span className={`status-badge ${status}`}>
               {status === 'upcoming' ? 'Registration Open' : status === 'live' ? 'Live Now' : 'Completed'}
             </span>
+            {principal && trackathon.createdBy === principal.toText() && (
+              <button
+                className="edit-trackathon-btn"
+                onClick={() => setShowEditModal(true)}
+                title="Edit Trackathon"
+              >
+                <span className="material-icons">edit</span>
+                Edit
+              </button>
+            )}
           </div>
           <div className="description">
             <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
@@ -1007,6 +1053,15 @@ export const TrackathonDetail: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Trackathon Modal */}
+      {showEditModal && trackathon && (
+        <CreateTrackathonModal
+          onClose={() => setShowEditModal(false)}
+          onCreate={handleUpdateTrackathon}
+          initialData={trackathon}
+        />
       )}
     </div>
   );
