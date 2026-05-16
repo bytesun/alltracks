@@ -412,6 +412,7 @@ export interface _SERVICE {
   'searchTrails' : ActorMethod<[string, bigint, bigint], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result_1>,
   'updateSpot' : ActorMethod<[string, NewSpot], Result>,
+  'updateTrackathon' : ActorMethod<[string, NewTrackathon], Result_5>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

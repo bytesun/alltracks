@@ -493,4 +493,5 @@ service : {
   searchTrails: (term: text, page: nat, pageSize: nat) -> (vec Trail) query;
   updateGroup: (groupId: text, updates: NewGroup) -> (Result_1);
   updateSpot: (name: text, updates: NewSpot) -> (Result);
+  updateTrackathon: (trackathonId: text, updates: NewTrackathon) -> (Result_5);
 }

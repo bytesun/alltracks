@@ -503,6 +503,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'updateGroup' : IDL.Func([IDL.Text, NewGroup], [Result_1], []),
     'updateSpot' : IDL.Func([IDL.Text, NewSpot], [Result], []),
+    'updateTrackathon' : IDL.Func([IDL.Text, NewTrackathon], [Result_5], []),
   });
 };
 export const init = ({ IDL }) => { return []; };
