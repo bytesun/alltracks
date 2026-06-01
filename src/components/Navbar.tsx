@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {  useNavigate } from 'react-router-dom';
 
 import '../styles/Navbar.css';
@@ -16,7 +16,7 @@ export const Navbar = () => {
     state: { isAuthed, principal },
   } = useGlobalContext();
   const logout = useLogout();
-  const [loginModal, setLoginModal] = useSetLoginModal();
+  const [, setLoginModal] = useSetLoginModal();
 
   const handleLogout = async () => {
     // Get AuthClient and logout

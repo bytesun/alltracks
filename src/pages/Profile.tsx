@@ -3,16 +3,15 @@ import { Navigate } from 'react-router-dom';
 
 import '../styles/Profile.css';
 
-import { Tracks } from '../components/Tracks';
 import { Trails } from '../components/Trails';
 import { GroupManagement } from '../components/GroupManagement';
 
 import { Settings } from '../components/Settings';
-import { useNotification } from '../context/NotificationContext';
 import { TrackAchievements } from '../components/TrackAchievements';
 import { ArStorage } from '../components/ArStorage';
 import { SavedPoints } from '../components/SavedPoints';
 import { Wallet } from '../components/Wallet';
+import { Tracking } from './Tracking';
 
 import { UserStats } from '../types/UserStats';
 import { useGlobalContext, useAlltracks } from '../components/Store';
@@ -23,7 +22,6 @@ export const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { state: { isAuthed, principal } } = useGlobalContext();
 
-  const { showNotification } = useNotification();
   const [userStats, setUserStats] = useState<UserStats>({
     totalDistance: 0,
     totalHours: 0,
@@ -33,6 +31,8 @@ export const Profile: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!isAuthed || !principal) return;
+
     console.log("Loading user stats...")
     const loadUserStats = async () => {
       console.log("Loading user stats in...")
@@ -52,7 +52,7 @@ export const Profile: React.FC = () => {
 
     }
     loadUserStats();
-  }, [isAuthed]);
+  }, [alltracks, isAuthed, principal]);
 
 
   if (!isAuthed) {
@@ -71,6 +71,14 @@ export const Profile: React.FC = () => {
             >
               <span className="material-icons">person</span>
               Prove of Tracking
+            </div>
+
+            <div
+              className={`sidebar-item ${activeTab === 'tracking' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tracking')}
+            >
+              <span className="material-icons">my_location</span>
+              Tracking
             </div>
 
 
@@ -141,6 +149,10 @@ export const Profile: React.FC = () => {
                   <TrackAchievements stats={userStats} userId={principal.toText()} />
                 </div>
               </>
+            )}
+
+            {activeTab === 'tracking' && (
+              <Tracking />
             )}
 
 
