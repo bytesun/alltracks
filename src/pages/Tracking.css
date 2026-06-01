@@ -1,0 +1,248 @@
+.tracking-page {
+  max-width: 960px;
+  margin: 0 auto 48px;
+  padding: 0 20px;
+  color: #173b2a;
+}
+
+.tracking-hero,
+.tracking-card {
+  background: #ffffff;
+  border: 1px solid #dceee4;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(8, 126, 65, 0.08);
+}
+
+.tracking-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  margin-bottom: 18px;
+}
+
+.tracking-hero h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #07623e;
+}
+
+.tracking-hero p {
+  margin: 0;
+  max-width: 640px;
+  color: #4c6659;
+  line-height: 1.6;
+}
+
+.tracking-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #119515 !important;
+  margin-bottom: 8px !important;
+}
+
+.tracking-alert,
+.tracking-pubkey {
+  border-radius: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+}
+
+.tracking-alert {
+  background: #fff7e6;
+  border: 1px solid #ffd88a;
+  color: #755200;
+}
+
+.tracking-pubkey {
+  overflow-wrap: anywhere;
+  background: #effaf3;
+  border: 1px solid #bfe8cb;
+  color: #07623e;
+  font-family: monospace;
+}
+
+.tracking-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+.tracking-card h2 {
+  margin: 0;
+  color: #07623e;
+}
+
+.tracking-card label {
+  font-weight: 800;
+  color: #173b2a;
+}
+
+.tracking-card input,
+.tracking-card textarea {
+  width: 100%;
+  border: 1px solid #bddac7;
+  border-radius: 10px;
+  padding: 12px;
+  color: #173b2a;
+  font: inherit;
+  background: #fbfffc;
+  box-sizing: border-box;
+}
+
+.tracking-card textarea {
+  resize: vertical;
+}
+
+.tracking-card small,
+.tracking-accuracy {
+  color: #607568;
+  line-height: 1.4;
+}
+
+.tracking-grid,
+.tracking-location-row {
+  display: grid;
+  gap: 16px;
+}
+
+.tracking-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tracking-grid > div,
+.tracking-location-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tracking-location-row {
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+}
+
+.tracking-preview {
+  display: flex;
+  justify-content: center;
+  padding: 14px;
+  background: #f4fbf6;
+  border: 1px dashed #a9d8b7;
+  border-radius: 14px;
+}
+
+.tracking-preview img {
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.tracking-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.tracking-primary-button,
+.tracking-secondary-button {
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 12px 18px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.tracking-primary-button:hover,
+.tracking-secondary-button:hover {
+  transform: translateY(-1px);
+}
+
+.tracking-primary-button:disabled,
+.tracking-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.tracking-primary-button {
+  background: #119515;
+  color: #ffffff;
+}
+
+.tracking-secondary-button {
+  background: #e8f7ee;
+  color: #07623e;
+}
+
+.tracking-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tracking-results li {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 4px 12px;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.tracking-results small {
+  grid-column: 2;
+}
+
+.tracking-result-ok {
+  background: #eefaf2;
+  border: 1px solid #bfe8cb;
+}
+
+.tracking-result-error {
+  background: #fff0f0;
+  border: 1px solid #ffc3c3;
+}
+
+.tracking-result-ok strong {
+  color: #087e41;
+}
+
+.tracking-result-error strong {
+  color: #b42318;
+}
+
+@media (max-width: 760px) {
+  .tracking-hero,
+  .tracking-location-row,
+  .tracking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-hero {
+    display: grid;
+    padding: 22px;
+  }
+
+  .tracking-secondary-button,
+  .tracking-primary-button {
+    width: 100%;
+  }
+
+  .tracking-results li {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-results small {
+    grid-column: 1;
+  }
+}

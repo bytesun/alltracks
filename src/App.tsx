@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import MainApp  from './MainApp';
@@ -22,6 +22,7 @@ import Posts from './pages/Posts';
 import Everpeace from './pages/Everpeace';
 import { Trackathons } from './pages/Trackathons';
 import { TrackathonDetail } from './pages/TrackathonDetail';
+import { Tracking } from './pages/Tracking';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -37,6 +38,7 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/" element={<MainApp />} />
+                <Route path="/tracking" element={<Tracking />} />
                 <Route path="/trails" element={<Trails />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/track/:trackId" element={<TrackPage />} />

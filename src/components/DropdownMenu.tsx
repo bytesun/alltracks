@@ -34,6 +34,13 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
         <div className="nav-dropdown-menu">
           <ul>
             <li onClick={() => {
+              navigate('/tracking');
+              setIsOpen(false);
+            }}>
+              <span className="material-icons">my_location</span>
+              Tracking
+            </li>
+            <li onClick={() => {
               navigate('/trackathons');
               setIsOpen(false);
             }}>
