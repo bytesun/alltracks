@@ -47,7 +47,6 @@ export const Navbar = () => {
 
           {/* Desktop menu items */}
           <div className="desktop-menu">
-            <Link to="/tracking" className="nav-link"><span className="material-icons">my_location</span>Tracking</Link>
             <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Trackathons</Link>
             {/* <Link to="/everpeace" className="nav-link"><span className="material-icons">terrain</span>Everpeace</Link> */}
             {/* <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link> */}
