@@ -35,6 +35,7 @@
     "@react-navigation/stack": "^7.6.12",
     "@types/leaflet": "^1.9.21",
     "expo": "~54.0.29",
+    "expo-document-picker": "~14.0.8",
     "expo-file-system": "^19.0.21",
     "expo-image-picker": "^17.0.10",
     "expo-location": "^19.0.8",

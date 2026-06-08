@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -13,12 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTracking } from '../services/TrackingContext';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { Track } from '../types';
+import { ImportService } from '../services/ImportService';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export default function TracksListScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { tracks, deleteTrack, loadTracks } = useTracking();
+  const { tracks, deleteTrack, loadTracks, importTrack } = useTracking();
+  const [isImporting, setIsImporting] = React.useState(false);
 
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -46,6 +49,40 @@ export default function TracksListScreen() {
         },
       ]
     );
+  };
+
+  const handleImportTrack = async () => {
+    setIsImporting(true);
+    try {
+      const importedTrack = await ImportService.pickTrackFile();
+      if (!importedTrack) {
+        return;
+      }
+
+      await importTrack(importedTrack);
+      Alert.alert(
+        'Track Imported',
+        `${importedTrack.name} was added to your tracks.`,
+        [
+          {
+            text: 'View Track',
+            onPress: () => navigation.navigate('TrackDetail', { trackId: importedTrack.id }),
+          },
+          {
+            text: 'Done',
+            style: 'cancel',
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error importing track:', error);
+      Alert.alert(
+        'Import Failed',
+        error instanceof Error ? error.message : 'Unable to import the selected file.'
+      );
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const formatDuration = (ms: number | undefined) => {
@@ -130,14 +167,44 @@ export default function TracksListScreen() {
           <Text style={styles.emptyText}>
             Start tracking your first adventure from the Tracking tab
           </Text>
+          <TouchableOpacity
+            style={[styles.emptyImportButton, isImporting && styles.importButtonDisabled]}
+            onPress={handleImportTrack}
+            disabled={isImporting}
+          >
+            {isImporting ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Ionicons name="download-outline" size={20} color="white" />
+                <Text style={styles.emptyImportButtonText}>Import GPS Route</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       ) : (
         <>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>My Tracks</Text>
-            <Text style={styles.headerSubtitle}>
-              {completedTracks.length} {completedTracks.length === 1 ? 'track' : 'tracks'}
-            </Text>
+            <View>
+              <Text style={styles.headerTitle}>My Tracks</Text>
+              <Text style={styles.headerSubtitle}>
+                {completedTracks.length} {completedTracks.length === 1 ? 'track' : 'tracks'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.importButton, isImporting && styles.importButtonDisabled]}
+              onPress={handleImportTrack}
+              disabled={isImporting}
+            >
+              {isImporting ? (
+                <ActivityIndicator color="#007AFF" />
+              ) : (
+                <>
+                  <Ionicons name="download-outline" size={18} color="#007AFF" />
+                  <Text style={styles.importButtonText}>Import</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
           <FlatList
             data={completedTracks}
@@ -161,6 +228,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
     fontSize: 24,
@@ -234,6 +304,24 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 8,
   },
+  importButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+    backgroundColor: '#EEF4FF',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  importButtonDisabled: {
+    opacity: 0.7,
+  },
+  importButtonText: {
+    color: '#007AFF',
+    fontWeight: '600',
+    marginLeft: 6,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -250,5 +338,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+  },
+  emptyImportButton: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  emptyImportButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
