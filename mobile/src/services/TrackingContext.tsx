@@ -16,6 +16,7 @@ interface TrackingContextType {
   pauseTracking: () => void;
   resumeTracking: () => void;
   addCheckpoint: (note?: string, photo?: string) => Promise<void>;
+  importTrack: (track: Track) => Promise<void>;
   loadTracks: () => Promise<void>;
   deleteTrack: (trackId: string) => Promise<void>;
   updateSettings: (settings: RecordingSettings) => Promise<void>;
@@ -291,6 +292,16 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
+  const importTrack = useCallback(async (track: Track) => {
+    try {
+      await StorageService.saveTrack(track);
+      setTracks((prev) => [...prev, track]);
+    } catch (error) {
+      console.error('Error importing track:', error);
+      throw error;
+    }
+  }, []);
+
   const deleteTrack = useCallback(async (trackId: string) => {
     try {
       await StorageService.deleteTrack(trackId);
@@ -326,6 +337,7 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         pauseTracking,
         resumeTracking,
         addCheckpoint,
+        importTrack,
         loadTracks,
         deleteTrack,
         updateSettings,
