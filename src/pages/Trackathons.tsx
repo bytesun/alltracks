@@ -138,7 +138,17 @@ export const Trackathons: React.FC = () => {
           calendar: 707n,
           start: BigInt(Math.floor(data.startTime.getTime() / 1000)),
           ispublic: true,
-          solution: { common: null },
+          solution: {
+            activity: {
+              attendeelimit: 0n,
+              formfields: [],
+              price: {
+                currency: 'USD',
+                amount: 0,
+              },
+              registerat: { createon: null },
+            },
+          },
           location: { url: trackathonUrl },
           attachments: [],
           parent: 0n,
