@@ -134,7 +134,7 @@ export const Trackathons: React.FC = () => {
           cost: 0,
           tags: ['alltracks', 'trackathon'],
           description: `${trackathon.description}\n\nJoin: ${trackathonUrl}`,
-          etype: { common: null },
+          etype: { activity: null },
           calendar: 707n,
           start: BigInt(Math.floor(data.startTime.getTime() / 1000)),
           ispublic: true,
