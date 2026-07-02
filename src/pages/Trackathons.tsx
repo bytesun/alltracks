@@ -6,6 +6,24 @@ import { Trackathon, ActivityType } from '../types/Trackathon';
 import { CreateTrackathonModal } from '../components/CreateTrackathonModal';
 import '../styles/Trackathons.css';
 
+const UNKNOWN_ERROR_MESSAGE = 'Unknown error';
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return UNKNOWN_ERROR_MESSAGE;
+  }
+};
+
 export const Trackathons: React.FC = () => {
   const navigate = useNavigate();
   const alltracks = useAlltracks();
@@ -124,38 +142,45 @@ export const Trackathons: React.FC = () => {
         const trackathonPath = `/trackathon/${trackathon.id}`;
         const trackathonUrl = `${window.location.origin}${trackathonPath}`;
 
-        const eventRes = await icevent.createEvent({
-          tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-          end: BigInt(Math.floor(data.endTime.getTime() / 1000)),
-          title: `Trackathon: ${trackathon.name}`,
-          repeatdata: [],
-          isrepeat: false,
-          allday: false,
-          cost: 0,
-          tags: ['alltracks', 'trackathon'],
-          description: `${trackathon.description}\n\nJoin: ${trackathonUrl}`,
-          etype: { activity: null },
-          calendar: 707n,
-          start: BigInt(Math.floor(data.startTime.getTime() / 1000)),
-          ispublic: true,
-          solution: {
-            activity: {
-              attendeelimit: 0n,
-              formfields: [],
-              price: {
-                currency: 'USD',
-                amount: 0,
+        try {
+          const eventRes = await icevent.createEvent({
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+            end: BigInt(Math.floor(data.endTime.getTime() / 1000)),
+            title: `Trackathon: ${trackathon.name}`,
+            repeatdata: [],
+            isrepeat: false,
+            allday: false,
+            cost: 0,
+            tags: ['alltracks', 'trackathon'],
+            description: `${trackathon.description}\n\nJoin: ${trackathonUrl}`,
+            etype: { activity: null },
+            calendar: 707n,
+            start: BigInt(Math.floor(data.startTime.getTime() / 1000)),
+            ispublic: true,
+            solution: {
+              activity: {
+                attendeelimit: 0n,
+                formfields: [],
+                price: {
+                  currency: 'USD',
+                  amount: 0,
+                },
+                registerat: { createon: null },
               },
-              registerat: { createon: null },
             },
-          },
-          location: { url: trackathonUrl },
-          attachments: [],
-          parent: 0n,
-        });
+            location: { url: trackathonUrl },
+            attachments: [],
+            parent: 0n,
+          });
 
-        if ('err' in eventRes) {
-          showNotification(`Trackathon created, but failed to create associated event: ${eventRes.err}`, 'error');
+          if ('err' in eventRes) {
+            showNotification(`Trackathon created, but failed to create associated event: ${eventRes.err}`, 'error');
+            console.error('Failed to create associated event:', eventRes.err);
+          }
+        } catch (eventError) {
+          const errorMessage = getErrorMessage(eventError);
+          showNotification(`Trackathon created, but failed to create associated event: ${errorMessage}`, 'error');
+          console.error('Error creating associated event:', eventError);
         }
 
         // Reload trackathons to get the newly created one
@@ -166,7 +191,7 @@ export const Trackathons: React.FC = () => {
         showNotification('Failed to create trackathon: ' + result.err, 'error');
       }
     } catch (error) {
-      showNotification('Failed to create trackathon', 'error');
+      showNotification(`Failed to create trackathon: ${getErrorMessage(error)}`, 'error');
       console.error('Error creating trackathon:', error);
     }
   };
