@@ -916,6 +916,21 @@ function MainApp() {
   return (
     <div className="App">
 
+      <div className="hero-video-bg" aria-hidden="true">
+        <video
+          className="hero-video"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster="/hero-bg-poster.jpg"
+        >
+          <source src="/hero-bg.mp4" type="video/mp4" />
+        </video>
+        <div className="hero-video-overlay" />
+      </div>
+
       <header className="App-header">
 
         {locationError && (

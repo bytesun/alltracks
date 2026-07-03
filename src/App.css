@@ -467,10 +467,11 @@ button:disabled {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: #333;
+  color: #f4fbff;
   vertical-align: middle;
   font-size: 14px;
   white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 @media (max-width: 768px) {
