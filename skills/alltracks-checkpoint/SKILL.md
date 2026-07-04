@@ -89,7 +89,7 @@ npm install @dfinity/agent @dfinity/principal
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "./src/api/alltracks/backend.did.js";
 
-const CANISTER_ID = "orkad-xyaaa-aaaal-ai7ta-cai";
+const CANISTER_ID = "r6cnt-kyaaa-aaaal-aab3a-cai";
 const ICP_HOST    = "https://icp0.io";
 
 // Create an authenticated agent (requires Internet Identity delegation)
@@ -217,10 +217,10 @@ Agent steps:
 
 | Item | Value |
 |------|-------|
-| **Canister ID** | `orkad-xyaaa-aaaal-ai7ta-cai` |
+| **Canister ID** | `r6cnt-kyaaa-aaaal-aab3a-cai` |
 | **Network** | Internet Computer (ICP) mainnet |
 | **ICP URL** | `https://icp0.io` |
 | **Web App** | `https://alltracks.icevent.app` |
-| **Alternative URL** | `https://orkad-xyaaa-aaaal-ai7ta-cai.icp0.io` |
+| **Alternative URL** | `https://r6cnt-kyaaa-aaaal-aab3a-cai.icp0.io` |
 | **IDL / Interface** | `src/api/alltracks/backend.did` |
 | **Source Repository** | `https://github.com/bytesun/alltracks` |
