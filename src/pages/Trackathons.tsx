@@ -6,6 +6,24 @@ import { Trackathon, ActivityType } from '../types/Trackathon';
 import { CreateTrackathonModal } from '../components/CreateTrackathonModal';
 import '../styles/Trackathons.css';
 
+const UNKNOWN_ERROR_MESSAGE = 'Unknown error';
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return UNKNOWN_ERROR_MESSAGE;
+  }
+};
+
 export const Trackathons: React.FC = () => {
   const navigate = useNavigate();
   const alltracks = useAlltracks();
@@ -127,7 +145,7 @@ export const Trackathons: React.FC = () => {
         showNotification('Failed to create trackathon: ' + result.err, 'error');
       }
     } catch (error) {
-      showNotification('Failed to create trackathon', 'error');
+      showNotification(`Failed to create trackathon: ${getErrorMessage(error)}`, 'error');
       console.error('Error creating trackathon:', error);
     }
   };

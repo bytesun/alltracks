@@ -1,3 +1,35 @@
+/* Homepage dynamic background video */
+.hero-video-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+}
+
+.hero-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 39, 65, 0.55) 0%,
+    rgba(15, 39, 65, 0.72) 55%,
+    rgba(15, 39, 65, 0.88) 100%
+  );
+}
+
 .import-dropdown {
     position: relative;
     display: inline-block;
