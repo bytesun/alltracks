@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { MapContainer, TileLayer, useMap, Polyline, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
 import { TrackPoint } from "../types/TrackPoint";
-import { listDocs } from "@junobuild/core";
-import { parseGPX } from "../utils/importFormats";
 import { icon } from 'leaflet';
-import { Navbar } from '../components/Navbar';
-import { useAlltracks, useICEvent } from '../components/Store';
+import { useAlltracks, useGlobalContext } from '../components/Store';
+import { StatusRecordModal } from '../components/StatusRecordModal';
+import { useNotification } from '../context/NotificationContext';
 
 import "../styles/Status.css";
 
@@ -26,8 +24,13 @@ const selectedLocationIcon = icon({
 export const Status: React.FC = () => {
 
     const alltracks = useAlltracks();
+    const { state: { isAuthed } } = useGlobalContext();
+    const { showNotification } = useNotification();
     const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
     const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
+    const [locationStatus, setLocationStatus] = useState('Using your current location to show nearby points.');
+    const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+    const [showQuickStatusModal, setShowQuickStatusModal] = useState(false);
 
     const [selectedPoint, setSelectedPoint] = useState<TrackPoint | null>(null);
     const [modalPhoto, setModalPhoto] = useState<string | null>(null);
@@ -45,14 +48,31 @@ export const Status: React.FC = () => {
 
         return null;
     }
-    useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setUserLocation([position.coords.latitude, position.coords.longitude]);
-                }
-            );
+    const updateCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            setLocationStatus('Geolocation is not supported by this browser.');
+            return;
         }
+
+        setIsUpdatingLocation(true);
+        setLocationStatus('Refreshing your current location...');
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setUserLocation([position.coords.latitude, position.coords.longitude]);
+                setLocationStatus('Location updated. Nearby points are filtered within 10km of your current position.');
+                setIsUpdatingLocation(false);
+            },
+            () => {
+                setLocationStatus('Unable to update location. Check browser location permissions and try again.');
+                setIsUpdatingLocation(false);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    };
+
+    useEffect(() => {
+        updateCurrentLocation();
     }, []);
 
 
@@ -178,14 +198,71 @@ export const Status: React.FC = () => {
         return R * c;
     };
 
+    const openQuickStatusModal = () => {
+        if (!isAuthed) {
+            showNotification('Please login to record your current status.', 'info');
+            return;
+        }
+        setShowQuickStatusModal(true);
+    };
+
+    const handleQuickStatusSave = async (data: { description: string; tagsInput: string }) => {
+        try {
+            const [latitude, longitude] = userLocation;
+            const tags = data.tagsInput
+                .split(',')
+                .map((tag) => tag.trim())
+                .filter(Boolean);
+
+            const description = JSON.stringify({
+                latitude,
+                longitude,
+                note: data.description.trim()
+            });
+
+            const spotName = `Status ${new Date().toLocaleString()}`;
+            const result: any = await alltracks.createSpot({ name: spotName, description, tags });
+
+            if (result && result.ok) {
+                setShowQuickStatusModal(false);
+                showNotification('Current status recorded.', 'success');
+            } else {
+                const message = result?.err || 'Unknown error';
+                showNotification(`Failed to record status: ${message}`, 'error');
+            }
+        } catch (error) {
+            console.error('Failed to record current status', error);
+            showNotification('Unable to record current status.', 'error');
+        }
+    };
+
     return (
         <div className="event-page">
 
             <div className="status-container">
                 <div className="status-header">
                     <h3>Live Report Points</h3>
-                    <div className="update-notice">
-                        Last updated: {lastUpdate.toLocaleTimeString()}
+                    <div className="status-header-actions">
+                        <button
+                            type="button"
+                            className="location-refresh-btn secondary-action"
+                            onClick={openQuickStatusModal}
+                        >
+                            <span className="material-icons">note_add</span>
+                            Record current status
+                        </button>
+                        <button
+                            type="button"
+                            className="location-refresh-btn"
+                            onClick={updateCurrentLocation}
+                            disabled={isUpdatingLocation}
+                        >
+                            <span className="material-icons">my_location</span>
+                            {isUpdatingLocation ? 'Updating location...' : 'Update current location'}
+                        </button>
+                        <div className="update-notice">
+                            Last updated: {lastUpdate.toLocaleTimeString()}
+                        </div>
                     </div>
                     {/* <div className="status-filters">
                         <label>
@@ -210,6 +287,10 @@ export const Status: React.FC = () => {
                     Showing tracking important points of interest or hazards from today within 10km of your location
                     {trackPoints.length > 0 && ` (${trackPoints.length} points found)`}
                 </p>
+                <div className="location-status-note">
+                    <span className="material-icons">info</span>
+                    <span>{locationStatus}</span>
+                </div>
 
                 <div className="status-content">
                     {/* Left Column - Points List */}
@@ -316,6 +397,14 @@ export const Status: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {showQuickStatusModal && (
+                <StatusRecordModal
+                    location={{ latitude: userLocation[0], longitude: userLocation[1] }}
+                    onSave={handleQuickStatusSave}
+                    onClose={() => setShowQuickStatusModal(false)}
+                />
+            )}
 
         </div>
     );

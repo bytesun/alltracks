@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAlltracks, useGlobalContext, useICEvent } from '../components/Store';
+import { useAlltracks, useGlobalContext } from '../components/Store';
 import { useNotification } from '../context/NotificationContext';
 import { Trackathon, ActivityType } from '../types/Trackathon';
 import { CreateTrackathonModal } from '../components/CreateTrackathonModal';
@@ -9,7 +9,6 @@ import '../styles/Trackathons.css';
 export const Trackathons: React.FC = () => {
   const navigate = useNavigate();
   const alltracks = useAlltracks();
-  const icevent = useICEvent();
   const { state: { isAuthed, principal } } = useGlobalContext();
   const { showNotification } = useNotification();
   
@@ -120,44 +119,6 @@ export const Trackathons: React.FC = () => {
       });
 
       if ('ok' in result) {
-        const trackathon = result.ok;
-        const trackathonPath = `/trackathon/${trackathon.id}`;
-        const trackathonUrl = `${window.location.origin}${trackathonPath}`;
-
-        const eventRes = await icevent.createEvent({
-          tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-          end: BigInt(Math.floor(data.endTime.getTime() / 1000)),
-          title: `Trackathon: ${trackathon.name}`,
-          repeatdata: [],
-          isrepeat: false,
-          allday: false,
-          cost: 0,
-          tags: ['alltracks', 'trackathon'],
-          description: `${trackathon.description}\n\nJoin: ${trackathonUrl}`,
-          etype: { activity: null },
-          calendar: 707n,
-          start: BigInt(Math.floor(data.startTime.getTime() / 1000)),
-          ispublic: true,
-          solution: {
-            activity: {
-              attendeelimit: 0n,
-              formfields: [],
-              price: {
-                currency: 'USD',
-                amount: 0,
-              },
-              registerat: { createon: null },
-            },
-          },
-          location: { url: trackathonUrl },
-          attachments: [],
-          parent: 0n,
-        });
-
-        if ('err' in eventRes) {
-          showNotification(`Trackathon created, but failed to create associated event: ${eventRes.err}`, 'error');
-        }
-
         // Reload trackathons to get the newly created one
         await loadTrackathons();
         setShowCreateModal(false);
