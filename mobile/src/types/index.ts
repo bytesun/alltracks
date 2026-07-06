@@ -7,7 +7,10 @@ export interface TrackPoint {
   photo?: string;
 }
 
+export type SyncStatus = 'local-only' | 'pending' | 'syncing' | 'synced' | 'failed';
+
 export interface CheckPoint {
+  id: string;
   elevation: number;
   groupId?: string;
   isPublic: boolean;
@@ -17,6 +20,9 @@ export interface CheckPoint {
   photo?: string;
   timestamp: number;
   trackId: string;
+  syncStatus?: SyncStatus;
+  syncedAt?: number;
+  lastSyncError?: string;
 }
 
 export interface Track {
@@ -30,6 +36,9 @@ export interface Track {
   duration?: number;
   elevationGain?: number;
   isRecording: boolean;
+  syncStatus?: SyncStatus;
+  syncedAt?: number;
+  lastSyncError?: string;
 }
 
 export interface RecordingSettings {
@@ -37,6 +46,15 @@ export interface RecordingSettings {
   minDistance: number; // meters
   minTime: number; // seconds
   recordElevation: boolean;
+}
+
+export interface PendingSyncItem {
+  id: string;
+  entityId: string;
+  type: 'checkpoint' | 'track';
+  createdAt: number;
+  attempts: number;
+  lastError?: string;
 }
 
 export type ExportFormat = 'gpx' | 'kml' | 'csv';

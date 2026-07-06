@@ -28,12 +28,17 @@ export default function TrackingScreen() {
     activeTrack,
     isTracking,
     isPaused,
+    isOnline,
+    isSyncing,
+    pendingSyncCount,
+    lastSyncError,
     getActiveDuration,
     startTracking,
     stopTracking,
     pauseTracking,
     resumeTracking,
     addCheckpoint,
+    syncPendingData,
     settings,
   } = useTracking();
 
@@ -230,6 +235,28 @@ export default function TrackingScreen() {
           </TouchableOpacity>
         ) : (
           <>
+            <View style={styles.syncBanner}>
+              <View>
+                <Text style={styles.syncBannerTitle}>
+                  {isOnline ? 'Online sync available' : 'Offline recording active'}
+                </Text>
+                <Text style={styles.syncBannerText}>
+                  {pendingSyncCount > 0
+                    ? `${pendingSyncCount} item${pendingSyncCount === 1 ? '' : 's'} queued for upload`
+                    : 'No pending uploads'}
+                </Text>
+                {lastSyncError ? <Text style={styles.syncErrorText}>{lastSyncError}</Text> : null}
+              </View>
+              <TouchableOpacity
+                style={[styles.syncNowButton, isSyncing && styles.syncNowButtonDisabled]}
+                disabled={isSyncing}
+                onPress={syncPendingData}
+              >
+                <Ionicons name={isSyncing ? 'sync' : 'cloud-upload'} size={18} color="#007AFF" />
+                <Text style={styles.syncNowButtonText}>{isSyncing ? 'Syncing' : 'Sync now'}</Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.statsBar}>
               <View style={styles.stat}>
                 <Text style={styles.statLabel}>Duration</Text>
@@ -279,7 +306,7 @@ export default function TrackingScreen() {
                 onPress={() => setShowCheckpointModal(true)}
               >
                 <Ionicons name="pin" size={24} color="white" />
-                <Text style={styles.buttonText}>Checkpoint</Text>
+                <Text style={styles.buttonText}>{settings.mode === 'manual' ? 'Record Point' : 'Checkpoint'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -369,6 +396,11 @@ export default function TrackingScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Checkpoint</Text>
+            {settings.mode === 'manual' && (
+              <Text style={styles.modalDescription}>
+                This records the current location into your offline track immediately and syncs it when the network comes back.
+              </Text>
+            )}
 
             <TextInput
               style={[styles.input, styles.textArea]}
@@ -501,6 +533,49 @@ const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 1000,
   },
+  syncBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F2F7FF',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  syncBannerTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  syncBannerText: {
+    fontSize: 13,
+    color: '#475569',
+    marginTop: 2,
+  },
+  syncErrorText: {
+    fontSize: 12,
+    color: '#B91C1C',
+    marginTop: 4,
+    maxWidth: 220,
+  },
+  syncNowButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'white',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  syncNowButtonDisabled: {
+    opacity: 0.7,
+  },
+  syncNowButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
   startButton: {
     backgroundColor: '#34C759',
     flexDirection: 'row',
@@ -583,6 +658,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+    lineHeight: 20,
   },
   input: {
     borderWidth: 1,
