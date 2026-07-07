@@ -168,7 +168,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     if (method === 'ii') {
       handleIILogin();
     } else if (method === 'google') {
-      // Implement Google login
+      handleII2Login();
+    } else if (method === 'facebook') {
       handleNFIDLogin();
     } else if (method === 'iiv2') {
       handleII2Login();
