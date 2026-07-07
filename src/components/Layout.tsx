@@ -164,13 +164,29 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       }
     });
   };
+  const handleFacebookLogin = () => {
+    const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
+    const facebookLoginUrl = facebookAppId
+      ? `https://www.facebook.com/v20.0/dialog/oauth?client_id=${encodeURIComponent(facebookAppId)}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=${encodeURIComponent('public_profile,email')}`
+      : 'https://www.facebook.com/login.php';
+
+    const facebookWindow = window.open(
+      facebookLoginUrl,
+      'facebook-login',
+      windowFeatures ?? 'width=500,height=650'
+    );
+
+    if (!facebookWindow) {
+      window.location.assign(facebookLoginUrl);
+    }
+  };
   const handleLogin = (method: string) => {
     if (method === 'ii') {
       handleIILogin();
     } else if (method === 'google') {
       handleII2Login();
     } else if (method === 'facebook') {
-      handleNFIDLogin();
+      handleFacebookLogin();
     } else if (method === 'iiv2') {
       handleII2Login();
     }
