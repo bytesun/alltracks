@@ -165,10 +165,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     });
   };
   const handleFacebookLogin = () => {
-    const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
-    const facebookLoginUrl = facebookAppId
-      ? `https://www.facebook.com/v20.0/dialog/oauth?client_id=${encodeURIComponent(facebookAppId)}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=${encodeURIComponent('public_profile,email')}`
-      : 'https://www.facebook.com/login.php';
+    const facebookLoginUrl = 'https://www.facebook.com/login/';
 
     const facebookWindow = window.open(
       facebookLoginUrl,
