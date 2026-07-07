@@ -41,7 +41,7 @@ function App() {
                 <Route path="/" element={<MainApp />} />
                 <Route path="/tracking" element={<Tracking />} />
                 <Route path="/trails" element={<Trails />} />
-                <Route path="/trail/west-coast-trail" element={<TrailHub />} />
+                <Route path="/trail/:trailId" element={<TrailHub />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/track/:trackId" element={<TrackPage />} />
                 <Route path="/event/:eventId" element={<EventPage />} />
