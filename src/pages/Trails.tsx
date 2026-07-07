@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 import { Spinner } from '../components/Spinner';
 import './Trails.css';
@@ -201,9 +202,20 @@ export const Trails = () => {
                     <span>{trail.elevationGain} m</span>
                   </div>
                   <div className="trail-actions">
+                    <Link
+                      to={`/trail/${trail.id}`}
+                      className="icon-button trail-detail-link"
+                      title="Open trail details"
+                      aria-label={`Open details for ${trail.name}`}
+                    >
+                      <span className="material-icons">open_in_new</span>
+                      <span className="trail-detail-link__text">Details</span>
+                    </Link>
                     <button
                       className={`icon-button ${selectedTrailId === trail.id ? 'active' : ''}`}
                       onClick={() => handleTrailToggle(trail)}
+                      title="Show route on map"
+                      aria-label={`Show route for ${trail.name}`}
                     >
                       <span className="material-icons">route</span>
                     </button>
@@ -211,6 +223,8 @@ export const Trails = () => {
                       href={trail.trailfile.url}
                       download
                       className="icon-button"
+                      title="Download trail file"
+                      aria-label={`Download ${trail.name} trail file`}
                     >
                       <span className="material-icons">download</span>
                     </a>
@@ -232,4 +246,3 @@ export const Trails = () => {
     </div>
   );
 };
-
