@@ -155,21 +155,39 @@
 
 .trail-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
 }
 
 .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 8px;
   border: none;
+  border-radius: 6px;
   background: none;
   cursor: pointer;
   color: #007AFF;
+  text-decoration: none;
 }
 
 .icon-button:hover {
   color: #0056b3;
+  background: rgba(0, 122, 255, 0.08);
 }
 .icon-button.active {
   color: #ff4400;
+}
+
+.trail-detail-link {
+  padding-inline: 10px;
+  background: rgba(0, 122, 255, 0.1);
+  font-weight: 600;
+}
+
+.trail-detail-link__text {
+  font-size: 12px;
 }
