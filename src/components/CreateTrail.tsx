@@ -17,30 +17,43 @@ export interface TrailForm {
 
 interface CreateTrailProps {
     onClose: () => void;
-    onSubmit: (trail: TrailForm, file: File) => void;
+    onSubmit: (trail: TrailForm, file: File | null) => Promise<void> | void;
+    initialValues?: TrailForm;
+    submitLabel?: string;
+    existingFileLabel?: string;
+    requireFile?: boolean;
 }
 
-export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) => {
-    const [file, setFile] = useState<File | null>(null);
-    const [formData, setFormData] = useState<TrailForm>({
-        name: '',
-        description: '',
-        length: 0,
-        elevationGain: 0,
-        duration: 0,
-        routeType: 'loop',
-        difficulty: 'moderate',
-        rating: 0,
-        tags: [],
-        imageUrl: null
+const defaultFormData: TrailForm = {
+    name: '',
+    description: '',
+    length: 0,
+    elevationGain: 0,
+    duration: 0,
+    routeType: 'loop',
+    difficulty: 'moderate',
+    rating: 0,
+    tags: [],
+    imageUrl: ''
+};
 
-    });
+export const CreateTrail: React.FC<CreateTrailProps> = ({
+    onClose,
+    onSubmit,
+    initialValues,
+    submitLabel = 'Create',
+    existingFileLabel,
+    requireFile = true
+}) => {
+    const [file, setFile] = useState<File | null>(null);
+    const [tagsInput, setTagsInput] = useState((initialValues?.tags || []).join(', '));
+    const [formData, setFormData] = useState<TrailForm>(initialValues || defaultFormData);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+        const { name, value, type } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'number' ? Number(value) : value
         }));
     };
 
@@ -52,11 +65,10 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission
-        if (file) {
-            onSubmit(formData, file);
+        if (requireFile && !file) {
+            return;
         }
-        onClose(); // Close modal after submission
+        await onSubmit(formData, file);
     };
 
     return (
@@ -163,9 +175,12 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
                             <input
                                 type="text"
                                 name="tags"
+                                value={tagsInput}
                                 placeholder="Enter tags separated by commas"
                                 onChange={(e) => {
-                                    const tags = e.target.value.split(',').map(tag => tag.trim());
+                                    const value = e.target.value;
+                                    setTagsInput(value);
+                                    const tags = value.split(',').map(tag => tag.trim()).filter(Boolean);
                                     setFormData(prev => ({
                                         ...prev,
                                         tags
@@ -176,16 +191,16 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
                     </div>
 
                     <div className="trail-form-group">
-                        <label>Upload Trail File</label>
+                        <label>{requireFile ? 'Upload Trail File' : 'Replace Trail File (optional)'}</label>
                         <div className="file-upload">
                             <input
                                 type="file"
                                 onChange={handleFileChange}
                                 accept=".gpx,.kml,.geojson"
-                                required
+                                required={requireFile}
                             />
                             <div className="file-info">
-                                {file ? file.name : 'No file selected'}
+                                {file ? file.name : existingFileLabel || 'No file selected'}
                             </div>
                         </div>
                     </div>
@@ -200,7 +215,7 @@ export const CreateTrail: React.FC<CreateTrailProps> = ({ onClose, onSubmit }) =
                         />
                     </div>
                     <button type="submit" className="create-trail-button">
-                        Create
+                        {submitLabel}
                     </button>
                 </form>
             </div>

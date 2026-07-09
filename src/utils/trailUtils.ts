@@ -8,6 +8,12 @@ export const routeTypeMap = {
   'point-to-point': { pointto: null }
 };
 
+const reverseRouteTypeMap: Record<string, string> = {
+  tloop: 'loop',
+  outandback: 'out-and-back',
+  pointto: 'point-to-point',
+};
+
 export const difficultyMap = {
   'easy': { easy: null },
   'moderate': { moderate: null },
@@ -33,6 +39,8 @@ export const parseTrails = (trails: TrailType[]): Trail[] => {
       startPoint
     } = trail;
 
+    const routeTypeKey = Object.getOwnPropertyNames(ttype)[0];
+
     return {
       id,
       name,
@@ -40,7 +48,7 @@ export const parseTrails = (trails: TrailType[]): Trail[] => {
       distance: Number(distance.toFixed(2)),
       elevationGain: Number(elevationGain.toFixed(2)),
       duration: Number(duration.toFixed(2)),
-      routeType: Object.getOwnPropertyNames(ttype)[0],
+      routeType: reverseRouteTypeMap[routeTypeKey] || routeTypeKey,
       difficulty: Object.getOwnPropertyNames(difficulty)[0],
       rating: Number(rate.toFixed(2)),
       tags,

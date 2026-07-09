@@ -140,6 +140,20 @@ export interface NewTrail {
   'startPoint' : Point,
   'photos' : Array<string>,
 }
+export interface UpdateTrail {
+  'description' : string,
+  'difficulty' : Difficulty,
+  'distance' : number,
+  'duration' : number,
+  'elevationGain' : number,
+  'name' : string,
+  'photos' : Array<string>,
+  'rate' : number,
+  'startPoint' : Point,
+  'tags' : Array<string>,
+  'trailfile' : TrailFile,
+  'ttype' : TrailType,
+}
 export interface Photo {
   'createdBy' : Principal,
   'tags' : Array<string>,
@@ -412,6 +426,7 @@ export interface _SERVICE {
   'searchTrails' : ActorMethod<[string, bigint, bigint], Array<Trail>>,
   'updateGroup' : ActorMethod<[string, NewGroup], Result_1>,
   'updateSpot' : ActorMethod<[string, NewSpot], Result>,
+  'updateTrail' : ActorMethod<[bigint, UpdateTrail], Result>,
   'updateTrackathon' : ActorMethod<[string, NewTrackathon], Result_5>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

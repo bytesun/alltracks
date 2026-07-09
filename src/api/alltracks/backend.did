@@ -249,6 +249,21 @@ type NewTrail =
    trailfile: TrailFile;
    ttype: TrailType;
  };
+type UpdateTrail = 
+ record {
+   description: text;
+   difficulty: Difficulty;
+   distance: float64;
+   duration: float64;
+   elevationGain: float64;
+   name: text;
+   photos: vec text;
+   rate: float64;
+   startPoint: Point;
+   tags: vec text;
+   trailfile: TrailFile;
+   ttype: TrailType;
+ };
 type NewTrackathon = 
  record {
    activityType: ActivityType;
@@ -493,5 +508,6 @@ service : {
   searchTrails: (term: text, page: nat, pageSize: nat) -> (vec Trail) query;
   updateGroup: (groupId: text, updates: NewGroup) -> (Result_1);
   updateSpot: (name: text, updates: NewSpot) -> (Result);
+  updateTrail: (id: nat, updates: UpdateTrail) -> (Result);
   updateTrackathon: (trackathonId: text, updates: NewTrackathon) -> (Result_5);
 }

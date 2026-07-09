@@ -11,6 +11,7 @@ import { useGlobalContext, useAlltracks } from './Store';
 
 import { routeTypeMap, difficultyMap, parseTrails } from '../utils/trailUtils';
 import { Trail } from '../types/Trail';
+import { UpdateTrail } from '../api/alltracks/backend.did';
 
 export const Trails: React.FC = () => {
     const { state: {
@@ -20,6 +21,7 @@ export const Trails: React.FC = () => {
 
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingTrail, setEditingTrail] = useState<Trail | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     // const [wallet, setWallet] = useState<any>(null);
     const { showNotification } = useNotification();
@@ -37,89 +39,130 @@ export const Trails: React.FC = () => {
     //     }
     // }, []);
 
-    const handleTrailSubmit = async (trailData: TrailForm, file: File) => {
+    const isOkResult = (result: unknown): result is { ok: unknown } => {
+        return typeof result === 'object' && result !== null && 'ok' in result;
+    };
+
+    const getContentType = (fileName: string) => {
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        return {
+            gpx: 'application/gpx+xml',
+            kml: 'application/vnd.google-earth.kml+xml',
+            csv: 'text/csv',
+            json: 'application/json',
+            geojson: 'application/json'
+        }[extension || ''] || 'application/octet-stream';
+    };
+
+    const uploadTrailFile = async (trailData: TrailForm, file: File) => {
+        const contentType = getContentType(file.name);
+        const fileBuffer = await file.arrayBuffer();
+        const transaction = await arweave.createTransaction({ data: fileBuffer });
+
+        transaction.addTag('Content-Type', contentType);
+        transaction.addTag('App-Name', 'AllTracks');
+        transaction.addTag('Trail-Name', trailData.name);
+        transaction.addTag('Description', trailData.description);
+        transaction.addTag('Trail-Type', trailData.routeType);
+        transaction.addTag('Difficulty', trailData.difficulty);
+        transaction.addTag('Length', trailData.length.toString());
+        transaction.addTag('Elevation', trailData.elevationGain.toString());
+        transaction.addTag('Rating', trailData.rating.toString());
+        transaction.addTag('Tags', trailData.tags.join(','));
+        transaction.addTag('User-Key', principal?.toText() || '');
+        transaction.addTag('File-Type', 'trail');
+
+        if (wallet) {
+            await arweave.transactions.sign(transaction, wallet);
+        } else {
+            await arweave.transactions.sign(transaction);
+        }
+
+        const response = await arweave.transactions.post(transaction);
+        if (response.status !== 200) {
+            throw new Error(`Trail file upload failed with status ${response.status}`);
+        }
+
+        return {
+            fileType: contentType,
+            url: `${arweaveGateway}/${transaction.id}`,
+            startPoint: await getStartPoint(file)
+        };
+    };
+
+    const buildTrailPayload = async (
+        trailData: TrailForm,
+        file: File | null,
+        existingTrail?: Trail
+    ): Promise<UpdateTrail> => {
+        const uploadedFile = file ? await uploadTrailFile(trailData, file) : null;
+        const imageUrl = trailData.imageUrl.trim();
+
+        return {
+            name: trailData.name,
+            description: trailData.description,
+            distance: Number(trailData.length),
+            elevationGain: Number(trailData.elevationGain),
+            duration: Number(trailData.duration),
+            ttype: routeTypeMap[trailData.routeType],
+            difficulty: difficultyMap[trailData.difficulty],
+            rate: Number(trailData.rating),
+            tags: trailData.tags,
+            trailfile: uploadedFile
+                ? {
+                    fileType: uploadedFile.fileType,
+                    url: uploadedFile.url
+                }
+                : existingTrail?.trailfile,
+            photos: imageUrl ? [imageUrl] : [],
+            startPoint: uploadedFile?.startPoint || existingTrail?.startPoint || { latitude: 0, longitude: 0 }
+        };
+    };
+
+    const handleTrailSubmit = async (trailData: TrailForm, file: File | null) => {
         setIsLoading(true);
         try {
-            const extension = file.name.split('.').pop()?.toLowerCase();
+            const newtrail = await buildTrailPayload(trailData, file);
+            const result = await alltracks.createTrail(newtrail);
 
-            // Map extension to content type
-            const contentType = {
-                'gpx': 'application/gpx+xml',
-                'kml': 'application/vnd.google-earth.kml+xml',
-                'csv': 'text/csv',
-                'json': 'application/json'
-            }[extension] || 'application/octet-stream';
-            console.log("Creating trail...", contentType)
-
-            //Create Arweave transaction for trail file
-            const fileBuffer = await file.arrayBuffer();
-
-            const transaction = await arweave.createTransaction({
-                data: fileBuffer
-            });
-
-            // Add metadata tags
-            transaction.addTag('Content-Type', contentType);
-            transaction.addTag('App-Name', 'AllTracks');
-            transaction.addTag('Trail-Name', trailData.name);
-            transaction.addTag('Description', trailData.description);
-            transaction.addTag('Trail-Type', trailData.routeType);
-            transaction.addTag('Difficulty', trailData.difficulty);
-            transaction.addTag('Length', trailData.length.toString());
-            transaction.addTag('Elevation', trailData.elevationGain.toString());
-            transaction.addTag('Rating', trailData.rating.toString());
-            transaction.addTag('Tags', trailData.tags.join(','));
-            transaction.addTag('User-Key', principal.toText());
-            transaction.addTag('File-Type', 'trail');
-
-
-            // Sign and post transaction
-            if (wallet) {
-                await arweave.transactions.sign(transaction, wallet);
-            } else {
-                await arweave.transactions.sign(transaction);
-            }
-            const response = await arweave.transactions.post(transaction);
-
-            if (response.status === 200) {
-                const startPoint = await getStartPoint(file);
-                const fileUrl = `${arweaveGateway}/${transaction.id}`;
-                const newtrail = {
-                    name: trailData.name,
-                    description: trailData.description,
-                    distance: Number(trailData.length),
-                    elevationGain: Number(trailData.elevationGain),
-                    duration: Number(trailData.duration),
-                    ttype: routeTypeMap[trailData.routeType],
-                    difficulty: difficultyMap[trailData.difficulty],
-                    rate: Number(trailData.rating),
-                    tags: trailData.tags,
-                    trailfile: {
-                        fileType: contentType,
-                        url: fileUrl
-                    },
-                    photos: trailData.imageUrl ? [trailData.imageUrl] : [],
-                    startPoint: startPoint
-                };
-                console.log(newtrail);
-                const result = await alltracks.createTrail(newtrail);
-                if (result.success) {
-
-                    showNotification('Trail uploaded successfully', 'success');
-                } else {
-                    console.error('Error uploading trail:', result.error);
-                    showNotification('Error uploading trail', 'error');
-                }
-
+            if (isOkResult(result)) {
                 showNotification('Trail uploaded successfully', 'success');
+                loadTrails();
+                setShowCreateModal(false);
+            } else {
+                console.error('Error uploading trail:', result);
+                showNotification('Error uploading trail', 'error');
             }
-
-
-
-            loadTrails(); // Refresh the list
-            setShowCreateModal(false);
         } catch (error) {
             console.error('Error saving trail:', error);
+            showNotification('Error uploading trail', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleTrailUpdate = async (trailData: TrailForm, file: File | null) => {
+        if (!editingTrail) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const updatedTrail = await buildTrailPayload(trailData, file, editingTrail);
+            const updateResult = await alltracks.updateTrail(BigInt(editingTrail.id), updatedTrail);
+
+            if (!isOkResult(updateResult)) {
+                console.error('Error updating trail:', updateResult);
+                showNotification('Error updating trail', 'error');
+                return;
+            }
+
+            showNotification('Trail updated successfully', 'success');
+            setEditingTrail(null);
+            loadTrails();
+        } catch (error) {
+            console.error('Error updating trail:', error);
+            showNotification('Error updating trail', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -183,11 +226,12 @@ export const Trails: React.FC = () => {
         setIsLoading(true);
         try {
             const result = await alltracks.deleteTrail(trailId);
-            if (result.success) {
+            if (isOkResult(result)) {
                 showNotification('Trail deleted successfully', 'success');
                 // Refresh trails list after deletion
                 loadTrails();
             } else {
+                console.error('Error deleting trail:', result);
                 showNotification('Error deleting trail', 'error');
             }
         } catch (error) {
@@ -197,6 +241,19 @@ export const Trails: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    const toTrailForm = (trail: Trail): TrailForm => ({
+        name: trail.name,
+        description: trail.description,
+        length: trail.distance,
+        elevationGain: trail.elevationGain,
+        duration: trail.duration,
+        routeType: (trail.routeType as TrailForm['routeType']) || 'loop',
+        difficulty: (trail.difficulty as TrailForm['difficulty']) || 'moderate',
+        rating: trail.rating,
+        tags: trail.tags || [],
+        imageUrl: trail.photos[0] || ''
+    });
 
     return (
         <div className="trails-section">
@@ -233,22 +290,22 @@ export const Trails: React.FC = () => {
                                     <span>{trail.rating}/5</span>
                                 </div>
                             </div>
-                            {/* <div className="trail-actions">
-                                <button className="trail-button edit">
+                            <div className="trail-actions">
+                                <button
+                                    className="trail-button edit"
+                                    onClick={() => setEditingTrail(trail)}
+                                >
                                     <span className="material-icons">edit</span>
-
+                                    Edit
                                 </button>
-                                <button className="trail-button delete">
+                                <button
+                                    className="trail-button delete"
+                                    onClick={() => setShowDeleteConfirm(BigInt(trail.id))}
+                                >
                                     <span className="material-icons">delete</span>
-
+                                    Delete
                                 </button>
-                            </div> */}
-                            <button
-
-                                onClick={() => setShowDeleteConfirm(BigInt(trail.id))}
-                            >
-                                Delete
-                            </button>
+                            </div>
                         </div>
                     ))
                 ) : (
@@ -264,6 +321,18 @@ export const Trails: React.FC = () => {
 
                     <CreateTrail onClose={() => setShowCreateModal(false)} onSubmit={handleTrailSubmit} />
 
+                </div>
+            )}
+            {editingTrail && (
+                <div className="modal-overlay">
+                    <CreateTrail
+                        onClose={() => setEditingTrail(null)}
+                        onSubmit={handleTrailUpdate}
+                        initialValues={toTrailForm(editingTrail)}
+                        submitLabel="Update"
+                        existingFileLabel={editingTrail.trailfile.url}
+                        requireFile={false}
+                    />
                 </div>
             )}
             {showDeleteConfirm !== null && (

@@ -188,6 +188,20 @@ export const idlFactory = ({ IDL }) => {
     'startPoint' : Point,
     'photos' : IDL.Vec(IDL.Text),
   });
+  const UpdateTrail = IDL.Record({
+    'description' : IDL.Text,
+    'difficulty' : Difficulty,
+    'distance' : IDL.Float64,
+    'duration' : IDL.Float64,
+    'elevationGain' : IDL.Float64,
+    'name' : IDL.Text,
+    'photos' : IDL.Vec(IDL.Text),
+    'rate' : IDL.Float64,
+    'startPoint' : Point,
+    'tags' : IDL.Vec(IDL.Text),
+    'trailfile' : TrailFile,
+    'ttype' : TrailType,
+  });
   const Trail = IDL.Record({
     'id' : IDL.Nat,
     'duration' : IDL.Float64,
@@ -503,6 +517,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'updateGroup' : IDL.Func([IDL.Text, NewGroup], [Result_1], []),
     'updateSpot' : IDL.Func([IDL.Text, NewSpot], [Result], []),
+    'updateTrail' : IDL.Func([IDL.Nat, UpdateTrail], [Result], []),
     'updateTrackathon' : IDL.Func([IDL.Text, NewTrackathon], [Result_5], []),
   });
 };
