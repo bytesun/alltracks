@@ -10,22 +10,7 @@ import { useNotification } from '../context/NotificationContext';
 import { useGlobalContext, useAlltracks } from './Store';
 
 import { routeTypeMap, difficultyMap, parseTrails } from '../utils/trailUtils';
-
-interface Trail {
-    id: string;
-    name: string;
-    description: string;
-    distance: number;
-    elevationGain: number;
-    duration: number;
-    routeType: 'loop' | 'out-and-back' | 'point-to-point';
-    difficulty: 'easy' | 'moderate' | 'hard' | 'expert';
-    rating: number;
-    tags: string[];
-    userId: string;
-    trailfile: string;
-    photos: string[];
-}
+import { Trail } from '../types/Trail';
 
 export const Trails: React.FC = () => {
     const { state: {

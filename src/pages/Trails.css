@@ -183,11 +183,6 @@
 }
 
 .trail-detail-link {
-  padding-inline: 10px;
   background: rgba(0, 122, 255, 0.1);
   font-weight: 600;
-}
-
-.trail-detail-link__text {
-  font-size: 12px;
 }

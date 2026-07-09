@@ -1,6 +1,6 @@
-import { defaultStrategy } from '@dfinity/agent';
 import { Trail as TrailType } from '../api/alltracks/backend.did';
 import { Trail } from '../types/Trail';
+import { LatLngTuple } from 'leaflet';
 
 export const routeTypeMap = {
   'loop': { tloop: null },
@@ -15,7 +15,7 @@ export const difficultyMap = {
   'expert': { expert: null }
 };
 
-export const parseTrails = (trails: [TrailType]): any => {
+export const parseTrails = (trails: TrailType[]): Trail[] => {
   return trails.map((trail) => {
     const {
       id,
@@ -51,4 +51,52 @@ export const parseTrails = (trails: [TrailType]): any => {
   }
   );
 
+};
+
+export const parseTrailFile = async (url: string, fileType: string): Promise<LatLngTuple[]> => {
+  const response = await fetch(url);
+  const data = await response.text();
+  const parser = new DOMParser();
+
+  switch (fileType) {
+    case 'application/gpx+xml': {
+      const gpx = parser.parseFromString(data, 'text/xml');
+      return Array.from(gpx.querySelectorAll('trkpt')).map((point) => [
+        Number(point.getAttribute('lat')),
+        Number(point.getAttribute('lon')),
+      ] as LatLngTuple);
+    }
+
+    case 'application/json': {
+      const json = JSON.parse(data);
+      return json.features?.[0]?.geometry?.coordinates?.map(([lon, lat]) =>
+        [lat, lon] as LatLngTuple
+      ) || [];
+    }
+
+    case 'application/vnd.google-earth.kml+xml': {
+      const kml = parser.parseFromString(data, 'text/xml');
+      return kml.querySelector('coordinates')?.textContent
+        ?.trim()
+        .split(/\s+/)
+        .map((coord) => {
+          const [lon, lat] = coord.split(',');
+          return [Number(lat), Number(lon)] as LatLngTuple;
+        }) || [];
+    }
+
+    case 'text/csv':
+      return data
+        .split('\n')
+        .slice(1)
+        .map((row) => row.trim())
+        .filter(Boolean)
+        .map((row) => {
+          const [lat, lon] = row.split(',');
+          return [Number(lat), Number(lon)] as LatLngTuple;
+        });
+
+    default:
+      return [];
+  }
 };

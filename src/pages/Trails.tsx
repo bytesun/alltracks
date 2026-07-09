@@ -6,7 +6,7 @@ import './Trails.css';
 import { Trail } from '../types/Trail'
 
 import { useAlltracks } from '../components/Store';
-import { parseTrails } from '../utils/trailUtils';
+import { parseTrailFile, parseTrails } from '../utils/trailUtils';
 
 import { Map as LeafletMap } from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
@@ -99,59 +99,13 @@ export const Trails = () => {
 
     return null;
   };
-  const parseTrailFile = async (url: string, fileType: string) => {
-    const response = await fetch(url);
-    const data = await response.text();
-    const parser = new DOMParser();
-    let trackpoints: LatLngTuple[] = [];
-
-    switch (fileType) {
-      case 'application/gpx+xml':
-        const gpx = parser.parseFromString(data, "text/xml");
-        trackpoints = Array.from(gpx.querySelectorAll('trkpt')).map(point => [
-          Number(point.getAttribute('lat')),
-          Number(point.getAttribute('lon'))
-        ] as LatLngTuple);
-        break;
-
-      case 'application/json':
-        const json = JSON.parse(data);
-        trackpoints = json.features[0].geometry.coordinates.map(([lon, lat]) =>
-          [lat, lon] as LatLngTuple
-        );
-        break;
-
-      case 'application/vnd.google-earth.kml+xml':
-        const kml = parser.parseFromString(data, "text/xml");
-        trackpoints = kml.querySelector('coordinates')?.textContent
-          ?.trim()
-          .split(' ')
-          .map(coord => {
-            const [lon, lat] = coord.split(',');
-            return [Number(lat), Number(lon)] as LatLngTuple;
-          }) || [];
-        break;
-
-      case 'text/csv':
-        const rows = data.split('\n').slice(1);
-        trackpoints = rows.map(row => {
-          const [lat, lon] = row.split(',');
-          return [Number(lat), Number(lon)] as LatLngTuple;
-        });
-        break;
-    }
-
-    return trackpoints;
-  };
-
-
-  const handleTrailToggle = async (trail) => {
-    if (Number(selectedTrailId) === Number(trail.id)) {
+  const handleTrailToggle = async (trail: Trail) => {
+    if (selectedTrailId === Number(trail.id)) {
       setSelectedTrailId(null);
       setTrailPath([]);
     } else {
       const trackpoints = await parseTrailFile(trail.trailfile.url, trail.trailfile.fileType);
-      setSelectedTrailId(trail.id);
+      setSelectedTrailId(Number(trail.id));
       setTrailPath(trackpoints);
     }
   };
@@ -209,10 +163,9 @@ export const Trails = () => {
                       aria-label={`Open details for ${trail.name}`}
                     >
                       <span className="material-icons">open_in_new</span>
-                      <span className="trail-detail-link__text">Details</span>
                     </Link>
                     <button
-                      className={`icon-button ${selectedTrailId === trail.id ? 'active' : ''}`}
+                      className={`icon-button ${selectedTrailId === Number(trail.id) ? 'active' : ''}`}
                       onClick={() => handleTrailToggle(trail)}
                       title="Show route on map"
                       aria-label={`Show route for ${trail.name}`}

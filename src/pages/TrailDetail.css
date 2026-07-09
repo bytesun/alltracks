@@ -1,0 +1,245 @@
+.trail-detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.trail-detail-state {
+  min-height: calc(100vh - 120px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.trail-detail-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.trail-detail-copy,
+.trail-detail-cover,
+.trail-detail-card,
+.trail-detail-map-card {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.trail-detail-copy {
+  padding: 28px;
+}
+
+.trail-detail-back-link {
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: #0f5c4d;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.trail-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.trail-detail-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  text-transform: capitalize;
+  background: #e6f4ea;
+  color: #1d4d2c;
+  font-weight: 600;
+}
+
+.trail-detail-badge--muted {
+  background: #eef2f7;
+  color: #475569;
+}
+
+.difficulty-easy {
+  background: #e7f7ec;
+  color: #1b7a39;
+}
+
+.difficulty-moderate {
+  background: #fff2db;
+  color: #b45309;
+}
+
+.difficulty-hard,
+.difficulty-expert {
+  background: #fde5e3;
+  color: #b42318;
+}
+
+.trail-detail-copy h1,
+.trail-detail-card h2,
+.trail-detail-map-card h2 {
+  margin: 0;
+}
+
+.trail-detail-copy p {
+  color: #475569;
+  line-height: 1.6;
+}
+
+.trail-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.trail-detail-stats div,
+.trail-detail-meta-list div {
+  padding: 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.trail-detail-stats span,
+.trail-detail-meta-list dt,
+.trail-detail-eyebrow {
+  color: #64748b;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.trail-detail-stats strong,
+.trail-detail-meta-list dd {
+  display: block;
+  margin-top: 6px;
+  color: #0f172a;
+}
+
+.trail-detail-meta-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.trail-detail-meta-list dd {
+  margin-left: 0;
+}
+
+.trail-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.trail-detail-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #0f5c4d;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.trail-detail-cover {
+  min-height: 320px;
+  overflow: hidden;
+}
+
+.trail-detail-cover img,
+.trail-detail-gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trail-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 24px;
+}
+
+.trail-detail-map-card,
+.trail-detail-card {
+  padding: 20px;
+}
+
+.trail-detail-section-heading {
+  margin-bottom: 16px;
+}
+
+.trail-detail-map {
+  height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.trail-detail-side {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.trail-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.trail-detail-tags span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.trail-detail-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trail-detail-gallery img {
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+}
+
+@media (max-width: 900px) {
+  .trail-detail-hero,
+  .trail-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trail-detail-cover {
+    min-height: 240px;
+  }
+
+  .trail-detail-map {
+    height: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .trail-detail-page {
+    padding: 16px;
+  }
+
+  .trail-detail-copy,
+  .trail-detail-map-card,
+  .trail-detail-card {
+    padding: 16px;
+  }
+
+  .trail-detail-stats {
+    grid-template-columns: 1fr;
+  }
+}
