@@ -1,89 +1,288 @@
 .trails-container {
-  padding: 20px;
+  min-height: calc(100vh - 60px);
+  padding: 28px;
+  color: #172033;
+  background: linear-gradient(180deg, #f4fbf6 0%, #ffffff 45%, #eef6f2 100%);
+}
+
+.trails-header,
+.trails-toolbar,
+.trails-map-card,
+.latest-trails-card,
+.trail-results-section {
   max-width: 1200px;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .trails-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-.trails-container {
-  padding: 20px;
-  height: calc(100vh - 60px);
+  margin-bottom: 18px;
 }
 
-.map-container {
+.trails-header h1 {
+  margin: 0;
+  color: #0f3d2d;
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  line-height: 0.98;
+}
+
+.trails-header p:not(.trails-eyebrow) {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: #52616f;
+  line-height: 1.6;
+}
+
+.trails-eyebrow {
+  margin: 0 0 8px;
+  color: #1f7a55;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.trails-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) repeat(3, minmax(150px, 190px)) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(15, 92, 77, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 38px rgba(15, 61, 45, 0.08);
+}
+
+.trail-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid #d8e7df;
+  border-radius: 999px;
+  background: #fbfffc;
+}
+
+.trail-search-field .material-icons {
+  color: #1f7a55;
+}
+
+.trail-search-field input,
+.trails-toolbar select {
   width: 100%;
-  height: 400px;
-  margin: 20px 0;
+  border: 0;
+  background: transparent;
+  color: #172033;
+  font: inherit;
+  outline: none;
+}
+
+.trail-search-field input {
+  padding: 12px 0;
+}
+
+.trails-toolbar select,
+.trails-toolbar button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d8e7df;
+  border-radius: 999px;
+  background: #fbfffc;
+}
+
+.trails-toolbar button {
+  color: #ffffff;
+  background: #0f5c4d;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.trails-alert {
+  max-width: 1200px;
+  margin: 0 auto 18px;
+  padding: 12px 14px;
+  border: 1px solid #ffd88a;
+  border-radius: 14px;
+  color: #755200;
+  background: #fff7e6;
+}
+
+.trails-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.65fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto 22px;
+}
+
+.trails-map-card,
+.latest-trails-card,
+.trail-results-section {
+  padding: 20px;
+  border: 1px solid rgba(15, 92, 77, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 48px rgba(15, 61, 45, 0.08);
+}
+
+.trails-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.trails-section-heading h2 {
+  margin: 0;
+  color: #0f3d2d;
+}
+
+.trails-section-heading span,
+.latest-trail-item span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.trails-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #1f7a55 !important;
+  font-weight: 800;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .trails-map {
   width: 100%;
-  height: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: 560px;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.trails-grid {
-  margin-top: 20px;
+.latest-trails-list {
+  display: grid;
+  gap: 12px;
+}
+
+.latest-trail-item {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #e5edf0;
+  border-radius: 18px;
+  color: inherit;
+  text-decoration: none;
+  background: #fbfdfc;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.latest-trail-item:hover {
+  transform: translateY(-2px);
+  border-color: #9fd7bd;
+}
+
+.latest-trail-item img {
+  width: 72px;
+  height: 62px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.latest-trail-item strong,
+.latest-trail-item span {
+  display: block;
+}
+
+.latest-trail-item strong {
+  margin-bottom: 4px;
 }
 
 .trail-popup {
-  padding: 10px;
   min-width: 200px;
+  padding: 10px;
 }
 
 .trail-popup h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
+}
+
+.trail-stats,
+.trail-actions,
+.trail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .trail-stats {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 8px;
+  color: #52616f;
+  font-size: 0.9rem;
 }
 
-.download-link {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 5px 10px;
-  background: #d6d9dc;
-  color: white;
-  border-radius: 4px;
+.trail-actions {
+  margin-top: 12px;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  color: #0f5c4d;
+  background: none;
+  cursor: pointer;
   text-decoration: none;
 }
 
-.trails-filters select {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
+.icon-button:hover,
+.icon-button.active,
+.trail-detail-link {
+  color: #ff4400;
+  background: rgba(255, 68, 0, 0.08);
 }
 
 .trails-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
 }
 
 .trail-card {
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e5edf0;
+  border-radius: 22px;
   background: white;
-  transition: transform 0.2s;
+  box-shadow: 0 12px 30px rgba(15, 61, 45, 0.07);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .trail-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(15, 61, 45, 0.12);
 }
 
 .trail-image {
   position: relative;
-  height: 200px;
+  height: 190px;
 }
 
 .trail-image img {
@@ -94,95 +293,115 @@
 
 .difficulty-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  top: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
   color: white;
+  font-size: 0.78rem;
+  font-weight: 800;
   text-transform: capitalize;
 }
 
-.difficulty-badge.easy { background: #4CAF50; }
-.difficulty-badge.moderate { background: #FF9800; }
+.difficulty-badge.easy { background: #4caf50; }
+.difficulty-badge.moderate { background: #ff9800; }
 .difficulty-badge.hard { background: #f44336; }
+.difficulty-badge.expert { background: #7f1d1d; }
 
 .trail-info {
   padding: 16px;
 }
-.download-link {
-  color: #333;
-  text-decoration: none;
-  cursor: pointer;
+
+.trail-info h3 {
+  margin: 0 0 8px;
+  color: #0f3d2d;
 }
 
-.download-link:hover {
-  color: #666;
-}
-
-.trail-stats {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
 .trail-info p {
-  color: #444;
+  display: -webkit-box;
+  min-height: 3em;
+  margin: 0 0 12px;
+  overflow: hidden;
+  color: #52616f;
   line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
+.trail-tags {
+  margin-top: 12px;
+}
+
+.trail-tags span {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #365247;
+  background: #edf7f1;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.trail-card-link,
+.show-trail-btn,
+.trails-empty button {
+  display: inline-flex;
   align-items: center;
-  min-height: 300px;
+  gap: 6px;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #ffffff;
+  background: #0f5c4d;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .show-trail-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: #007AFF;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  color: #0f5c4d;
+  background: #e5f4ef;
 }
 
-.show-trail-btn:hover {
-  background: #0056b3;
+.trails-empty {
+  grid-column: 1 / -1;
+  padding: 30px;
+  border: 1px dashed #a9d8b7;
+  border-radius: 18px;
+  color: #52616f;
+  text-align: center;
+  background: #f8fcfa;
 }
 
-.trail-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+.trails-empty .material-icons {
+  display: block;
+  color: #1f7a55;
+  font-size: 38px;
 }
 
-.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  cursor: pointer;
-  color: #007AFF;
-  text-decoration: none;
+@media (max-width: 980px) {
+  .trails-container {
+    padding: 18px;
+  }
+
+  .trails-toolbar,
+  .trails-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trails-map {
+    height: 420px;
+  }
 }
 
-.icon-button:hover {
-  color: #0056b3;
-  background: rgba(0, 122, 255, 0.08);
-}
-.icon-button.active {
-  color: #ff4400;
-}
+@media (max-width: 640px) {
+  .trails-toolbar {
+    border-radius: 16px;
+  }
 
-.trail-detail-link {
-  background: rgba(0, 122, 255, 0.1);
-  font-weight: 600;
+  .trails-map-card,
+  .latest-trails-card,
+  .trail-results-section {
+    padding: 14px;
+    border-radius: 18px;
+  }
 }
