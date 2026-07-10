@@ -43,6 +43,7 @@ export const parseTrails = (trails: TrailType[]): Trail[] => {
 
     return {
       id,
+      createdAt: Number(trail.createdAt) / 1_000_000,
       name,
       description,
       distance: Number(distance.toFixed(2)),
