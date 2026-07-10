@@ -22,6 +22,14 @@ export const LoginModal: React.FC<{ isOpen: boolean; onClose: () => void; onLogi
         </p>
 
         <div className="login-options">
+          <button className="login-button social google" onClick={() => onLogin('google')}>
+            <span className="login-provider-icon" aria-hidden="true">G</span>
+            Continue with Google
+          </button>
+          <button className="login-button social facebook" onClick={() => onLogin('facebook')}>
+            <span className="login-provider-icon" aria-hidden="true">f</span>
+            Continue with Facebook
+          </button>
           <button className="login-button ii" onClick={() => onLogin('iiv2')}>
             <img src="/dfinity.ico" alt="Internet Identity" />
             Sign in with Internet Identity

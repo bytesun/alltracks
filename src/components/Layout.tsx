@@ -164,12 +164,26 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       }
     });
   };
+  const handleFacebookLogin = () => {
+    const facebookLoginUrl = 'https://www.facebook.com/login/';
+
+    const facebookWindow = window.open(
+      facebookLoginUrl,
+      'facebook-login',
+      windowFeatures ?? 'width=500,height=650'
+    );
+
+    if (!facebookWindow) {
+      window.location.assign(facebookLoginUrl);
+    }
+  };
   const handleLogin = (method: string) => {
     if (method === 'ii') {
       handleIILogin();
     } else if (method === 'google') {
-      // Implement Google login
-      handleNFIDLogin();
+      handleII2Login();
+    } else if (method === 'facebook') {
+      handleFacebookLogin();
     } else if (method === 'iiv2') {
       handleII2Login();
     }
