@@ -1,7 +1,6 @@
-export 
-
-interface Trail {
+export interface Trail {
   id: bigint;
+  createdAt?: number;
   name: string;
   distance: number;
   elevationGain: number;
