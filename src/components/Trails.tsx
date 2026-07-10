@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, setDoc, listDocs, uploadFile } from "@junobuild/core";
 import { CreateTrail } from './CreateTrail';
 import './Trails.css';
@@ -18,6 +19,7 @@ export const Trails: React.FC = () => {
         wallet, principal
     } } = useGlobalContext();
     const alltracks = useAlltracks();
+    const navigate = useNavigate();
 
     const [trails, setTrails] = React.useState<Trail[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -242,6 +244,10 @@ export const Trails: React.FC = () => {
         }
     };
 
+    const openTrailDetail = (trailId: number | string | bigint) => {
+        navigate(`/trail/${trailId.toString()}`);
+    };
+
     const toTrailForm = (trail: Trail): TrailForm => ({
         name: trail.name,
         description: trail.description,
@@ -277,7 +283,19 @@ export const Trails: React.FC = () => {
             <div className="trails-list">
                 {trails.length > 0 ? (
                     trails.map((trail) => (
-                        <div key={trail.id} className="trail-item">
+                        <div
+                            key={trail.id}
+                            className="trail-item"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openTrailDetail(trail.id)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    openTrailDetail(trail.id);
+                                }
+                            }}
+                        >
                             <div className="trail-info">
                                 <div className="trail-title">{trail.name}</div>
                                 <div className="trail-meta">
@@ -293,14 +311,20 @@ export const Trails: React.FC = () => {
                             <div className="trail-actions">
                                 <button
                                     className="trail-button edit"
-                                    onClick={() => setEditingTrail(trail)}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setEditingTrail(trail);
+                                    }}
                                 >
                                     <span className="material-icons">edit</span>
                                     Edit
                                 </button>
                                 <button
                                     className="trail-button delete"
-                                    onClick={() => setShowDeleteConfirm(BigInt(trail.id))}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setShowDeleteConfirm(BigInt(trail.id));
+                                    }}
                                 >
                                     <span className="material-icons">delete</span>
                                     Delete
