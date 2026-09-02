@@ -36,7 +36,7 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [tracks, setTracks] = useState<Track[]>([]);
   const [checkpoints, setCheckpoints] = useState<CheckPoint[]>([]);
   const [settings, setSettings] = useState<RecordingSettings>({
-    mode: 'auto',
+    mode: 'manual',
     minDistance: 10,
     minTime: 5,
     recordElevation: true,
