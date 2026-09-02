@@ -82,6 +82,7 @@ function MainApp() {
   const [message, setMessage] = useState<String | undefined>(undefined);
   const [showTrailList, setShowTrailList] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [finishAfterExport, setFinishAfterExport] = useState(false);
   const [shouldPlayHeroVideo, setShouldPlayHeroVideo] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -539,6 +540,7 @@ function MainApp() {
     setHasCloudPoints(false);
     setMessage(undefined);
     setTrackName(null);
+    setFinishAfterExport(false);
     showNotification('Track cleared', 'success');
   };
 
@@ -580,6 +582,11 @@ function MainApp() {
         const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
         saveAs(blob, expfilename);
         showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
+        if (finishAfterExport) {
+          await clearTrackFromIndexDB(trackId);
+          clearPoints();
+          setShowExportModal(false);
+        }
         return;
       }
 
@@ -636,6 +643,7 @@ function MainApp() {
 
         await clearTrackFromIndexDB(trackId);
         clearPoints();
+        setShowExportModal(false);
       }
     } catch (error) {
       const errorText = error instanceof Error ? error.message : 'Unknown error';
@@ -728,7 +736,10 @@ function MainApp() {
                   Record Point
                 </button>
                 <button
-                  onClick={() => setShowExportModal(true)}
+                  onClick={() => {
+                    setFinishAfterExport(true);
+                    setShowExportModal(true);
+                  }}
                   className="finish-track-button"
                   disabled={trackPoints.length < 2 || isExporting}
                 >
@@ -907,7 +918,13 @@ function MainApp() {
             )}
           </div>
 
-          <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length < 2 || isExporting}>
+          <button
+            onClick={() => {
+              setFinishAfterExport(false);
+              setShowExportModal(true);
+            }}
+            disabled={trackPoints.length < 2 || isExporting}
+          >
             Export
           </button>
           <button onClick={() => setShowClearModal(true)} disabled={!trackId && trackPoints.length === 0}>
@@ -983,7 +1000,10 @@ function MainApp() {
       {showExportModal && (
         <ExportModal
           onExport={handleExport}
-          onClose={() => setShowExportModal(false)}
+          onClose={() => {
+            setShowExportModal(false);
+            setFinishAfterExport(false);
+          }}
           trackId={trackId}
           groupId={groupId}
         />
