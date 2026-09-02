@@ -12,10 +12,10 @@ interface ActivitySummaryModalProps {
   pace: string;
   points: number;
   isSaving?: boolean;
-  onSaveAndFinish: () => void | Promise<void>;
+  onSaveGpx: () => void | Promise<void>;
   onMoreOptions: () => void;
   onShare: () => void | Promise<void>;
-  onKeepRecording: () => void;
+  onClose: () => void;
 }
 
 const formatDuration = (hours: number) => {
@@ -37,10 +37,10 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
   pace,
   points,
   isSaving = false,
-  onSaveAndFinish,
+  onSaveGpx,
   onMoreOptions,
   onShare,
-  onKeepRecording,
+  onClose,
 }) => {
   if (!isOpen) return null;
 
@@ -54,7 +54,7 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
       >
         <div className="activity-summary-topbar">
           <div>
-            <p className="activity-summary-eyebrow">Activity complete</p>
+            <p className="activity-summary-eyebrow">Activity summary</p>
             <h2 id="activity-summary-title">{name}</h2>
             <p className="activity-summary-subtitle">
               <span>{activity}</span>
@@ -64,8 +64,8 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
           <button
             type="button"
             className="activity-summary-close"
-            onClick={onKeepRecording}
-            aria-label="Close summary and keep recording"
+            onClick={onClose}
+            aria-label="Close activity summary"
           >
             <span className="material-icons">close</span>
           </button>
@@ -96,18 +96,18 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
         </div>
 
         <p className="activity-summary-hint">
-          Save a GPX copy to this device to finish now, or open more options for KML, CSV, or cloud storage.
+          Save a GPX copy now, share a compact activity recap, or open more options for KML, CSV, and cloud storage.
         </p>
 
         <div className="activity-summary-actions">
           <button
             type="button"
             className="activity-summary-primary"
-            onClick={onSaveAndFinish}
+            onClick={onSaveGpx}
             disabled={isSaving}
           >
             <span className="material-icons">download_done</span>
-            {isSaving ? 'Saving…' : 'Save GPX & Finish'}
+            {isSaving ? 'Saving…' : 'Save GPX'}
           </button>
           <button
             type="button"
@@ -130,10 +130,10 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
           <button
             type="button"
             className="activity-summary-keep"
-            onClick={onKeepRecording}
+            onClick={onClose}
             disabled={isSaving}
           >
-            Keep recording
+            Back to track
           </button>
         </div>
       </section>
