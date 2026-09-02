@@ -41,7 +41,7 @@ interface IntentPattern {
 
 const intentPatterns: IntentPattern[] = [
   {
-    patterns: [/\b(go home|home|back to home|main|record screen|record page|map)\b/i],
+    patterns: [/\b(go home|home|back to home|main|go to record|open record|record screen|record page|home map)\b/i],
     intent: 'navigate_home',
   },
   {
@@ -77,7 +77,7 @@ const intentPatterns: IntentPattern[] = [
     intent: 'navigate_posts',
   },
   {
-    patterns: [/\b(conditions?|nearby conditions?|hazards?|incident map|status)\b/i],
+    patterns: [/\b(conditions?|nearby conditions?|hazards?|incident map|field conditions?)\b/i],
     intent: 'navigate_status',
   },
   {
