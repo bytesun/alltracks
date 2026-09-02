@@ -31,10 +31,9 @@ const Explore: React.FC = () => {
     <main className="explore-page">
       <section className="explore-hero">
         <p className="explore-eyebrow">Explore outdoors</p>
-        <h1>Plan with the map, not a menu of modules.</h1>
+        <h1>Trails, spots, and field conditions in one place.</h1>
         <p>
-          Trails, useful spots, and recent field conditions now start from one place. The underlying
-          tools stay separate for now while AllTracks moves toward a unified multi-layer map.
+          Find a route, check useful places nearby, and review recent field reports before you head out.
         </p>
       </section>
 
@@ -52,14 +51,6 @@ const Explore: React.FC = () => {
             </span>
           </Link>
         ))}
-      </section>
-
-      <section className="explore-next-step">
-        <span className="material-icons" aria-hidden="true">layers</span>
-        <div>
-          <strong>Next UX step</strong>
-          <p>Combine these sources into one map with switchable Trails, Spots, and Conditions layers.</p>
-        </div>
       </section>
     </main>
   );
