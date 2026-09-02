@@ -1,5 +1,5 @@
 import React from 'react';
-import {  useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import '../styles/Navbar.css';
 
@@ -7,7 +7,6 @@ import { DropdownMenu } from './DropdownMenu';
 import { Link } from 'react-router-dom';
 
 import { useGlobalContext, useSetLoginModal, useLogout } from "./Store";
-
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -19,11 +18,9 @@ export const Navbar = () => {
   const [, setLoginModal] = useSetLoginModal();
 
   const handleLogout = async () => {
-    // Get AuthClient and logout
     const AuthClient = (await import('@dfinity/auth-client')).AuthClient;
     const authClient = await AuthClient.create();
     await authClient.logout();
-    // Clear global state
     logout();
   };
 
@@ -44,25 +41,18 @@ export const Navbar = () => {
         </div>
 
         <div className="nav-items">
-
-          {/* Desktop menu items */}
           <div className="desktop-menu">
-            <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Trackathons</Link>
-            <Link to="/trails" className="nav-link"><span className="material-icons">terrain</span>Trails</Link>
-            {/* <Link to="/everpeace" className="nav-link"><span className="material-icons">terrain</span>Everpeace</Link> */}
-            {/* <Link to="https://icevent.app" className="nav-link"><span className="material-icons">event</span>Events</Link> */}
-            <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Spots</Link>
-            {/* <Link to="/posts" className="nav-link"><span className="material-icons">chat_bubble</span>Posts</Link> */}
-
-            <Link to="/status" className="nav-link"> <span className="material-icons">info</span>Status</Link>
-            {principal && <Link to={`/user/${principal}`} className="nav-link"><span className="material-icons">timeline</span>Timeline</Link>}
-            {isAuthed && <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Profile</Link>}
-            {isAuthed && <button className="auth-button" onClick={handleAuth}>
-              Sign Out
-            </button>}
-            {!isAuthed && <button className="auth-button" onClick={() => setLoginModal(true)}>
-              Sign In
-            </button>}
+            <Link to="/" className="nav-link"><span className="material-icons">radio_button_checked</span>Record</Link>
+            <Link to="/explore" className="nav-link"><span className="material-icons">explore</span>Explore</Link>
+            <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Challenges</Link>
+            {principal && (
+              <Link to={`/tracks/${principal}`} className="nav-link"><span className="material-icons">history</span>History</Link>
+            )}
+            {isAuthed && (
+              <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Me</Link>
+            )}
+            {isAuthed && <button className="auth-button" onClick={handleAuth}>Sign Out</button>}
+            {!isAuthed && <button className="auth-button" onClick={() => setLoginModal(true)}>Sign In</button>}
           </div>
 
           <div className="mobile-menu">
@@ -70,7 +60,6 @@ export const Navbar = () => {
           </div>
         </div>
       </nav>
-
     </>
   );
 };
