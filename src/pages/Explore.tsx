@@ -18,6 +18,13 @@ import './Explore.css';
 
 type LayerKey = 'trails' | 'spots' | 'conditions';
 
+type ViewportBounds = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+
 type ExploreSpot = {
   id: string;
   name: string;
@@ -72,7 +79,7 @@ const userIcon = divIcon({
 const normalizeTime = (raw: unknown): number => {
   if (raw === undefined || raw === null) return Date.now();
   try {
-    const value = typeof raw === 'bigint' ? Number(raw) : Number(raw);
+    const value = Number(raw);
     if (!Number.isFinite(value) || value <= 0) return Date.now();
     if (value > 1e14) return Math.floor(value / 1e6);
     if (value > 1e9 && value < 1e11) return Math.floor(value * 1000);
@@ -108,8 +115,16 @@ const formatAge = (timestamp: number) => {
   const hours = Math.floor(diff / (60 * 60 * 1000));
   if (hours < 1) return 'Recently';
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+};
+
+const isInsideViewport = (latitude: number, longitude: number, bounds: ViewportBounds | null) => {
+  if (!bounds) return true;
+  const latitudeMatches = latitude >= bounds.south && latitude <= bounds.north;
+  const longitudeMatches = bounds.west <= bounds.east
+    ? longitude >= bounds.west && longitude <= bounds.east
+    : longitude >= bounds.west || longitude <= bounds.east;
+  return latitudeMatches && longitudeMatches;
 };
 
 const MapFocus: React.FC<{ center: LatLngTuple; zoom: number }> = ({ center, zoom }) => {
@@ -141,6 +156,7 @@ const Explore: React.FC = () => {
   const [trails, setTrails] = useState<Trail[]>([]);
   const [spots, setSpots] = useState<ExploreSpot[]>([]);
   const [conditions, setConditions] = useState<ExploreCondition[]>([]);
+  const [viewportBounds, setViewportBounds] = useState<ViewportBounds | null>(null);
   const [enabledLayers, setEnabledLayers] = useState<Record<LayerKey, boolean>>({
     trails: true,
     spots: true,
@@ -157,6 +173,13 @@ const Explore: React.FC = () => {
   const [isLocating, setIsLocating] = useState(false);
   const [message, setMessage] = useState('');
   const trailRequestRef = useRef(0);
+  const trailPreviewRequestRef = useRef(0);
+
+  const clearTrailPreview = () => {
+    trailPreviewRequestRef.current += 1;
+    setSelectedTrailId(null);
+    setSelectedTrailPath([]);
+  };
 
   const loadSharedLayers = useCallback(async () => {
     setIsLoadingShared(true);
@@ -174,17 +197,18 @@ const Explore: React.FC = () => {
     if (spotsResult.status === 'fulfilled') {
       const mapped = (spotsResult.value || []).map((spot: any) => {
         const parsed = parseSpotDescription(spot?.description);
+        const timestamp = normalizeTime(spot?.createdAt);
         return {
-          id: String(spot?.id ?? spot?.name ?? Math.random()),
+          id: String(spot?.id ?? `${spot?.name || 'spot'}-${timestamp}`),
           name: spot?.name || 'Unnamed spot',
           description: parsed.note,
           tags: Array.isArray(spot?.tags) ? spot.tags : [],
           latitude: parsed.latitude,
           longitude: parsed.longitude,
-          timestamp: normalizeTime(spot?.createdAt),
+          timestamp,
         } as ExploreSpot;
       });
-      setSpots(mapped.filter((spot) => spot.latitude !== 0 || spot.longitude !== 0));
+      setSpots(mapped.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0));
     } else {
       errors.push('spots');
     }
@@ -199,7 +223,7 @@ const Explore: React.FC = () => {
         category: variantName(condition?.category) || 'condition',
         severity: variantName(condition?.severity) || 'unknown',
       }));
-      setConditions(mapped.filter((condition) => condition.latitude !== 0 || condition.longitude !== 0));
+      setConditions(mapped.filter((condition) => condition.latitude !== 0 && condition.longitude !== 0));
     } else {
       errors.push('conditions');
     }
@@ -239,19 +263,26 @@ const Explore: React.FC = () => {
     [alltracks],
   );
 
+  const handleBoundsChange = useCallback(
+    (bounds: LatLngBounds) => {
+      setViewportBounds({
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+      });
+      loadTrailsInBounds(bounds);
+    },
+    [loadTrailsInBounds],
+  );
+
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const filteredTrails = useMemo(
     () =>
       trails.filter((trail) => {
         if (!normalizedSearch) return true;
-        return [
-          trail.name,
-          trail.description,
-          trail.difficulty,
-          trail.routeType,
-          ...(trail.tags || []),
-        ]
+        return [trail.name, trail.description, trail.difficulty, trail.routeType, ...(trail.tags || [])]
           .join(' ')
           .toLowerCase()
           .includes(normalizedSearch);
@@ -262,25 +293,27 @@ const Explore: React.FC = () => {
   const filteredSpots = useMemo(
     () =>
       spots.filter((spot) => {
+        if (!isInsideViewport(spot.latitude, spot.longitude, viewportBounds)) return false;
         if (!normalizedSearch) return true;
         return [spot.name, spot.description, ...(spot.tags || [])]
           .join(' ')
           .toLowerCase()
           .includes(normalizedSearch);
       }),
-    [spots, normalizedSearch],
+    [spots, normalizedSearch, viewportBounds],
   );
 
   const filteredConditions = useMemo(
     () =>
       conditions.filter((condition) => {
+        if (!isInsideViewport(condition.latitude, condition.longitude, viewportBounds)) return false;
         if (!normalizedSearch) return true;
         return [condition.note, condition.category, condition.severity]
           .join(' ')
           .toLowerCase()
           .includes(normalizedSearch);
       }),
-    [conditions, normalizedSearch],
+    [conditions, normalizedSearch, viewportBounds],
   );
 
   const focusLocation = (latitude: number, longitude: number, zoom = 13) => {
@@ -289,14 +322,17 @@ const Explore: React.FC = () => {
   };
 
   const selectTrail = async (trail: Trail) => {
+    const requestId = ++trailPreviewRequestRef.current;
     const trailId = String(trail.id);
     setSelectedTrailId(trailId);
+    setSelectedTrailPath([]);
     focusLocation(trail.startPoint.latitude, trail.startPoint.longitude, 13);
 
     try {
       const path = await parseTrailFile(trail.trailfile.url, trail.trailfile.fileType);
-      if (trailId === String(trail.id)) setSelectedTrailPath(path);
+      if (requestId === trailPreviewRequestRef.current) setSelectedTrailPath(path);
     } catch (error) {
+      if (requestId !== trailPreviewRequestRef.current) return;
       console.error('Unable to preview trail route', error);
       setSelectedTrailPath([]);
     }
@@ -304,10 +340,7 @@ const Explore: React.FC = () => {
 
   const toggleLayer = (layer: LayerKey) => {
     setEnabledLayers((current) => ({ ...current, [layer]: !current[layer] }));
-    if (layer === 'trails' && enabledLayers.trails) {
-      setSelectedTrailId(null);
-      setSelectedTrailPath([]);
-    }
+    if (layer === 'trails' && enabledLayers.trails) clearTrailPreview();
   };
 
   const centerNearMe = () => {
@@ -419,7 +452,7 @@ const Explore: React.FC = () => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <MapFocus center={mapCenter} zoom={mapZoom} />
-            <MapViewportEvents onBoundsChange={loadTrailsInBounds} />
+            <MapViewportEvents onBoundsChange={handleBoundsChange} />
 
             {userLocation && (
               <Marker position={userLocation} icon={userIcon}>
@@ -457,12 +490,7 @@ const Explore: React.FC = () => {
                   key={`spot-${spot.id}`}
                   position={[spot.latitude, spot.longitude]}
                   icon={spotIcon}
-                  eventHandlers={{
-                    click: () => {
-                      setSelectedTrailId(null);
-                      setSelectedTrailPath([]);
-                    },
-                  }}
+                  eventHandlers={{ click: clearTrailPreview }}
                 >
                   <Popup>
                     <div className="explore-popup">
@@ -481,12 +509,7 @@ const Explore: React.FC = () => {
                   key={`condition-${condition.id}`}
                   position={[condition.latitude, condition.longitude]}
                   icon={conditionIcon}
-                  eventHandlers={{
-                    click: () => {
-                      setSelectedTrailId(null);
-                      setSelectedTrailPath([]);
-                    },
-                  }}
+                  eventHandlers={{ click: clearTrailPreview }}
                 >
                   <Popup>
                     <div className="explore-popup">
@@ -542,7 +565,7 @@ const Explore: React.FC = () => {
                 <Link to="/spots">All spots</Link>
               </div>
               {filteredSpots.length === 0 ? (
-                <p className="explore-empty">No matching spots.</p>
+                <p className="explore-empty">No matching spots in this view.</p>
               ) : (
                 filteredSpots.slice(0, 8).map((spot) => (
                   <button
@@ -551,8 +574,7 @@ const Explore: React.FC = () => {
                     className="explore-result-item"
                     onClick={() => {
                       focusLocation(spot.latitude, spot.longitude, 14);
-                      setSelectedTrailId(null);
-                      setSelectedTrailPath([]);
+                      clearTrailPreview();
                     }}
                   >
                     <span className="explore-result-title">{spot.name}</span>
@@ -575,7 +597,7 @@ const Explore: React.FC = () => {
                 <Link to="/status">All conditions</Link>
               </div>
               {filteredConditions.length === 0 ? (
-                <p className="explore-empty">No recent matching reports.</p>
+                <p className="explore-empty">No recent matching reports in this view.</p>
               ) : (
                 filteredConditions.slice(0, 8).map((condition) => (
                   <button
@@ -584,8 +606,7 @@ const Explore: React.FC = () => {
                     className="explore-result-item"
                     onClick={() => {
                       focusLocation(condition.latitude, condition.longitude, 14);
-                      setSelectedTrailId(null);
-                      setSelectedTrailPath([]);
+                      clearTrailPreview();
                     }}
                   >
                     <span className="explore-result-title">{condition.note}</span>
