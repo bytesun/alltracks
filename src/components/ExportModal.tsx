@@ -114,6 +114,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
   const [isPrivateStorage] = useState(false);
   const [summary, setSummary] = useState<ActivitySummary | null>(null);
   const [showOptions, setShowOptions] = useState(false);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState('');
 
@@ -121,6 +122,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
     let active = true;
 
     const loadSummary = async () => {
+      setIsLoadingSummary(true);
       try {
         const stored = await getTrackPointsFromIndexDB(trackId);
         if (!active) return;
@@ -136,6 +138,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
           setLoadError('The activity summary could not be loaded, but export options are still available.');
           setShowOptions(true);
         }
+      } finally {
+        if (active) setIsLoadingSummary(false);
       }
     };
 
@@ -203,6 +207,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
       setIsSubmitting(false);
     }
   };
+
+  if (!showOptions && isLoadingSummary) {
+    return (
+      <div className="activity-summary-overlay" role="presentation">
+        <section className="activity-summary-modal" role="dialog" aria-modal="true" aria-label="Preparing activity summary">
+          <div className="activity-summary-topbar">
+            <div>
+              <p className="activity-summary-eyebrow">Activity summary</p>
+              <h2>Preparing your activity…</h2>
+              <p className="activity-summary-subtitle">Loading the latest recorded points.</p>
+            </div>
+            <button type="button" className="activity-summary-close" onClick={onClose} aria-label="Close activity summary">
+              <span className="material-icons">close</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   if (!showOptions && summary) {
     return (
