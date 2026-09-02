@@ -11,20 +11,13 @@ import { useMap } from 'react-leaflet';
 
 import { generateGPX, generateKML } from "./utils/exportFormats";
 import { TrackPoint } from './types/TrackPoint';
-
 import { parseCSV, parseGPX, parseKML } from "./utils/importFormats";
-
 import { StartTrackModal } from './components/StartTrackModal';
-
 import { ExportModal } from './components/ExportModal';
 import { CommentModal } from './components/CommentModal';
-
 import { TrackPointsModal } from './components/TrackPointsModal';
 import { FeedbackModal } from './components/FeedbackModal';
-
 import { useNotification } from './context/NotificationContext';
-
-
 import { setupIndexedDB, saveTrackPointsToIndexDB, getTrackPointsFromIndexDB, clearTrackFromIndexDB } from './utils/IndexDBHandler';
 import Cookies from 'js-cookie';
 import { ClearTracksModal } from './components/ClearTracksModal';
@@ -32,27 +25,9 @@ import { arweave, arweaveGateway } from './utils/arweave';
 import { Trail } from './types/Trail';
 import { TrailListModal } from './components/TrailListModal';
 import { useAlltracks } from './components/Store';
-
-import { useGlobalContext ,useSetLoginModal} from './components/Store';
-
+import { useGlobalContext } from './components/Store';
 import { FILETYPE_GPX, FILETYPE_KML } from './lib/constants';
 import { TrackType } from './api/alltracks/backend.did';
-
-
-interface ProfileSettings {
-  storageId: string;
-  trackPointCollection: string;
-  trackFileCollection: string;
-}
-
-type ListCounts = {
-  incidentPoints: bigint;
-  tracks: bigint;
-  trails: bigint;
-  checkpoints: bigint;
-  photos: bigint;
-};
-
 
 const defaultIcon = icon({
   iconUrl: '/marker-icon.png',
@@ -68,34 +43,24 @@ const currentLocationIcon = icon({
   iconAnchor: [12, 41]
 });
 
-
-
 function MainApp() {
-
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info';
-  } | null>(null);
   const { state: { isAuthed, principal, wallet } } = useGlobalContext();
-  const [showNotice, setShowNotice] = useState(true);
-  const [loginModal, setLoginModal] = useSetLoginModal();
-
   const alltracks = useAlltracks();
+  const { showNotification } = useNotification();
 
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [trackType, setTrackType] = useState<string>('hiking');
   const [trackName, setTrackName] = useState<string | null>(null);
-
   const [importPoints, setImportPoints] = useState<TrackPoint[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([49.2827, -123.1207]);
+  const [hasUserLocation, setHasUserLocation] = useState(false);
   const [recordingMode, setRecordingMode] = useState<'' | 'manual' | 'auto'>('manual');
   const [recordingInterval, setRecordingInterval] = useState<ReturnType<typeof setInterval> | null>(null);
-
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<'idle' | 'tracking' | 'paused'>('idle');
   const [autoRecordingSettings, setAutoRecordingSettings] = useState({
-    minDistance: 10, // meters
-    minTime: 10, // seconds
+    minDistance: 10,
+    minTime: 10,
     lastRecordedPosition: null as TrackPoint | null
   });
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -103,12 +68,10 @@ function MainApp() {
   const [locationError, setLocationError] = useState<string>('');
   const [autoCenter, setAutoCenter] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
-
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [viewMode] = useState<'map' | 'list'>('map');
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [trackId, setTrackId] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string>('0');
-
   const [initialCenterAfterImportDone, setInitialCenterAfterImportDone] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -117,16 +80,11 @@ function MainApp() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [showImportOptions, setShowImportOptions] = useState(false);
   const [message, setMessage] = useState<String | undefined>(undefined);
-  const [networkCounts, setNetworkCounts] = useState<ListCounts | null>(null);
-  const [isCountsLoading, setIsCountsLoading] = useState(false);
-  const [countsError, setCountsError] = useState<string | null>(null);
-  const [countsUpdatedAt, setCountsUpdatedAt] = useState<Date | null>(null);
+  const [showTrailList, setShowTrailList] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [shouldPlayHeroVideo, setShouldPlayHeroVideo] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { showNotification } = useNotification();
-  // const [wallet, setWallet] = useState<any>(null);
-  const [showTrailList, setShowTrailList] = useState(false);
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -139,27 +97,15 @@ function MainApp() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-
   useEffect(() => {
     setupIndexedDB();
   }, []);
 
-  // useEffect(() => {
-  //   const savedWallet = Cookies.get('arweave_wallet');
-  //   if (savedWallet) {
-  //     setWallet(JSON.parse(savedWallet));
-  //   }
-  // }, []);
-
   useEffect(() => {
     const savedTrackId = Cookies.get('lastTrackId');
     const savedGroupId = Cookies.get('lastGroupId');
-    if (savedTrackId) {
-      setTrackId(savedTrackId);
-    }
-    if (savedGroupId) {
-      setGroupId(savedGroupId);
-    }
+    if (savedTrackId) setTrackId(savedTrackId);
+    if (savedGroupId) setGroupId(savedGroupId);
   }, []);
 
   useEffect(() => {
@@ -168,106 +114,45 @@ function MainApp() {
       if (result.points.length > 0) {
         setTrackPoints(result.points);
         setTrackType(result.trackType);
-        // Auto-center map to the last point when loading saved track
+        const lastPoint = result.points[result.points.length - 1];
+        setUserLocation([lastPoint.latitude, lastPoint.longitude]);
+        setHasUserLocation(true);
         setAutoCenter(true);
         setTimeout(() => setAutoCenter(false), 500);
       }
-      
-      // Load track name from result
-      if (result.name) {
-        setTrackName(result.name);
-      }
-      
-      // Load groupId from result
-      if (result.groupId) {
-        setGroupId(result.groupId);
-      }
+      if (result.name) setTrackName(result.name);
+      if (result.groupId) setGroupId(result.groupId);
     };
-    if (trackId) {
-      loadPoints();
-    }
+
+    if (trackId) loadPoints();
   }, [trackId]);
 
   useEffect(() => {
-    if (notification) {
-      const timer = setTimeout(() => {
-        setNotification(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
+    const saveIndexdb = async () => {
+      if (!trackId) return;
+      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType, trackName || undefined, groupId);
+    };
+    saveIndexdb();
+  }, [trackPoints, trackType, trackName, groupId, trackId]);
 
   useEffect(() => {
-    let isMounted = true;
+    if (typeof window === 'undefined' || !window.matchMedia) return;
 
-    const fetchListCounts = async () => {
-      setIsCountsLoading(true);
-      try {
-        const counts = await alltracks.getListCounts();
-        if (!isMounted) return;
-        setNetworkCounts(counts);
-        setCountsUpdatedAt(new Date());
-        setCountsError(null);
-      } catch (error) {
-        if (!isMounted) return;
-        console.error('Failed to load network stats', error);
-        setCountsError('Unable to load network stats right now.');
-      } finally {
-        if (isMounted) {
-          setIsCountsLoading(false);
-        }
-      }
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mobileViewport = window.matchMedia('(max-width: 768px)');
+    const updateVideoPreference = () => {
+      setShouldPlayHeroVideo(!reducedMotion.matches && !mobileViewport.matches);
     };
 
-    fetchListCounts();
+    updateVideoPreference();
+    reducedMotion.addEventListener?.('change', updateVideoPreference);
+    mobileViewport.addEventListener?.('change', updateVideoPreference);
 
     return () => {
-      isMounted = false;
+      reducedMotion.removeEventListener?.('change', updateVideoPreference);
+      mobileViewport.removeEventListener?.('change', updateVideoPreference);
     };
-  }, [alltracks]);
-
-  useEffect(() => {
-    const saveIndexdb = async () => {
-      if (!trackId) return; // don't write an entry with null id
-      await saveTrackPointsToIndexDB(trackId, trackPoints, trackType, trackName || undefined, groupId);
-    }
-    saveIndexdb();
-  }, [trackPoints, trackType, trackName, groupId])
-
-
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
-          setLocationError(''); // Clear any previous errors
-        },
-        (error) => {
-          let errorMessage = 'Unable to get your location. ';
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage += 'Please enable location permissions.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage += 'Location information unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage += 'Location request timed out.';
-              break;
-          }
-          setLocationError(errorMessage);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
-    }
   }, []);
-
-
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
@@ -281,19 +166,24 @@ function MainApp() {
     return R * c;
   };
 
-  // Calculate total distance with pace filtering for all types except 'track'
   const getTotalDistance = (): number => {
     if (trackPoints.length < 2) return 0;
     let total = 0;
-    // Reasonable pace thresholds (min/km) for each activity
-    const paceThresholds: Record<string, { min: number; max: number }> = {
-      hiking: { min: 6, max: 30 },
-      running: { min: 2.5, max: 20 },
-      cycling: { min: 1, max: 10 },
-      rowing: { min: 1.5, max: 15 },
-      track: { min: 2.5, max: 20 },
-    };
-    const { min, max } = paceThresholds[trackType] || { min: 2.5, max: 20 };
+    for (let i = 1; i < trackPoints.length; i++) {
+      total += calculateDistance(
+        trackPoints[i - 1].latitude,
+        trackPoints[i - 1].longitude,
+        trackPoints[i].latitude,
+        trackPoints[i].longitude
+      );
+    }
+    return total;
+  };
+
+  const getPaceDisplay = (): string => {
+    if (trackPoints.length < 2) return '-';
+    let total = 0;
+    let totalTime = 0;
     for (let i = 1; i < trackPoints.length; i++) {
       const dist = calculateDistance(
         trackPoints[i - 1].latitude,
@@ -303,60 +193,22 @@ function MainApp() {
       );
       const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
       if (dist > 0) {
-        // const pace = (timeSec / 60) / dist; // min/km
-        // if (trackType !== 'track' && (pace < min || pace > max)) {
-        //   continue;
-        // }
         total += dist;
+        totalTime += timeSec;
       }
     }
-    return total;
+    const avgPace = total > 0 ? (totalTime / 60) / total : 0;
+    if (!avgPace || avgPace === Infinity) return '-';
+    const minP = Math.floor(avgPace);
+    const secP = Math.round((avgPace - minP) * 60);
+    return `${minP}:${secP.toString().padStart(2, '0')} min/km`;
   };
-    // Optionally, add a pace display function for UI
-    const getPaceDisplay = (): string => {
-      if (trackPoints.length < 2) return '-';
-      let total = 0;
-      let totalTime = 0;
-      let filtered = false;
-      const paceThresholds: Record<string, { min: number; max: number }> = {
-        hiking: { min: 6, max: 30 },
-        running: { min: 2.5, max: 20 },
-        cycling: { min: 1, max: 10 },
-        rowing: { min: 1.5, max: 15 },
-        track: { min: 2.5, max: 20 },
-      };
-      const { min, max } = paceThresholds[trackType] || { min: 2.5, max: 20 };
-      for (let i = 1; i < trackPoints.length; i++) {
-        const dist = calculateDistance(
-          trackPoints[i - 1].latitude,
-          trackPoints[i - 1].longitude,
-          trackPoints[i].latitude,
-          trackPoints[i].longitude
-        );
-        const timeSec = (trackPoints[i].timestamp - trackPoints[i - 1].timestamp) / 1000;
-        if (dist > 0) {
-          // const pace = (timeSec / 60) / dist;
-          // if (trackType !== 'track' && (pace < min || pace > max)) {
-          //   filtered = true;
-          //   continue;
-          // }
-          total += dist;
-          totalTime += timeSec;
-        }
-      }
-      const avgPace = total > 0 ? (totalTime / 60) / total : 0;
-      if (!avgPace || avgPace === Infinity) return '-';
-      const minP = Math.floor(avgPace);
-      const secP = Math.round((avgPace - minP) * 60);
-      return `${minP}:${secP.toString().padStart(2, '0')} min/km` + (filtered ? ' (filtered)' : '');
-    };
+
   const getElevationGain = (): number => {
     let elevationGain = 0;
     for (let i = 1; i < trackPoints.length; i++) {
-      const elevationDiff = (trackPoints?.[i].elevation ?? 0) - (trackPoints?.[i - 1].elevation ?? 0);
-      if (elevationDiff > 0) {
-        elevationGain += elevationDiff;
-      }
+      const elevationDiff = (trackPoints[i].elevation ?? 0) - (trackPoints[i - 1].elevation ?? 0);
+      if (elevationDiff > 0) elevationGain += elevationDiff;
     }
     return elevationGain;
   };
@@ -365,11 +217,9 @@ function MainApp() {
     if (trackPoints.length < 2) return 0;
     const startTime = trackPoints[0].timestamp;
     const endTime = trackPoints[trackPoints.length - 1].timestamp;
-    const durationMs = endTime - startTime;
-    return durationMs / (1000 * 60 * 60); // Convert milliseconds to hours
+    return (endTime - startTime) / (1000 * 60 * 60);
   };
 
-  // Improved moving time calculation: only sum intervals where distance > threshold (e.g., 5 meters)
   const getMovingTime = (distanceThreshold = 5): number => {
     if (trackPoints.length < 2) return 0;
     let movingTimeMs = 0;
@@ -377,11 +227,9 @@ function MainApp() {
       const prev = trackPoints[i - 1];
       const curr = trackPoints[i];
       const dist = calculateDistance(prev.latitude, prev.longitude, curr.latitude, curr.longitude) * 1000;
-      if (dist > distanceThreshold) {
-        movingTimeMs += curr.timestamp - prev.timestamp;
-      }
+      if (dist > distanceThreshold) movingTimeMs += curr.timestamp - prev.timestamp;
     }
-    return movingTimeMs / (1000 * 60 * 60); // hours
+    return movingTimeMs / (1000 * 60 * 60);
   };
 
   function RecenterMap({ position }: { position: [number, number] }) {
@@ -395,9 +243,7 @@ function MainApp() {
       const lastPoint = trackPoints[trackPoints.length - 1];
       return [lastPoint.latitude, lastPoint.longitude];
     }
-    if (isTracking) {
-      return userLocation;
-    }
+    if (isTracking && hasUserLocation) return userLocation;
     if (trackPoints.length > 0) {
       const lastPoint = trackPoints[trackPoints.length - 1];
       return [lastPoint.latitude, lastPoint.longitude];
@@ -405,21 +251,32 @@ function MainApp() {
     return userLocation;
   };
 
-  const getPolylinePoints = () => {
-    return trackPoints.map(point => [point.latitude, point.longitude]);
-  };
+  const getPolylinePoints = () => trackPoints.map(point => [point.latitude, point.longitude]);
+  const getPolylineImportPoints = () => importPoints.map(point => [point.latitude, point.longitude]);
 
-  const getPolylineImportPoints = () => {
-    return importPoints.map(point => [point.latitude, point.longitude]);
-  };
-
-  const formatCount = (value?: bigint) => {
-    if (value === undefined || value === null) return '--';
-    try {
-      return value.toLocaleString('en-US');
-    } catch {
-      return value.toString();
+  const handleLocationError = (error: GeolocationPositionError) => {
+    let errorMessage = 'Unable to get your location. ';
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        errorMessage += 'Enable location permission when you want to record a point.';
+        break;
+      case error.POSITION_UNAVAILABLE:
+        errorMessage += 'Location information is unavailable.';
+        break;
+      case error.TIMEOUT:
+        errorMessage += 'The GPS request timed out. Try again.';
+        break;
+      default:
+        errorMessage += 'Try again.';
     }
+    setLocationError(errorMessage);
+    showNotification(errorMessage, 'error');
+  };
+
+  const rememberCurrentPosition = (position: GeolocationPosition) => {
+    setUserLocation([position.coords.latitude, position.coords.longitude]);
+    setHasUserLocation(true);
+    setLocationError('');
   };
 
   const startAutoRecording = () => {
@@ -470,11 +327,10 @@ function MainApp() {
       autoRecordingSettings.lastRecordedPosition.longitude,
       newPosition.coords.latitude,
       newPosition.coords.longitude
-    ) * 1000; // Convert km to meters
+    ) * 1000;
 
     return distance >= autoRecordingSettings.minDistance;
   };
-
 
   function RecenterOnImport() {
     const map = useMap();
@@ -485,63 +341,62 @@ function MainApp() {
         map.setView([firstPoint.latitude, firstPoint.longitude], 13);
         setInitialCenterAfterImportDone(true);
       }
-    }, [importPoints]);
+    }, [importPoints, map]);
 
     return null;
   }
 
   const recordPoint = async () => {
-    setShowNotice(false);
-
-    // showNotification('recordingMode:'+recordingMode, "info");
-    if (recordingMode === 'manual') {
-      // setShowCommentModal(true);
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setPendingPosition(position);
-            setShowCommentModal(true);
-          },
-          (error) => showNotification('Error getting location:', "error"),
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          }
-        );
-      }
-    } else {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            if (recordingMode === 'auto' && !shouldRecordNewPoint(position)) {
-              return;
-            }
-
-            const newPoint: TrackPoint = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              timestamp: position.timestamp,
-              elevation: position.coords.altitude || undefined,
-              comment: '',
-            };
-
-            setTrackPoints((prev) => [...prev, newPoint]);
-            setAutoRecordingSettings(prev => ({
-              ...prev,
-              lastRecordedPosition: newPoint
-            }));
-
-          },
-          (error) => showNotification('Error getting location:', "error"),
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          }
-        );
-      }
+    if (!navigator.geolocation) {
+      const errorMessage = 'Geolocation is not supported by this browser.';
+      setLocationError(errorMessage);
+      showNotification(errorMessage, 'error');
+      return;
     }
+
+    if (recordingMode === 'manual') {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          rememberCurrentPosition(position);
+          setPendingPosition(position);
+          setShowCommentModal(true);
+        },
+        handleLocationError,
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        rememberCurrentPosition(position);
+        if (recordingMode === 'auto' && !shouldRecordNewPoint(position)) return;
+
+        const newPoint: TrackPoint = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          timestamp: position.timestamp,
+          elevation: position.coords.altitude || undefined,
+          comment: '',
+        };
+
+        setTrackPoints((prev) => [...prev, newPoint]);
+        setAutoRecordingSettings(prev => ({
+          ...prev,
+          lastRecordedPosition: newPoint
+        }));
+      },
+      handleLocationError,
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
   };
 
   const savePointWithComment = async (data: {
@@ -554,151 +409,108 @@ function MainApp() {
   }) => {
     let photoUrl: string | undefined;
     try {
-      if (pendingPosition) {
-        const latitude = pendingPosition.coords.latitude;
-        const longitude = pendingPosition.coords.longitude;
-        const elevation = pendingPosition.coords.altitude || undefined;
+      if (!pendingPosition) return;
 
-        const timestamp = pendingPosition.timestamp;
+      const latitude = pendingPosition.coords.latitude;
+      const longitude = pendingPosition.coords.longitude;
+      const elevation = pendingPosition.coords.altitude || undefined;
+      const timestamp = pendingPosition.timestamp;
 
-        const newPoint: TrackPoint = {
-          latitude: latitude,
-          longitude: longitude,
-          timestamp: timestamp,
-          elevation: elevation || undefined,
-          comment: data.comment.trim() || undefined,
-          photo: photoUrl || undefined,
-        };
+      const newPoint: TrackPoint = {
+        latitude,
+        longitude,
+        timestamp,
+        elevation: elevation || undefined,
+        comment: data.comment.trim() || undefined,
+        photo: photoUrl || undefined,
+      };
 
+      setTrackPoints((prev) => [...prev, newPoint]);
+      const updatedPoints = [...trackPoints, newPoint];
+      await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined, groupId);
 
-        //--save to local first
-        setTrackPoints((prev) => [...prev, newPoint]);
+      if (data.photo) {
+        if (wallet) {
+          try {
+            const photoBuffer = await data.photo.arrayBuffer();
+            const transaction = await arweave.createTransaction({ data: photoBuffer }, wallet);
+            transaction.addTag('Content-Type', data.photo.type);
+            transaction.addTag('App-Name', 'AllTracks');
+            transaction.addTag('Track-ID', trackId || '');
+            transaction.addTag('Group-ID', groupId);
+            transaction.addTag('Note', data.comment);
 
-        // if (data.category) {
-        //   setSavedPoints((prev) => [...prev, {
-        //     latitude: pendingPosition.coords.latitude,
-        //     longitude: pendingPosition.coords.longitude,
-        //     category: data.category,
-        //     description: data.comment
+            await arweave.transactions.sign(transaction, wallet);
+            const response = await arweave.transactions.post(transaction);
 
-        //   }]);
-        // }
-        //save to  IndexDB
-        const updatedPoints = [...trackPoints, newPoint];
-  await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined, groupId);
-        if (data.photo) {
-          // if (data.cloudEnabled) {
-          //   const photoFile = new File([data.photo], `${trackId}_${groupId}_${Date.now()}.jpg`, { type: data.photo.type });
-          //   photoAsset = await uploadFile({
-          //     collection: "photos",
-          //     data: photoFile
-          //   });
-          // } else {
-
-          if (wallet) { //save to Arweave blockchain      
-            try {
-              // Create Arweave transaction            
-              const photoBuffer = await data.photo.arrayBuffer();
-              const transaction = await arweave.createTransaction({
-                data: photoBuffer
-              }, wallet);
-
-              // Add tags
-              transaction.addTag('Content-Type', data.photo.type);
-              transaction.addTag('App-Name', 'AllTracks');
-              // transaction.addTag('File-Name', photoFileName);
-              transaction.addTag('Track-ID', trackId || '');
-              transaction.addTag('Group-ID', groupId);
-              transaction.addTag('Note', data.comment)
-              // transaction.addTag('Latitude', lat || '');
-              // transaction.addTag('Longitude', long || '');
-
-              // Sign and post transaction
-              await arweave.transactions.sign(transaction, wallet);
-              const response = await arweave.transactions.post(transaction);
-
-              if (response.status === 200) {
-                photoUrl = `${arweaveGateway}/${transaction.id}`;
-                // Update point with photo URL using timestamp reference
-                setTrackPoints(prev => prev.map(point =>
-                  point.timestamp === pendingPosition.timestamp
-                    ? { ...point, photo: photoUrl }
-                    : point
-                ));
-
-                // Update IndexDB
-                const updatedPoints = trackPoints.map(point =>
-                  point.timestamp === pendingPosition.timestamp
-                    ? { ...point, photo: photoUrl }
-                    : point
-                );
-                await saveTrackPointsToIndexDB(trackId, updatedPoints, trackType, trackName || undefined, groupId);
-                showNotification('Photo uploaded to Arweave:', "success");
-              }
-            } catch (error) {
-              showNotification('Error uploading to Arweave:', error);
+            if (response.status === 200) {
+              photoUrl = `${arweaveGateway}/${transaction.id}`;
+              setTrackPoints(prev => prev.map(point =>
+                point.timestamp === pendingPosition.timestamp ? { ...point, photo: photoUrl } : point
+              ));
+              const pointsWithPhoto = updatedPoints.map(point =>
+                point.timestamp === pendingPosition.timestamp ? { ...point, photo: photoUrl } : point
+              );
+              await saveTrackPointsToIndexDB(trackId, pointsWithPhoto, trackType, trackName || undefined, groupId);
+              showNotification('Photo uploaded to Arweave', 'success');
             }
-          } else { //save local
-            const lat = pendingPosition?.coords.latitude.toFixed(6);
-            const long = pendingPosition?.coords.longitude.toFixed(6);
-
-            const photoFileName = `${lat}_${long}_${trackId}_${groupId}.jpg`;
-            // Local storage
-            const photoFile = new File([data.photo], photoFileName, { type: data.photo.type });
-            const photoUrl = URL.createObjectURL(photoFile);
-            const link = document.createElement('a');
-            link.href = photoUrl;
-            link.download = photoFileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(photoUrl);
+          } catch (error) {
+            showNotification(`Error uploading photo: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
           }
-          // }
+        } else {
+          const lat = pendingPosition.coords.latitude.toFixed(6);
+          const long = pendingPosition.coords.longitude.toFixed(6);
+          const photoFileName = `${lat}_${long}_${trackId}_${groupId}.jpg`;
+          const photoFile = new File([data.photo], photoFileName, { type: data.photo.type });
+          const localPhotoUrl = URL.createObjectURL(photoFile);
+          const link = document.createElement('a');
+          link.href = localPhotoUrl;
+          link.download = photoFileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(localPhotoUrl);
         }
+      }
 
-        setPendingPosition(null);
-        // showNotification('Point recorded successfully', 'success');
-        setAutoCenter(true);
-        setTimeout(() => setAutoCenter(false), 100);
+      setPendingPosition(null);
+      setAutoCenter(true);
+      setTimeout(() => setAutoCenter(false), 100);
 
+      if (data.cloudEnabled) {
+        await alltracks.createCheckpoint({
+          latitude,
+          longitude,
+          timestamp: BigInt(timestamp),
+          elevation: elevation || undefined,
+          note: data.comment?.trim() || '',
+          photo: photoUrl ? [photoUrl] : [],
+          isPublic: !data.isPrivate,
+          groupId: groupId ? [groupId] : [],
+          trackId
+        });
 
-        if (data.cloudEnabled) {
-
-          await alltracks.createCheckpoint({
-            latitude: latitude,
-            longitude: longitude,
+        if (data.isIncident) {
+          await alltracks.createIncidentPoint({
+            latitude,
+            longitude,
             timestamp: BigInt(timestamp),
             elevation: elevation || undefined,
             note: data.comment?.trim() || '',
             photo: photoUrl ? [photoUrl] : [],
-            isPublic: data.isPrivate ? false : true,
             groupId: groupId ? [groupId] : [],
-            trackId: trackId
+            trackId,
+            severity: { "low": null },
+            category: { "hazard": null }
           });
-          if (data.isIncident) {
-            await alltracks.createIncidentPoint({
-              latitude: latitude,
-              longitude: longitude,
-              timestamp: BigInt(timestamp),
-              elevation: elevation || undefined,
-              note: data.comment?.trim() || '',
-              photo: photoUrl ? [photoUrl] : [],
-
-              groupId: groupId ? [groupId] : [],
-              trackId: trackId,
-              severity: { "low": null },
-              category: { "hazard": null }
-            });
-          }
-
-          setHasCloudPoints(true);
         }
 
+        setHasCloudPoints(true);
       }
     } catch (error) {
-      setMessage(error.message);
-      showNotification(`Error uploading to cloud: ${error}`, error);
+      const errorText = error instanceof Error ? error.message : String(error);
+      setMessage(errorText);
+      showNotification(`Error uploading to cloud: ${errorText}`, 'error');
     }
   };
 
@@ -709,23 +521,16 @@ function MainApp() {
     const content = await file.text();
     let points: TrackPoint[] = [];
 
-    if (file.name.endsWith('.csv')) {
-      points = parseCSV(content);
-    } else if (file.name.endsWith('.gpx')) {
-      points = parseGPX(content);
-    } else if (file.name.endsWith('.kml')) {
-      points = parseKML(content);
-    }
+    if (file.name.endsWith('.csv')) points = parseCSV(content);
+    else if (file.name.endsWith('.gpx')) points = parseGPX(content);
+    else if (file.name.endsWith('.kml')) points = parseKML(content);
 
     setImportPoints(points);
-
-    //manually import track
-    // setTrackPoints(points);
   };
 
   const clearPoints = () => {
     Cookies.remove('lastTrackId');
-    setTrackId(null)
+    setTrackId(null);
     setTrackPoints([]);
     setImportPoints([]);
     setIsTracking(false);
@@ -735,10 +540,7 @@ function MainApp() {
     setMessage(undefined);
     setTrackName(null);
     showNotification('Track cleared', 'success');
-
   };
-
-  const [showExportModal, setShowExportModal] = useState(false);
 
   const handleExport = async (
     format: string,
@@ -747,11 +549,12 @@ function MainApp() {
     description: string,
     eventId: string,
     isPrivateStorage: boolean,
-    trackType: TrackType
+    exportTrackType: TrackType
   ) => {
     let content: string;
     let mimeType: string;
     setIsExporting(true);
+
     try {
       switch (format) {
         case 'gpx':
@@ -762,12 +565,13 @@ function MainApp() {
           content = generateKML(trackPoints);
           mimeType = 'application/vnd.google-earth.kml+xml';
           break;
-        default:
+        default: {
           const header = 'timestamp,latitude,longitude,elevation,comment\n';
           content = header + trackPoints.map(point =>
             `${point.timestamp},${point.latitude},${point.longitude},${point.elevation || ''},${point.comment || ''}`
           ).join('\n');
           mimeType = 'text/csv';
+        }
       }
 
       const expfilename = `${eventId}_${groupId}.${format}`;
@@ -776,90 +580,71 @@ function MainApp() {
         const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
         saveAs(blob, expfilename);
         showNotification(`Track exported as ${format.toUpperCase()}`, 'success');
+        return;
+      }
 
-      } else {
-        if (wallet) {
-          const totalDistance = getTotalDistance();
-          const duration = getDuration();
-          const elevationGain = getElevationGain();
-          const speedKmh = totalDistance / duration;
+      if (!wallet) {
+        showNotification('Connect your wallet in Settings to upload tracks to cloud storage', 'error');
+        return;
+      }
 
-          const transaction = await arweave.createTransaction({
-            data: content
-          }, wallet);
+      const totalDistance = getTotalDistance();
+      const duration = getDuration();
+      const elevationGain = getElevationGain();
+      const transaction = await arweave.createTransaction({ data: content }, wallet);
 
-          // Add tags
-          transaction.addTag('Content-Type', mimeType);
-          transaction.addTag('App-Name', 'AllTracks');
-          transaction.addTag('Track-ID', eventId);
-          transaction.addTag('Group-ID', groupId);
-          transaction.addTag('Description', description);
-          transaction.addTag('Distance', totalDistance.toString());
-          transaction.addTag('Duration', duration.toString());
-          transaction.addTag('Elevation-Gain', elevationGain.toString());
-          transaction.addTag('Start-Time', trackPoints[0].timestamp.toString());
-          transaction.addTag('File-Type', 'track');
-          transaction.addTag('Owner', principal.toText());
+      transaction.addTag('Content-Type', mimeType);
+      transaction.addTag('App-Name', 'AllTracks');
+      transaction.addTag('Track-ID', eventId);
+      transaction.addTag('Group-ID', groupId);
+      transaction.addTag('Description', description);
+      transaction.addTag('Distance', totalDistance.toString());
+      transaction.addTag('Duration', duration.toString());
+      transaction.addTag('Elevation-Gain', elevationGain.toString());
+      transaction.addTag('Start-Time', trackPoints[0].timestamp.toString());
+      transaction.addTag('File-Type', 'track');
+      if (principal) transaction.addTag('Owner', principal.toText());
 
-          // Sign and post transaction
-          if (wallet) {
-            await arweave.transactions.sign(transaction, wallet);
-          } else {//call wallet to sign manually
-            await arweave.transactions.sign(transaction);
-          }
-          const response = await arweave.transactions.post(transaction);
+      await arweave.transactions.sign(transaction, wallet);
+      const response = await arweave.transactions.post(transaction);
 
-          if (response.status === 200) {
-            //create track record
-            showNotification('Track uploaded to cloud storage', 'success');
+      if (response.status === 200) {
+        showNotification('Track uploaded to cloud storage', 'success');
+        const result = await alltracks.createTrack({
+          id: eventId,
+          groupId: [groupId],
+          name: filename,
+          description,
+          length: totalDistance,
+          duration,
+          elevation: elevationGain,
+          startime: trackPoints[0].timestamp,
+          trackfile: {
+            fileType: mimeType,
+            url: `${arweaveGateway}/${transaction.id}`
+          },
+          isPublic: !isPrivateStorage,
+          startPoint: {
+            latitude: trackPoints[0].latitude,
+            longitude: trackPoints[0].longitude
+          },
+          trackType: exportTrackType,
+        });
 
-            const result = await alltracks.createTrack({
-              id: eventId,
-              groupId: [groupId],
-              name: filename,
-              description: description,
-              length: totalDistance,
-              duration: duration,
-              elevation: elevationGain,
-              startime: trackPoints[0].timestamp,
-              trackfile: {
-                fileType: mimeType,
-                url: arweaveGateway + "/" + transaction.id
-              },
-              isPublic: !isPrivateStorage,
-              startPoint: {
-                latitude: trackPoints[0].latitude,
-                longitude: trackPoints[0].longitude
-              },
-              trackType: trackType,
+        if (result.error) showNotification(`Error creating track record: ${result.error}`, 'error');
+        else showNotification(`Track record created: ${result.id}`, 'success');
 
-            });
-
-            //if(savedPoints.length > 0) await alltracks.savePoints(savedPoints);
-
-            if (result.error) {
-              showNotification(`Error creating track record: ${result.error}`, 'error');
-            } else {
-              showNotification(`Track record created: ${result.id}`, 'success');
-            }
-
-            clearTrackFromIndexDB(trackId);
-            clearPoints();
-
-          }
-
-        } else {//no wallet
-          showNotification('Please connect your wallet at [Settings] to upload tracks to the cloud', 'error');
-        }
+        await clearTrackFromIndexDB(trackId);
+        clearPoints();
       }
     } catch (error) {
-      setMessage(error.message);
-      showNotification(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      const errorText = error instanceof Error ? error.message : 'Unknown error';
+      setMessage(errorText);
+      showNotification(`Export failed: ${errorText}`, 'error');
     } finally {
       setIsExporting(false);
     }
   };
-
 
   const handleStartTrack = (trackSettings: {
     trackId: string;
@@ -868,110 +653,108 @@ function MainApp() {
     recordingMode: 'manual' | 'auto';
     autoRecordingSettings: {
       minTime: number;
-      maxTime: number;  
       minDistance: number;
     };
     trackType: string;
     trackName?: string;
   }) => {
-
     Cookies.set('lastTrackId', trackSettings.trackId, { expires: 7 });
     Cookies.set('lastGroupId', trackSettings.groupId, { expires: 7 });
 
-  setTrackId(trackSettings.trackId);
-  if (trackSettings.trackName) setTrackName(trackSettings.trackName);
-  setTrackType(trackSettings.trackType);
+    setTrackId(trackSettings.trackId);
+    if (trackSettings.trackName) setTrackName(trackSettings.trackName);
+    setTrackType(trackSettings.trackType);
     setGroupId(trackSettings.groupId);
-    // setWallet(trackSettings.wallet);
     setRecordingMode(trackSettings.recordingMode);
     setAutoRecordingSettings({ ...trackSettings.autoRecordingSettings, lastRecordedPosition: null });
     setShowStartModal(false);
-    if (trackSettings.recordingMode === 'auto') {
-      startTracking();
-    }
+
+    if (trackSettings.recordingMode === 'auto') startTracking();
   };
 
-
   const handleTrailSelect = async (trail: Trail) => {
-
     if (trail) {
       const response = await fetch(trail.trailfile.url);
       const content = await response.text();
-
       let points: TrackPoint[] = [];
-      if (trail.trailfile.fileType === FILETYPE_GPX) {
-        points = parseGPX(content);
-      } else if (trail.trailfile.fileType === FILETYPE_KML) {
-        points = parseKML(content);
-      } else {
-        points = parseCSV(content);
-      }
+
+      if (trail.trailfile.fileType === FILETYPE_GPX) points = parseGPX(content);
+      else if (trail.trailfile.fileType === FILETYPE_KML) points = parseKML(content);
+      else points = parseCSV(content);
+
       setImportPoints(points);
     }
-
     setShowTrailList(false);
   };
 
-   
   return (
     <div className="App">
-
       <div className="hero-video-bg" aria-hidden="true">
-        <video
-          className="hero-video"
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster="/hero-bg-poster.jpg"
-        >
-          <source src="/hero-bg.mp4" type="video/mp4" />
-        </video>
+        {shouldPlayHeroVideo && !trackId && (
+          <video
+            className="hero-video"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster="/hero-bg-poster.jpg"
+          >
+            <source src="/hero-bg.mp4" type="video/mp4" />
+          </video>
+        )}
         <div className="hero-video-overlay" />
       </div>
 
       <header className="App-header">
+        {locationError && <div className="location-error">{locationError}</div>}
+        {message && <div className="location-error">{message}</div>}
 
-        {locationError && (
-          <div className="location-error">
-            {locationError}
-          </div>
-        )}
-        {message && (
-          <div className="location-error">
-            {message}
+        {!trackId && (
+          <div className="controls">
+            <button onClick={() => setShowStartModal(true)}>Start Track</button>
           </div>
         )}
 
-        {!trackId && <div className="controls">
-          <button onClick={() => setShowStartModal(true)}>Start Track</button>
-        </div>}
+        {!showStartModal && trackId && (
+          <div className="controls">
+            {recordingMode === 'manual' ? (
+              <div className="manual-controls">
+                <button
+                  onClick={recordPoint}
+                  className="record-point-button"
+                  style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}
+                >
+                  Record Point
+                </button>
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className="finish-track-button"
+                  disabled={trackPoints.length < 2 || isExporting}
+                >
+                  Finish
+                </button>
+              </div>
+            ) : (
+              <div className="auto-controls">
+                {trackingStatus === 'idle' && (
+                  <button onClick={startTracking}>Start</button>
+                )}
+                {trackingStatus === 'tracking' && (
+                  <button onClick={pauseTracking}>Pause</button>
+                )}
+                {trackingStatus === 'paused' && (
+                  <button onClick={resumeTracking}>Resume</button>
+                )}
+                {(trackingStatus === 'tracking' || trackingStatus === 'paused') && (
+                  <button onClick={stopTracking}>Stop</button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-        {!showStartModal && trackId && <div className="controls">
-          {recordingMode === 'manual' ? (
-            <button onClick={recordPoint} className="record-point-button" style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>
-              Record Point
-            </button>
-          ) : (
-            <div className="auto-controls">
-              {trackingStatus === 'idle' && (
-                <button onClick={startTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Start</button>
-              )}
-              {trackingStatus === 'tracking' && (
-                <button onClick={pauseTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Pause </button>
-              )}
-              {trackingStatus === 'paused' && (
-                <button onClick={resumeTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Resume</button>
-              )}
-              {(trackingStatus === 'tracking' || trackingStatus === 'paused') && (
-                <button onClick={stopTracking} style={{ background: '#1976d2', color: '#fff', opacity: 1, cursor: 'pointer' }}>Stop</button>
-              )}
-            </div>
-          )}
-        </div>}
-
-        {trackPoints.length > 0 &&
+        {trackPoints.length > 0 && (
           <div className="stats">
             {trackName && <h3 style={{ margin: 0, marginBottom: 8 }}>{trackName}</h3>}
             {trackType && <p style={{ margin: 0, marginBottom: 12, fontSize: '14px', color: '#666', textTransform: 'capitalize' }}>{trackType}</p>}
@@ -980,14 +763,11 @@ function MainApp() {
             <p>Distance: {getTotalDistance().toFixed(2)} km</p>
             <p>Pace: {getPaceDisplay()}</p>
             <p>Elevation Gain: {getElevationGain().toFixed(1)} m</p>
-            <p
-              onClick={() => setShowPointsModal(true)}
-              className="points-count-link"
-            >
+            <p onClick={() => setShowPointsModal(true)} className="points-count-link">
               Recorded Points: <span className="clickable-count">{trackPoints.length}</span>
             </p>
             {isAuthed && hasCloudPoints && (
-              <button 
+              <button
                 onClick={() => {
                   const link = `${window.location.origin}/live/${trackId}`;
                   navigator.clipboard.writeText(link);
@@ -999,16 +779,17 @@ function MainApp() {
                 <span className="material-icons">share</span>
               </button>
             )}
-          </div>}
+          </div>
+        )}
 
         {viewMode === 'map' ? (
           <div className="main-map-container">
             <MapContainer
               center={getMapCenter() as [number, number]}
               zoom={9}
-              style={{ height: '400px', width: '100%' }}
+              style={{ height: '100%', width: '100%' }}
             >
-              {autoCenter && <RecenterMap position={userLocation} />}
+              {autoCenter && hasUserLocation && <RecenterMap position={userLocation} />}
               <RecenterOnImport />
               <TileLayer
                 url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
@@ -1021,8 +802,8 @@ function MainApp() {
                     href="#"
                     className={`leaflet-control-button ${autoCenter ? 'active' : ''}`}
                     onClick={(e) => {
-                      e.preventDefault()
-                      setAutoCenter(!autoCenter)
+                      e.preventDefault();
+                      setAutoCenter(!autoCenter);
                     }}
                     title="Auto Center"
                   >
@@ -1032,8 +813,8 @@ function MainApp() {
                     href="#"
                     className={`leaflet-control-button ${showPoints ? 'active' : ''}`}
                     onClick={(e) => {
-                      e.preventDefault()
-                      setShowPoints(!showPoints)
+                      e.preventDefault();
+                      setShowPoints(!showPoints);
                     }}
                     title="Show Points"
                   >
@@ -1042,31 +823,26 @@ function MainApp() {
                 </div>
               </div>
 
-              {showPoints && trackPoints.map((point, index) => (
+              {showPoints && trackPoints.map((point) => (
                 <Marker
                   key={point.timestamp}
                   position={[point.latitude, point.longitude]}
                   icon={defaultIcon}
                 />
               ))}
-              {userLocation && <Marker
-                position={userLocation}
-                icon={currentLocationIcon}
-              />}
 
-              <Polyline
-                positions={getPolylinePoints() as [number, number][]}
-                color="red"
-              />
+              {hasUserLocation && (
+                <Marker position={userLocation} icon={currentLocationIcon} />
+              )}
+
+              <Polyline positions={getPolylinePoints() as [number, number][]} color="red" />
               <Polyline
                 positions={getPolylineImportPoints() as [number, number][]}
-                color="#FF4081"  // Bright pink
-                weight={4}       // Thicker line
-                opacity={0.8}    // Slight transparency
+                color="#FF4081"
+                weight={4}
+                opacity={0.8}
               />
-
             </MapContainer>
-
           </div>
         ) : (
           <div className="list-container">
@@ -1081,7 +857,7 @@ function MainApp() {
                 </tr>
               </thead>
               <tbody>
-                {trackPoints.map((point, index) => (
+                {trackPoints.map((point) => (
                   <tr key={point.timestamp}>
                     <td>{new Date(point.timestamp).toLocaleTimeString()}</td>
                     <td>{point.latitude.toFixed(6)}</td>
@@ -1121,7 +897,7 @@ function MainApp() {
                   Local
                 </button>
                 <button onClick={() => {
-                  setShowTrailList(true)
+                  setShowTrailList(true);
                   setShowImportOptions(false);
                 }}>
                   <span className="material-icons">cloud_download</span>
@@ -1134,124 +910,55 @@ function MainApp() {
           <button onClick={() => setShowExportModal(true)} disabled={trackPoints.length < 2 || isExporting}>
             Export
           </button>
-
-          {/* <button onClick={clearPoints} disabled={!trackId && (trackPoints.length === 0 || isExporting)}>
-            Clear
-          </button> */}
           <button onClick={() => setShowClearModal(true)} disabled={!trackId && trackPoints.length === 0}>
             Clear
           </button>
         </div>
-
       </header>
-      {/* <section className="network-stats">
-        <div className="network-stats__header">
-          <div>
-            <p className="network-stats__eyebrow">Overall statistics</p>
-            <h2 className="network-stats__title">Community footprint</h2>
-            <p className="network-stats__subtext">Live totals from the AllTracks network.</p>
-          </div>
-          <div className="network-stats__meta">
-            <span className={`pill ${isCountsLoading ? 'pill-neutral' : 'pill-live'}`}>
-              {isCountsLoading ? 'Updating' : 'Live'}
-            </span>
-            {countsUpdatedAt && (
-              <span className="network-stats__timestamp">Updated {countsUpdatedAt.toLocaleTimeString()}</span>
-            )}
-          </div>
-        </div>
 
-        <div className="network-stats__grid">
-          <div className="network-stats__card network-stats__card--primary">
-            <div className="network-stats__card-top">
-              <span className="material-icons">alt_route</span>
-              <span className="pill pill-ghost">Total tracks</span>
+      {!trackId && (
+        <>
+          <div className="feature-highlights">
+            <div className="feature-card">
+              <span className="material-icons">location_history</span>
+              <h3>Track Your Journey</h3>
+              <p>Record your path and revisit where you've been</p>
             </div>
-            <div className="network-stats__value">
-              {isCountsLoading && !networkCounts ? '--' : formatCount(networkCounts?.tracks)}
+            <div className="feature-card">
+              <span className="material-icons">share_location</span>
+              <h3>Live Location Sharing</h3>
+              <p>Keep family updated with your real-time location</p>
             </div>
-            <p className="network-stats__caption">All tracks recorded across the network.</p>
+            <div className="feature-card">
+              <span className="material-icons">warning</span>
+              <h3>Incident Reporting</h3>
+              <p>Mark and share important points of interest or hazards</p>
+            </div>
           </div>
 
-          <div className="network-stats__card">
-            <div className="network-stats__label">Trails</div>
-            <div className="network-stats__value-sm">{formatCount(networkCounts?.trails)}</div>
-            <p className="network-stats__caption">Curated routes ready to explore.</p>
-          </div>
-
-          <div className="network-stats__card">
-            <div className="network-stats__label">Checkpoints</div>
-            <div className="network-stats__value-sm">{formatCount(networkCounts?.checkpoints)}</div>
-            <p className="network-stats__caption">Shared markers from recent outings.</p>
-          </div>
-        </div>
-
-        {countsError && (
-          <div className="network-stats__error">
-            <span className="material-icons">info</span>
-            <span>{countsError}</span>
-          </div>
-        )}
-      </section> */}
-      <div className="feature-highlights">
-        <div className="feature-card">
-          <span className="material-icons">location_history</span>
-          <h3>Track Your Journey</h3>
-          <p>Record your path and revisit where you've been</p>
-        </div>
-
-        <div className="feature-card">
-          <span className="material-icons">share_location</span>
-          <h3>Live Location Sharing</h3>
-          <p>Keep family updated with your real-time location</p>
-        </div>
-
-        <div className="feature-card">
-          <span className="material-icons">warning</span>
-          <h3>Incident Reporting</h3>
-          <p>Mark and share important points of interest or hazards</p>
-        </div>
-      </div>
-
-
-      <footer className="home-footer">
-        <a
-          href="https://icevent.app"
-          className="footer-link"
-          target="_blank"
-        >
-          <span className="material-icons">event</span>
-          Events
-        </a>
-        {/* <a
-          href="/guide"
-          className="footer-link"
-        >
-          <span className="material-icons">help</span>
-          User Guide
-        </a> */}
-                <a
-          href="/everpeace"
-          className="footer-link"
-    
-        >
-          <span className="material-icons">terrain</span>
-          Everpeace
-        </a>
-        <a
-          href="#"
-          className="footer-link"
-          onClick={(e) => {
-            e.preventDefault();
-            setShowFeedbackModal(true);
-          }}
-        >
-          <span className="material-icons">feedback</span>
-          Feedback
-        </a>
-     
-      </footer>
-
+          <footer className="home-footer">
+            <a href="https://icevent.app" className="footer-link" target="_blank" rel="noreferrer">
+              <span className="material-icons">event</span>
+              Events
+            </a>
+            <a href="/everpeace" className="footer-link">
+              <span className="material-icons">terrain</span>
+              Everpeace
+            </a>
+            <a
+              href="#"
+              className="footer-link"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowFeedbackModal(true);
+              }}
+            >
+              <span className="material-icons">feedback</span>
+              Feedback
+            </a>
+          </footer>
+        </>
+      )}
 
       <FeedbackModal
         isOpen={showFeedbackModal}
@@ -1270,7 +977,6 @@ function MainApp() {
             setShowCommentModal(false);
             setPendingPosition(null);
           }}
-
         />
       )}
 
@@ -1282,6 +988,7 @@ function MainApp() {
           groupId={groupId}
         />
       )}
+
       {showPointsModal && (
         <TrackPointsModal
           points={trackPoints}
@@ -1291,12 +998,14 @@ function MainApp() {
           }}
         />
       )}
+
       {showStartModal && (
         <StartTrackModal
           onClose={() => setShowStartModal(false)}
           onStart={handleStartTrack}
         />
       )}
+
       {showClearModal && (
         <ClearTracksModal
           onClose={() => setShowClearModal(false)}
@@ -1306,18 +1015,15 @@ function MainApp() {
           }}
         />
       )}
-      {showTrailList &&
+
+      {showTrailList && (
         <TrailListModal
           onSelect={handleTrailSelect}
           onClose={() => setShowTrailList(false)}
-        />}
-
+        />
+      )}
     </div>
   );
 }
 
 export default MainApp;
-
-
-
-
