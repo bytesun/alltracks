@@ -1,130 +1,193 @@
 import React from 'react';
 import { Principal } from '@dfinity/principal';
-import '../styles/Tracks.css'
-import { useGlobalContext } from './Store';
-import { useAlltracks } from './Store';
-import { parseTracks } from '../utils/trackUtils';
-import { Track } from "../api/alltracks/backend.did"
 import { Link } from 'react-router-dom';
-import { CreateTrackModal } from './CreateTrackModal';
-import { arweaveGateway } from '../utils/arweave';
+import { useAlltracks, useGlobalContext } from './Store';
+import { parseTracks } from '../utils/trackUtils';
+import { getCompletedActivitiesFromIndexDB } from '../utils/IndexDBHandler';
+import { CompletedActivity } from '../types/CompletedActivity';
+import { formatDuration } from '../utils/activityMetrics';
+import '../styles/Tracks.css';
 
-export const Tracks: React.FC<{ userId?: string }> = ({userId}) => {
+type HistorySource = 'all' | 'local' | 'cloud';
 
+type HistoryItem = {
+  key: string;
+  id: string;
+  name: string;
+  activity: string;
+  startTime: number;
+  distanceKm: number;
+  durationHours: number;
+  elevationGain: number;
+  source: 'local' | 'cloud';
+};
+
+const localToHistoryItem = (activity: CompletedActivity): HistoryItem => ({
+  key: `local-${activity.id}`,
+  id: activity.id,
+  name: activity.name,
+  activity: activity.activity,
+  startTime: activity.startTime || activity.completedAt,
+  distanceKm: activity.distanceKm,
+  durationHours: activity.movingHours,
+  elevationGain: activity.elevationGain,
+  source: 'local',
+});
+
+export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
   const alltracks = useAlltracks();
   const { state: { isAuthed, principal } } = useGlobalContext();
-  const [tracks, setTracks] = React.useState<Track[]>([]);
-  const [trackVisibility, setTrackVisibility] = React.useState<'public' | 'private'>('public');
-
-  const [showCreateModal, setShowCreateModal] = React.useState(false);
+  const [items, setItems] = React.useState<HistoryItem[]>([]);
+  const [sourceFilter, setSourceFilter] = React.useState<HistorySource>('all');
+  const [loading, setLoading] = React.useState(true);
+  const [errorMessage, setErrorMessage] = React.useState('');
 
   React.useEffect(() => {
-    if (isAuthed) {
-      fetchTracks();
-    }
-  }, [isAuthed, trackVisibility]);
+    let active = true;
 
+    const loadHistory = async () => {
+      setLoading(true);
+      setErrorMessage('');
+      const merged: HistoryItem[] = [];
 
-  const fetchTracks = async () => {
+      try {
+        const localActivities = await getCompletedActivitiesFromIndexDB();
+        merged.push(...localActivities.map(localToHistoryItem));
+      } catch (error) {
+        console.error('Unable to load local activity history', error);
+        setErrorMessage('Local activity history is temporarily unavailable.');
+      }
 
-    const tks = await alltracks.getTracks({ user: Principal.fromText(userId) }, 0n, 100n)
-  
-    const formattedTracks = parseTracks(tks);
-    setTracks(formattedTracks);
-  };
+      const targetUser = userId || principal?.toText();
+      if (isAuthed && targetUser) {
+        try {
+          const tracks = await alltracks.getTracks({ user: Principal.fromText(targetUser) }, 0n, 100n);
+          const parsed = parseTracks(tracks as any);
+          merged.push(...parsed.map((track: any) => ({
+            key: `cloud-${String(track.id)}`,
+            id: String(track.id),
+            name: track.name || 'Unnamed activity',
+            activity: 'Cloud activity',
+            startTime: Number(track.startime) || 0,
+            distanceKm: Number(track.length) || 0,
+            durationHours: Number(track.duration) || 0,
+            elevationGain: Number(track.elevation) || 0,
+            source: 'cloud' as const,
+          })));
+        } catch (error) {
+          console.error('Unable to load cloud track history', error);
+          setErrorMessage((current) => current || 'Cloud activities could not be loaded. Local history is still available.');
+        }
+      }
 
-  // const fetchTracks = async () => {
-  //   // Query Arweave for tracks
-  //   const query = {
-  //     query: `
-  //       query {
-  //         transactions(
-  //           tags: [
-  //             {name: "App-Name", values: ["AllTracks"]},
-  //             {name: "File-Type", values: ["track"]},
-  //             {name: "User-Key", values: ["${principal.toText()}"]}
-  //           ]
-  //         ) {
-  //           edges {
-  //             node {
-  //               id
-  //               tags {
-  //                 name
-  //                 value
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     `
-  //   };
-  
-  //   const response = await fetch('https://arweave.net/graphql', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify(query)
-  //   });
-  
-  //   const result = await response.json();
-  //   const trackTransactions = result.data.transactions.edges;
-  //   console.log(trackTransactions);
-  //   // Process and format tracks
-  //   const formattedTracks = await Promise.all(trackTransactions.map(async (edge) => {
-  //     const trackData = await fetch(`${arweaveGateway}/${edge.node.id}`).then(res => res.json());
-  //     const tags = edge.node.tags.reduce((acc, tag) => ({...acc, [tag.name]: tag.value}), {});
-      
-  //     return {
-  //       id: edge.node.id,
-  //       name: tags['Track-Name'] || 'Unnamed Track',
-  //       startime: tags['Start-Time'],
-  //       length: trackData.distance || 0,
-  //       duration: trackData.duration || 0,
-  //       elevation: trackData.elevation || 0
-  //     };
-  //   }));
-  
-  //   setTracks(formattedTracks);
-  // };
-return (
-  <div className="tracks-section">
+      if (active) {
+        setItems(merged.sort((a, b) => b.startTime - a.startTime));
+        setLoading(false);
+      }
+    };
 
-    <div className="tracks-grid">
-      {tracks.map((track) => (
-        <Link to={`/track/${track.id}`} key={track.startime} className="track-card">
-          <div className="track-icon">
-            <span className="material-icons">route</span>
-          </div>
-          <div className="track-content">
-            <div className="track-title">
-              <h3>{track.name}</h3>
-              <span className="track-date">{new Date(Number(track.startime)).toLocaleDateString()}</span>
-            </div>
-            <div className="track-stats">
-              <div className="stat">
-                <span className="material-icons">straighten</span>
-                <span>{track.length.toFixed(1)} km</span>
+    loadHistory();
+    return () => {
+      active = false;
+    };
+  }, [alltracks, isAuthed, principal, userId]);
+
+  const visibleItems = items.filter((item) => sourceFilter === 'all' || item.source === sourceFilter);
+  const localCount = items.filter((item) => item.source === 'local').length;
+  const cloudCount = items.filter((item) => item.source === 'cloud').length;
+
+  return (
+    <section className="tracks-section">
+      <header className="history-header">
+        <div>
+          <p className="history-eyebrow">Activity log</p>
+          <h1>History</h1>
+          <p>Revisit completed routes, open activity details, and share an AllTracks outdoor card.</p>
+        </div>
+        <div className="history-count" aria-label={`${items.length} activities`}>
+          <strong>{items.length}</strong>
+          <span>activities</span>
+        </div>
+      </header>
+
+      <div className="history-filters" role="group" aria-label="Filter activity history">
+        <button type="button" className={sourceFilter === 'all' ? 'active' : ''} onClick={() => setSourceFilter('all')}>
+          All <span>{items.length}</span>
+        </button>
+        <button type="button" className={sourceFilter === 'local' ? 'active' : ''} onClick={() => setSourceFilter('local')}>
+          On device <span>{localCount}</span>
+        </button>
+        <button type="button" className={sourceFilter === 'cloud' ? 'active' : ''} onClick={() => setSourceFilter('cloud')}>
+          Cloud <span>{cloudCount}</span>
+        </button>
+      </div>
+
+      {!isAuthed && (
+        <div className="history-local-note">
+          <span className="material-icons">smartphone</span>
+          <span>Local activities stay on this device. Sign in when you want to add your cloud history.</span>
+        </div>
+      )}
+
+      {errorMessage && <div className="history-message" role="status">{errorMessage}</div>}
+
+      {loading ? (
+        <div className="history-loading">
+          <span className="material-icons">progress_activity</span>
+          Loading activities…
+        </div>
+      ) : visibleItems.length > 0 ? (
+        <div className="tracks-grid">
+          {visibleItems.map((item) => (
+            <Link
+              to={`/track/${encodeURIComponent(item.id)}?source=${item.source}`}
+              key={item.key}
+              className="track-card"
+              aria-label={`Open ${item.name}`}
+            >
+              <div className="track-card-topline">
+                <span className={`history-source-badge ${item.source}`}>
+                  <span className="material-icons">{item.source === 'local' ? 'smartphone' : 'cloud_done'}</span>
+                  {item.source === 'local' ? 'On device' : 'Cloud'}
+                </span>
+                <span className="track-date">
+                  {item.startTime ? new Date(item.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Activity'}
+                </span>
               </div>
-              <div className="stat">
-                <span className="material-icons">schedule</span>
-                <span>{track.duration.toFixed(1)} hr</span>
+
+              <div className="track-title-row">
+                <div>
+                  <span className="track-activity-label">{item.activity}</span>
+                  <h3>{item.name}</h3>
+                </div>
+                <span className="material-icons track-open-icon">arrow_forward</span>
               </div>
-              <div className="stat">
-                <span className="material-icons">terrain</span>
-                <span>{track.elevation.toFixed(0)} m</span>
+
+              <div className="track-stats">
+                <div className="history-stat">
+                  <span>Distance</span>
+                  <strong>{item.distanceKm.toFixed(2)} km</strong>
+                </div>
+                <div className="history-stat">
+                  <span>Time</span>
+                  <strong>{formatDuration(item.durationHours)}</strong>
+                </div>
+                <div className="history-stat">
+                  <span>Gain</span>
+                  <strong>{item.elevationGain.toFixed(0)} m</strong>
+                </div>
               </div>
-            </div>
-          </div>
-        </Link>
-      ))}
-    </div>
-    {showCreateModal && (
-      <CreateTrackModal
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={() => fetchTracks()}
-      />
-    )}
-  </div>
-);
-}
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="history-empty">
+          <span className="material-icons">route</span>
+          <h2>No activities here yet</h2>
+          <p>Finish a recording and save it locally, or sign in to see cloud activities.</p>
+          <Link to="/">Record an activity</Link>
+        </div>
+      )}
+    </section>
+  );
+};
