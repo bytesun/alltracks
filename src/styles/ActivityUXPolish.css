@@ -1,0 +1,19 @@
+.navbar-brand {
+  color: inherit;
+  text-decoration: none;
+}
+
+.navbar-brand:focus-visible {
+  border-radius: 8px;
+  outline: 3px solid rgba(15, 92, 77, 0.18);
+  outline-offset: 4px;
+}
+
+.activity-summary-close .material-icons,
+.activity-summary-actions .material-icons,
+.activity-detail-back .material-icons,
+.activity-detail-header-actions .material-icons,
+.activity-detail-card-share .material-icons,
+.activity-playback-controls .material-icons {
+  color: currentColor;
+}

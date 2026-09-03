@@ -1,9 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './ExportModal.css';
 import { useGlobalContext } from './Store';
 import { TrackType } from '../api/alltracks/backend.did';
 import { TrackPoint } from '../types/TrackPoint';
-import { getTrackPointsFromIndexDB } from '../utils/IndexDBHandler';
+import { calculateActivityMetrics } from '../utils/activityMetrics';
+import {
+  getTrackMetadataFromIndexDB,
+  getTrackPointsFromIndexDB,
+  saveCompletedActivityToIndexDB,
+} from '../utils/IndexDBHandler';
 import { ActivitySummaryModal } from './ActivitySummaryModal';
 
 interface ExportModalProps {
@@ -21,65 +26,18 @@ interface ExportModalProps {
   groupId: string;
 }
 
-type ActivitySummary = {
+type ActivitySummary = ReturnType<typeof calculateActivityMetrics> & {
   name: string;
   activity: string;
   points: TrackPoint[];
-  distanceKm: number;
-  movingHours: number;
-  elevationGain: number;
-  pace: string;
-  startTime?: number;
 };
 
-const calculateDistanceKm = (a: TrackPoint, b: TrackPoint) => {
-  const radiusKm = 6371;
-  const dLat = (b.latitude - a.latitude) * Math.PI / 180;
-  const dLon = (b.longitude - a.longitude) * Math.PI / 180;
-  const lat1 = a.latitude * Math.PI / 180;
-  const lat2 = b.latitude * Math.PI / 180;
-  const haversine =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-  return radiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
-};
-
-const createSummary = (points: TrackPoint[], name: string, activity: string): ActivitySummary => {
-  let distanceKm = 0;
-  let movingMs = 0;
-  let elevationGain = 0;
-
-  for (let index = 1; index < points.length; index += 1) {
-    const previous = points[index - 1];
-    const current = points[index];
-    const segmentKm = calculateDistanceKm(previous, current);
-    distanceKm += segmentKm;
-
-    if (segmentKm * 1000 > 5) {
-      movingMs += Math.max(0, current.timestamp - previous.timestamp);
-    }
-
-    const elevationDelta = (current.elevation ?? 0) - (previous.elevation ?? 0);
-    if (elevationDelta > 0) elevationGain += elevationDelta;
-  }
-
-  const movingHours = movingMs / (1000 * 60 * 60);
-  const paceMinutes = distanceKm > 0 ? (movingMs / 60000) / distanceKm : 0;
-  const pace = paceMinutes > 0 && Number.isFinite(paceMinutes)
-    ? `${Math.floor(paceMinutes)}:${Math.round((paceMinutes % 1) * 60).toString().padStart(2, '0')} min/km`
-    : '-';
-
-  return {
-    name,
-    activity,
-    points,
-    distanceKm,
-    movingHours,
-    elevationGain,
-    pace,
-    startTime: points[0]?.timestamp,
-  };
-};
+const createSummary = (points: TrackPoint[], name: string, activity: string): ActivitySummary => ({
+  name,
+  activity,
+  points,
+  ...calculateActivityMetrics(points),
+});
 
 const toExportTrackType = (activity: string): TrackType => {
   switch (activity) {
@@ -149,42 +107,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
     };
   }, [trackId, groupId]);
 
-  const shareText = useMemo(() => {
-    if (!summary) return '';
-    return [
-      summary.name,
-      `${summary.distanceKm.toFixed(2)} km`,
-      `${summary.elevationGain.toFixed(0)} m gain`,
-      summary.pace !== '-' ? summary.pace : null,
-      'Recorded with AllTracks',
-    ].filter(Boolean).join(' · ');
-  }, [summary]);
-
-  const shareSummary = async () => {
-    if (!shareText) return;
-
-    try {
-      const nav = navigator as Navigator & {
-        share?: (data: { title?: string; text?: string }) => Promise<void>;
-      };
-
-      if (nav.share) {
-        await nav.share({ title: summary?.name || 'AllTracks activity', text: shareText });
-        return;
-      }
-
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareText);
-        return;
-      }
-
-      throw new Error('Sharing is not available in this browser.');
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      setLoadError(error instanceof Error ? error.message : 'Unable to share this summary.');
-    }
-  };
-
   const runExport = async (
     nextFormat: string,
     nextStorage: 'local' | 'cloud',
@@ -202,6 +124,34 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
         isPrivateStorage,
         nextTrackType,
       );
+
+      // MainApp removes the active IndexedDB record only when the activity has
+      // actually completed. A normal mid-activity Export keeps that record.
+      // Checking it here lets History archive Finish without treating backups
+      // (or swallowed export failures) as completed activities.
+      if (nextStorage === 'local' && summary) {
+        try {
+          const activeTrack = await getTrackMetadataFromIndexDB(trackId);
+          if (!activeTrack) {
+            await saveCompletedActivityToIndexDB({
+              id: trackId,
+              name: summary.name,
+              activity: summary.activity,
+              groupId,
+              completedAt: Date.now(),
+              startTime: summary.startTime,
+              distanceKm: summary.distanceKm,
+              movingHours: summary.movingHours,
+              elevationGain: summary.elevationGain,
+              pace: summary.pace,
+              points: summary.points,
+            });
+          }
+        } catch (historyError) {
+          console.error('Unable to save local activity history', historyError);
+        }
+      }
+
       onClose();
     } finally {
       setIsSubmitting(false);
@@ -238,11 +188,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
         movingHours={summary.movingHours}
         elevationGain={summary.elevationGain}
         pace={summary.pace}
-        points={summary.points.length}
+        points={summary.points}
         isSaving={isSubmitting}
         onSaveGpx={() => runExport('gpx', 'local', safeFilename(summary.name), trackType)}
         onMoreOptions={() => setShowOptions(true)}
-        onShare={shareSummary}
         onClose={onClose}
       />
     );
