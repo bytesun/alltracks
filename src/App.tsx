@@ -29,6 +29,7 @@ import { StatsProvider } from './context/StatsContext';
 import Store from './components/Store';
 import { Layout } from './components/Layout';
 import './styles/UXOverrides.css';
+import './styles/ActivityUXPolish.css';
 
 function App() {
   return (
