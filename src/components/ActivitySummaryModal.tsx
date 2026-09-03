@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import { ActivityShareCard } from './ActivityShareCard';
+import { TrackPoint } from '../types/TrackPoint';
+import { shareActivityCard } from '../utils/shareActivityCard';
 import '../styles/ActivitySummaryModal.css';
 
 interface ActivitySummaryModalProps {
@@ -10,21 +13,12 @@ interface ActivitySummaryModalProps {
   movingHours: number;
   elevationGain: number;
   pace: string;
-  points: number;
+  points: TrackPoint[];
   isSaving?: boolean;
   onSaveGpx: () => void | Promise<void>;
   onMoreOptions: () => void;
-  onShare: () => void | Promise<void>;
   onClose: () => void;
 }
-
-const formatDuration = (hours: number) => {
-  if (!Number.isFinite(hours) || hours <= 0) return '0m';
-  const totalMinutes = Math.round(hours * 60);
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-};
 
 export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
   isOpen,
@@ -39,10 +33,35 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
   isSaving = false,
   onSaveGpx,
   onMoreOptions,
-  onShare,
   onClose,
 }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareStatus, setShareStatus] = useState('');
+
   if (!isOpen) return null;
+
+  const shareText = [
+    name,
+    `${distanceKm.toFixed(2)} km`,
+    `${elevationGain.toFixed(0)} m gain`,
+    pace !== '-' ? pace : null,
+    'Recorded with AllTracks',
+  ].filter(Boolean).join(' · ');
+
+  const handleShare = async () => {
+    setShareStatus('');
+    setIsSharing(true);
+    try {
+      const result = await shareActivityCard(cardRef.current, name, shareText);
+      setShareStatus(result === 'shared' ? 'Activity card shared.' : 'Activity card downloaded as PNG.');
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setShareStatus(error instanceof Error ? error.message : 'Unable to share the activity card.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <div className="activity-summary-overlay" role="presentation">
@@ -54,10 +73,10 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
       >
         <div className="activity-summary-topbar">
           <div>
-            <p className="activity-summary-eyebrow">Activity summary</p>
-            <h2 id="activity-summary-title">{name}</h2>
+            <p className="activity-summary-eyebrow">Activity complete</p>
+            <h2 id="activity-summary-title">Your outdoor card is ready</h2>
             <p className="activity-summary-subtitle">
-              <span>{activity}</span>
+              <span>{points.length} recorded points</span>
               {startTime ? <span>{new Date(startTime).toLocaleString()}</span> : null}
             </p>
           </div>
@@ -71,40 +90,41 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
           </button>
         </div>
 
-        <div className="activity-summary-hero-stat">
-          <strong>{distanceKm.toFixed(2)}</strong>
-          <span>km</span>
-        </div>
-
-        <div className="activity-summary-stats" aria-label="Activity statistics">
-          <div>
-            <span>Moving time</span>
-            <strong>{formatDuration(movingHours)}</strong>
-          </div>
-          <div>
-            <span>Elevation gain</span>
-            <strong>{elevationGain.toFixed(0)} m</strong>
-          </div>
-          <div>
-            <span>Pace</span>
-            <strong>{pace}</strong>
-          </div>
-          <div>
-            <span>Recorded points</span>
-            <strong>{points}</strong>
-          </div>
+        <div className="activity-summary-card-wrap">
+          <ActivityShareCard
+            ref={cardRef}
+            name={name}
+            activity={activity}
+            startTime={startTime}
+            distanceKm={distanceKm}
+            movingHours={movingHours}
+            elevationGain={elevationGain}
+            pace={pace}
+            points={points}
+          />
         </div>
 
         <p className="activity-summary-hint">
-          Save a GPX copy now, share a compact activity recap, or open more options for KML, CSV, and cloud storage.
+          Share the card as an image, save the route as GPX, or open advanced export options for KML, CSV, and cloud storage.
         </p>
+
+        {shareStatus && <div className="activity-summary-status" role="status">{shareStatus}</div>}
 
         <div className="activity-summary-actions">
           <button
             type="button"
+            className="activity-summary-share"
+            onClick={handleShare}
+            disabled={isSaving || isSharing}
+          >
+            <span className="material-icons">ios_share</span>
+            {isSharing ? 'Creating card…' : 'Share outdoor card'}
+          </button>
+          <button
+            type="button"
             className="activity-summary-primary"
             onClick={onSaveGpx}
-            disabled={isSaving}
+            disabled={isSaving || isSharing}
           >
             <span className="material-icons">download_done</span>
             {isSaving ? 'Saving…' : 'Save GPX'}
@@ -113,25 +133,16 @@ export const ActivitySummaryModal: React.FC<ActivitySummaryModalProps> = ({
             type="button"
             className="activity-summary-secondary"
             onClick={onMoreOptions}
-            disabled={isSaving}
+            disabled={isSaving || isSharing}
           >
             <span className="material-icons">tune</span>
             More options
           </button>
           <button
             type="button"
-            className="activity-summary-secondary"
-            onClick={onShare}
-            disabled={isSaving}
-          >
-            <span className="material-icons">share</span>
-            Share summary
-          </button>
-          <button
-            type="button"
             className="activity-summary-keep"
             onClick={onClose}
-            disabled={isSaving}
+            disabled={isSaving || isSharing}
           >
             Back to track
           </button>
