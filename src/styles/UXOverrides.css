@@ -18,24 +18,127 @@
   min-height: 100%;
 }
 
+/* Live recording overview */
 .stats {
   width: min(100%, 760px);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px 16px;
-  text-align: left;
-  padding: 16px 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 12px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(31, 82, 68, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(246, 250, 248, 0.96));
+  box-shadow: 0 12px 34px rgba(16, 43, 35, 0.08);
+  color: #17352d;
+  text-align: left;
+  font-size: 14px;
 }
 
-.stats h3,
-.stats > p:nth-of-type(1),
+.stats h3 {
+  grid-column: 1 / -1;
+  order: 1;
+  margin: 0 !important;
+  color: #143d32;
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+/* Activity type */
+.stats > p:nth-of-type(1) {
+  grid-column: 1 / -1;
+  order: 2;
+  width: fit-content;
+  margin: -2px 0 0 !important;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #e9f5ee;
+  color: #2d7357 !important;
+  font-size: 11px !important;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase !important;
+}
+
+/* Start time */
 .stats > p:nth-of-type(2) {
   grid-column: 1 / -1;
+  order: 3;
+  margin: 2px 0 3px;
+  color: #71847d;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-.stats p {
-  margin: 3px 0;
+/* Main live metrics */
+.stats > p:nth-of-type(3),
+.stats > p:nth-of-type(4),
+.stats > p:nth-of-type(5),
+.stats > p:nth-of-type(6) {
+  min-width: 0;
+  margin: 0;
+  padding: 12px 13px;
+  border: 1px solid rgba(34, 81, 68, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #244c40;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+  box-shadow: 0 3px 12px rgba(30, 65, 55, 0.035);
+}
+
+/* Put the most useful at-a-glance number first. */
+.stats > p:nth-of-type(4) { order: 4; }
+.stats > p:nth-of-type(3) { order: 5; }
+.stats > p:nth-of-type(6) { order: 6; }
+.stats > p:nth-of-type(5) { order: 7; }
+
+/* Recorded points acts like a light footer/action rather than another metric. */
+.stats > p:nth-of-type(7) {
+  grid-column: 1 / -1;
+  order: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 2px 0 0;
+  padding: 9px 2px 0;
+  border-top: 1px solid rgba(31, 82, 68, 0.09);
+  color: #70847d;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.stats .clickable-count {
+  display: inline-grid;
+  min-width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #e8f3ee;
+  color: #1d6b50;
+  font-weight: 850;
+}
+
+.stats .points-count-link {
+  cursor: pointer;
+}
+
+.stats .points-count-link:hover .clickable-count {
+  background: #dcece4;
+}
+
+.stats .share-button {
+  grid-column: 1 / -1;
+  order: 9;
+  justify-self: end;
+  margin: 0;
 }
 
 .controls {
@@ -139,14 +242,21 @@
   .stats {
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 12px 14px;
-    border-radius: 14px;
+    gap: 8px;
+    padding: 13px;
+    border-radius: 16px;
   }
 
-  .stats h3,
-  .stats > p:nth-of-type(1),
-  .stats > p:nth-of-type(2) {
-    grid-column: 1 / -1;
+  .stats h3 {
+    font-size: 19px;
+  }
+
+  .stats > p:nth-of-type(3),
+  .stats > p:nth-of-type(4),
+  .stats > p:nth-of-type(5),
+  .stats > p:nth-of-type(6) {
+    padding: 10px;
+    font-size: 12px;
   }
 
   .manual-controls {
@@ -172,6 +282,20 @@
   .feature-highlights {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  .stats {
+    padding: 11px;
+  }
+
+  .stats > p:nth-of-type(3),
+  .stats > p:nth-of-type(4),
+  .stats > p:nth-of-type(5),
+  .stats > p:nth-of-type(6) {
+    padding: 9px 8px;
+    font-size: 11px;
   }
 }
 
