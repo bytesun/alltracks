@@ -24,11 +24,13 @@ import { Trackathons } from './pages/Trackathons';
 import { TrackathonDetail } from './pages/TrackathonDetail';
 import { Tracking } from './pages/Tracking';
 import { TrailDetail } from './pages/TrailDetail';
+import Explore from './pages/Explore';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
 import Store from './components/Store';
 import { Layout } from './components/Layout';
+import './styles/UXOverrides.css';
 
 function App() {
   return (
@@ -40,6 +42,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainApp />} />
                 <Route path="/tracking" element={<Tracking />} />
+                <Route path="/explore" element={<Explore />} />
                 <Route path="/trails" element={<Trails />} />
                 <Route path="/trail/:trailId" element={<TrailDetail />} />
                 <Route path="/events" element={<Events />} />
