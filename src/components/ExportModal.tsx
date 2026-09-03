@@ -5,6 +5,7 @@ import { TrackType } from '../api/alltracks/backend.did';
 import { TrackPoint } from '../types/TrackPoint';
 import { calculateActivityMetrics } from '../utils/activityMetrics';
 import {
+  getTrackMetadataFromIndexDB,
   getTrackPointsFromIndexDB,
   saveCompletedActivityToIndexDB,
 } from '../utils/IndexDBHandler';
@@ -124,24 +125,28 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onExport, onClose, tra
         nextTrackType,
       );
 
-      // Local recording is a first-class workflow. Keep a history snapshot even
-      // when the active working copy is cleared by Finish. Re-exporting the same
-      // track id updates this snapshot rather than creating duplicates.
+      // MainApp removes the active IndexedDB record only when the activity has
+      // actually completed. A normal mid-activity Export keeps that record.
+      // Checking it here lets History archive Finish without treating backups
+      // (or swallowed export failures) as completed activities.
       if (nextStorage === 'local' && summary) {
         try {
-          await saveCompletedActivityToIndexDB({
-            id: trackId,
-            name: summary.name,
-            activity: summary.activity,
-            groupId,
-            completedAt: Date.now(),
-            startTime: summary.startTime,
-            distanceKm: summary.distanceKm,
-            movingHours: summary.movingHours,
-            elevationGain: summary.elevationGain,
-            pace: summary.pace,
-            points: summary.points,
-          });
+          const activeTrack = await getTrackMetadataFromIndexDB(trackId);
+          if (!activeTrack) {
+            await saveCompletedActivityToIndexDB({
+              id: trackId,
+              name: summary.name,
+              activity: summary.activity,
+              groupId,
+              completedAt: Date.now(),
+              startTime: summary.startTime,
+              distanceKm: summary.distanceKm,
+              movingHours: summary.movingHours,
+              elevationGain: summary.elevationGain,
+              pace: summary.pace,
+              points: summary.points,
+            });
+          }
         } catch (historyError) {
           console.error('Unable to save local activity history', historyError);
         }
