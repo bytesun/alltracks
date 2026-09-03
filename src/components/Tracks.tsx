@@ -49,16 +49,20 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
       setLoading(true);
       setErrorMessage('');
       const merged: HistoryItem[] = [];
+      const currentPrincipal = principal?.toText();
+      const viewingOwnHistory = !userId || Boolean(currentPrincipal && userId === currentPrincipal);
 
-      try {
-        const localActivities = await getCompletedActivitiesFromIndexDB();
-        merged.push(...localActivities.map(localToHistoryItem));
-      } catch (error) {
-        console.error('Unable to load local activity history', error);
-        setErrorMessage('Local activity history is temporarily unavailable.');
+      if (viewingOwnHistory) {
+        try {
+          const localActivities = await getCompletedActivitiesFromIndexDB();
+          merged.push(...localActivities.map(localToHistoryItem));
+        } catch (error) {
+          console.error('Unable to load local activity history', error);
+          setErrorMessage('Local activity history is temporarily unavailable.');
+        }
       }
 
-      const targetUser = userId || principal?.toText();
+      const targetUser = userId || currentPrincipal;
       if (isAuthed && targetUser) {
         try {
           const tracks = await alltracks.getTracks({ user: Principal.fromText(targetUser) }, 0n, 100n);
@@ -95,14 +99,17 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
   const visibleItems = items.filter((item) => sourceFilter === 'all' || item.source === sourceFilter);
   const localCount = items.filter((item) => item.source === 'local').length;
   const cloudCount = items.filter((item) => item.source === 'cloud').length;
+  const isOwnHistory = !userId || Boolean(principal && userId === principal.toText());
 
   return (
     <section className="tracks-section">
       <header className="history-header">
         <div>
           <p className="history-eyebrow">Activity log</p>
-          <h1>History</h1>
-          <p>Revisit completed routes, open activity details, and share an AllTracks outdoor card.</p>
+          <h1>{isOwnHistory ? 'History' : 'Activity History'}</h1>
+          <p>{isOwnHistory
+            ? 'Revisit completed routes, open activity details, and share an AllTracks outdoor card.'
+            : 'Browse the activities this user has shared to AllTracks.'}</p>
         </div>
         <div className="history-count" aria-label={`${items.length} activities`}>
           <strong>{items.length}</strong>
@@ -114,15 +121,17 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
         <button type="button" className={sourceFilter === 'all' ? 'active' : ''} onClick={() => setSourceFilter('all')}>
           All <span>{items.length}</span>
         </button>
-        <button type="button" className={sourceFilter === 'local' ? 'active' : ''} onClick={() => setSourceFilter('local')}>
-          On device <span>{localCount}</span>
-        </button>
+        {isOwnHistory && (
+          <button type="button" className={sourceFilter === 'local' ? 'active' : ''} onClick={() => setSourceFilter('local')}>
+            On device <span>{localCount}</span>
+          </button>
+        )}
         <button type="button" className={sourceFilter === 'cloud' ? 'active' : ''} onClick={() => setSourceFilter('cloud')}>
           Cloud <span>{cloudCount}</span>
         </button>
       </div>
 
-      {!isAuthed && (
+      {!isAuthed && isOwnHistory && (
         <div className="history-local-note">
           <span className="material-icons">smartphone</span>
           <span>Local activities stay on this device. Sign in when you want to add your cloud history.</span>
@@ -184,8 +193,10 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
         <div className="history-empty">
           <span className="material-icons">route</span>
           <h2>No activities here yet</h2>
-          <p>Finish a recording and save it locally, or sign in to see cloud activities.</p>
-          <Link to="/">Record an activity</Link>
+          <p>{isOwnHistory
+            ? 'Finish a recording and save it locally, or sign in to see cloud activities.'
+            : 'No shared cloud activities are available for this user.'}</p>
+          {isOwnHistory && <Link to="/">Record an activity</Link>}
         </div>
       )}
     </section>
