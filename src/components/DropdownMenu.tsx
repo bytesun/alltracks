@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DropdownMenu.css';
-import { useGlobalContext } from './Store';
 
 interface DropdownMenuProps {
   isAuthed: boolean;
@@ -9,7 +8,6 @@ interface DropdownMenuProps {
 }
 
 export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
-  const { state: { principal } } = useGlobalContext();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -30,58 +28,47 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
     setIsOpen(false);
   };
 
+  const menuItem = (path: string, icon: string, label: string) => (
+    <li>
+      <button type="button" onClick={() => goTo(path)}>
+        <span className="material-icons">{icon}</span>
+        {label}
+      </button>
+    </li>
+  );
+
   return (
     <div className="nav-dropdown-container" ref={dropdownRef}>
       <button
         className="nav-menu-button"
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
-        ☰
+        <span className="material-icons">menu</span>
       </button>
       {isOpen && (
-        <div className="nav-dropdown-menu">
+        <div className="nav-dropdown-menu" role="menu">
           <ul>
-            <li onClick={() => goTo('/')}>
-              <span className="material-icons">radio_button_checked</span>
-              Record
+            {menuItem('/', 'radio_button_checked', 'Record')}
+            {menuItem('/explore', 'explore', 'Explore')}
+            {menuItem('/trackathons', 'flag', 'Challenges')}
+            {menuItem('/history', 'history', 'History')}
+            {isAuthed && menuItem('/profile', 'person', 'Me')}
+            <li>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsOpen(false);
+                  await onAuth();
+                }}
+              >
+                <span className="material-icons">{isAuthed ? 'logout' : 'login'}</span>
+                {isAuthed ? 'Sign Out' : 'Sign In'}
+              </button>
             </li>
-            <li onClick={() => goTo('/explore')}>
-              <span className="material-icons">explore</span>
-              Explore
-            </li>
-            <li onClick={() => goTo('/trackathons')}>
-              <span className="material-icons">flag</span>
-              Challenges
-            </li>
-            {isAuthed && principal && (
-              <li onClick={() => goTo(`/tracks/${principal}`)}>
-                <span className="material-icons">history</span>
-                History
-              </li>
-            )}
-            {isAuthed && (
-              <li onClick={() => goTo('/profile')}>
-                <span className="material-icons">person</span>
-                Me
-              </li>
-            )}
-            {isAuthed && <li onClick={() => {
-              setIsOpen(false);
-              onAuth();
-            }}>
-              <span className="material-icons">logout</span>
-              Sign Out
-            </li>}
-
-            {!isAuthed && <li onClick={() => {
-              setIsOpen(false);
-              onAuth();
-            }}>
-              <span className="material-icons">login</span>
-              Sign In
-            </li>}
           </ul>
         </div>
       )}
