@@ -6,6 +6,17 @@ function getPaceDisplay(distance: number, duration: number) {
   const sec = Math.round((pace - min) * 60);
   return `${min}:${sec.toString().padStart(2, '0')} min/km`;
 }
+
+function makeDefaultTrackName() {
+  const when = new Date().toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `Outdoor track · ${when}`;
+}
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -22,6 +33,7 @@ import MapView, { Polyline, Marker } from '../components/MapView';
 import { Ionicons } from '@expo/vector-icons';
 import { useTracking } from '../services/TrackingContext';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 
 export default function TrackingScreen() {
   const {
@@ -51,11 +63,34 @@ export default function TrackingScreen() {
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
   const [showPointDetail, setShowPointDetail] = useState(false);
   const [mapRegion, setMapRegion] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitude: 20,
+    longitude: 0,
+    latitudeDelta: 80,
+    longitudeDelta: 80,
   });
+
+  const centerOnCurrentLocation = async () => {
+    try {
+      const permission = await Location.getForegroundPermissionsAsync();
+      if (permission.status !== 'granted') return;
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setMapRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    } catch {
+      // TrackingContext owns permission and tracking errors. Map centering is best-effort only.
+    }
+  };
+
+  useEffect(() => {
+    centerOnCurrentLocation();
+  }, []);
 
   useEffect(() => {
     if (activeTrack && activeTrack.points.length > 0) {
@@ -70,35 +105,33 @@ export default function TrackingScreen() {
   }, [activeTrack?.points]);
 
   const handleStartTracking = async () => {
-    if (!trackName.trim()) {
-      Alert.alert('Error', 'Please enter a track name');
-      return;
-    }
+    const resolvedName = trackName.trim() || makeDefaultTrackName();
 
     try {
-      await startTracking(trackName, trackDescription);
+      await startTracking(resolvedName, trackDescription);
+      await centerOnCurrentLocation();
       setShowStartModal(false);
       setTrackName('');
       setTrackDescription('');
     } catch (error) {
-      Alert.alert('Error', 'Failed to start tracking. Please check location permissions.');
+      Alert.alert('Location Needed', 'AllTracks needs location access when you record your outdoor activity.');
     }
   };
 
   const handleStopTracking = () => {
     Alert.alert(
-      'Stop Tracking',
-      'Are you sure you want to stop tracking?',
+      'Finish Track',
+      'Finish and save this track?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Keep Recording', style: 'cancel' },
         {
-          text: 'Stop',
+          text: 'Finish',
           style: 'destructive',
           onPress: async () => {
             try {
               await stopTracking();
             } catch (error) {
-              Alert.alert('Error', 'Failed to stop tracking');
+              Alert.alert('Error', 'Failed to finish tracking');
             }
           },
         },
@@ -118,7 +151,6 @@ export default function TrackingScreen() {
   };
 
   const pickImage = async () => {
-    // Request camera permissions
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission Denied', 'Camera permission is required to take photos');
@@ -144,22 +176,18 @@ export default function TrackingScreen() {
   };
 
   const formatDistance = (meters: number) => {
-    if (meters < 1000) {
-      return `${meters.toFixed(0)}m`;
-    }
+    if (meters < 1000) return `${meters.toFixed(0)}m`;
     return `${(meters / 1000).toFixed(2)}km`;
   };
 
   const calculateCurrentDistance = () => {
     if (!activeTrack || activeTrack.points.length < 2) return 0;
-    
+
     let totalDistance = 0;
     for (let i = 1; i < activeTrack.points.length; i++) {
       const p1 = activeTrack.points[i - 1];
       const p2 = activeTrack.points[i];
-      
-      // Use Haversine formula to calculate distance between two points
-      const R = 6371e3; // Earth's radius in meters
+      const R = 6371e3;
       const φ1 = (p1.latitude * Math.PI) / 180;
       const φ2 = (p2.latitude * Math.PI) / 180;
       const Δφ = ((p2.latitude - p1.latitude) * Math.PI) / 180;
@@ -169,11 +197,12 @@ export default function TrackingScreen() {
         Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
         Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
       totalDistance += R * c;
     }
     return totalDistance;
   };
+
+  const syncNeedsAttention = !isOnline || pendingSyncCount > 0 || Boolean(lastSyncError) || isSyncing;
 
   return (
     <View style={styles.container}>
@@ -235,51 +264,54 @@ export default function TrackingScreen() {
           </TouchableOpacity>
         ) : (
           <>
-            <View style={styles.syncBanner}>
-              <View>
-                <Text style={styles.syncBannerTitle}>
-                  {isOnline ? 'Online sync available' : 'Offline recording active'}
+            <View style={styles.syncStatusRow}>
+              <View style={[styles.syncChip, !isOnline && styles.syncChipOffline]}>
+                <Ionicons
+                  name={isOnline ? (pendingSyncCount > 0 ? 'cloud-upload-outline' : 'cloud-done-outline') : 'cloud-offline-outline'}
+                  size={16}
+                  color={isOnline ? '#1C6AA6' : '#9A5A10'}
+                />
+                <Text style={[styles.syncChipText, !isOnline && styles.syncChipTextOffline]}>
+                  {isSyncing
+                    ? 'Syncing'
+                    : !isOnline
+                      ? 'Offline'
+                      : pendingSyncCount > 0
+                        ? `${pendingSyncCount} pending`
+                        : 'Synced'}
                 </Text>
-                <Text style={styles.syncBannerText}>
-                  {pendingSyncCount > 0
-                    ? `${pendingSyncCount} item${pendingSyncCount === 1 ? '' : 's'} queued for upload`
-                    : 'No pending uploads'}
-                </Text>
-                {lastSyncError ? <Text style={styles.syncErrorText}>{lastSyncError}</Text> : null}
               </View>
-              <TouchableOpacity
-                style={[styles.syncNowButton, isSyncing && styles.syncNowButtonDisabled]}
-                disabled={isSyncing}
-                onPress={syncPendingData}
-              >
-                <Ionicons name={isSyncing ? 'sync' : 'cloud-upload'} size={18} color="#007AFF" />
-                <Text style={styles.syncNowButtonText}>{isSyncing ? 'Syncing' : 'Sync now'}</Text>
-              </TouchableOpacity>
+
+              {syncNeedsAttention && pendingSyncCount > 0 && (
+                <TouchableOpacity
+                  style={[styles.syncNowButton, isSyncing && styles.syncNowButtonDisabled]}
+                  disabled={isSyncing || !isOnline}
+                  onPress={syncPendingData}
+                >
+                  <Text style={styles.syncNowButtonText}>Sync now</Text>
+                </TouchableOpacity>
+              )}
             </View>
+
+            {lastSyncError ? <Text style={styles.syncErrorText}>{lastSyncError}</Text> : null}
 
             <View style={styles.statsBar}>
               <View style={styles.stat}>
                 <Text style={styles.statLabel}>Duration</Text>
-                <Text style={styles.statValue}>
-                  {formatDuration(getActiveDuration())}
-                </Text>
+                <Text style={styles.statValue}>{formatDuration(getActiveDuration())}</Text>
               </View>
               <View style={styles.stat}>
                 <Text style={styles.statLabel}>Distance</Text>
                 <Text style={styles.statValue}>{formatDistance(calculateCurrentDistance())}</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statLabel}>Elevation</Text>
+                <Text style={styles.statLabel}>Pace</Text>
                 <Text style={styles.statValue}>
-                  {getPaceDisplay(
-                    calculateCurrentDistance(),
-                    getActiveDuration()
-                  )}
+                  {getPaceDisplay(calculateCurrentDistance(), getActiveDuration())}
                 </Text>
               </View>
             </View>
 
-            {/* Point List */}
             {activeTrack && activeTrack.points.length > 0 && (
               <ScrollView style={styles.pointList} horizontal showsHorizontalScrollIndicator={false}>
                 {activeTrack.points.filter(p => p.comment || p.photo).map((point, index) => (
@@ -321,15 +353,14 @@ export default function TrackingScreen() {
                 style={styles.stopButton}
                 onPress={handleStopTracking}
               >
-                <Ionicons name="stop" size={24} color="white" />
-                <Text style={styles.buttonText}>Stop</Text>
+                <Ionicons name="checkmark" size={24} color="white" />
+                <Text style={styles.buttonText}>Finish</Text>
               </TouchableOpacity>
             </View>
           </>
         )}
       </View>
 
-      {/* Start Tracking Modal */}
       <Modal
         visible={showStartModal}
         animationType="slide"
@@ -342,7 +373,7 @@ export default function TrackingScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="Track Name *"
+              placeholder="Track name (optional)"
               value={trackName}
               onChangeText={setTrackName}
             />
@@ -360,11 +391,18 @@ export default function TrackingScreen() {
               <Text style={styles.infoText}>
                 Mode: {settings.mode === 'auto' ? 'Automatic' : 'Manual'}
               </Text>
-              {settings.mode === 'auto' && (
+              {settings.mode === 'auto' ? (
                 <Text style={styles.infoText}>
                   Recording every {settings.minDistance}m or {settings.minTime}s
                 </Text>
+              ) : (
+                <Text style={styles.infoText}>
+                  GPS points are only saved when you tap Record Point.
+                </Text>
               )}
+              <Text style={styles.permissionHint}>
+                Location access is requested only when tracking needs your position.
+              </Text>
             </View>
 
             <View style={styles.modalButtons}>
@@ -386,7 +424,6 @@ export default function TrackingScreen() {
         </View>
       </Modal>
 
-      {/* Add Checkpoint Modal */}
       <Modal
         visible={showCheckpointModal}
         animationType="slide"
@@ -395,7 +432,7 @@ export default function TrackingScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Checkpoint</Text>
+            <Text style={styles.modalTitle}>{settings.mode === 'manual' ? 'Record Point' : 'Add Checkpoint'}</Text>
             {settings.mode === 'manual' && (
               <Text style={styles.modalDescription}>
                 This records the current location into your offline track immediately and syncs it when the network comes back.
@@ -438,14 +475,13 @@ export default function TrackingScreen() {
                 style={[styles.modalButton, styles.confirmButton]}
                 onPress={handleAddCheckpoint}
               >
-                <Text style={styles.confirmButtonText}>Add</Text>
+                <Text style={styles.confirmButtonText}>{settings.mode === 'manual' ? 'Record' : 'Add'}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Point Detail Modal */}
       <Modal
         visible={showPointDetail}
         animationType="slide"
@@ -533,47 +569,49 @@ const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 1000,
   },
-  syncBanner: {
+  syncStatusRow: {
+    minHeight: 28,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#F2F7FF',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  syncBannerTitle: {
-    fontSize: 14,
+  syncChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    borderRadius: 999,
+    backgroundColor: '#EEF6FC',
+  },
+  syncChipOffline: {
+    backgroundColor: '#FFF5E8',
+  },
+  syncChipText: {
+    fontSize: 12,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#1C6AA6',
   },
-  syncBannerText: {
-    fontSize: 13,
-    color: '#475569',
-    marginTop: 2,
+  syncChipTextOffline: {
+    color: '#9A5A10',
   },
   syncErrorText: {
     fontSize: 12,
     color: '#B91C1C',
-    marginTop: 4,
-    maxWidth: 220,
+    marginBottom: 8,
   },
   syncNowButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'white',
     borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
   },
   syncNowButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.5,
   },
   syncNowButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#007AFF',
   },
   startButton: {
@@ -585,7 +623,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   stopButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#173F65',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -621,15 +659,16 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 10,
   },
   statsBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   stat: {
     alignItems: 'center',
+    flex: 1,
   },
   statLabel: {
     fontSize: 12,
@@ -637,7 +676,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   modalContainer: {
@@ -688,6 +727,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
+  permissionHint: {
+    fontSize: 12,
+    color: '#65758A',
+    marginTop: 5,
+    lineHeight: 17,
+  },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -733,7 +778,7 @@ const styles = StyleSheet.create({
   },
   pointList: {
     maxHeight: 80,
-    marginVertical: 8,
+    marginVertical: 6,
   },
   pointCard: {
     flexDirection: 'row',

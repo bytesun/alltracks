@@ -196,7 +196,7 @@ export class StorageService {
       return settings
         ? JSON.parse(settings)
         : {
-            mode: 'auto' as const,
+            mode: 'manual' as const,
             minDistance: 10,
             minTime: 5,
             recordElevation: true,
@@ -204,7 +204,7 @@ export class StorageService {
     } catch (error) {
       console.error('Error loading settings:', error);
       return {
-        mode: 'auto' as const,
+        mode: 'manual' as const,
         minDistance: 10,
         minTime: 5,
         recordElevation: true,

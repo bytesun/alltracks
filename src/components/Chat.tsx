@@ -21,9 +21,9 @@ function nextId() {
 const WELCOME_MESSAGE: ChatMessage = {
   id: '0',
   role: 'assistant',
-  text: "👋 Hi! I'm your AllTracks assistant. Tell me what you'd like to do and I'll help you navigate and use the app.\n\nTry saying \"Help\" to see everything I can do!",
+  text: "👋 I can help with common AllTracks actions and navigation. Try a short command like \"Start tracking\", \"Open explore\", or \"View my history\".",
   timestamp: new Date(),
-  quickReplies: ['Help', 'Start Tracking', 'Browse Trails', 'View Profile'],
+  quickReplies: ['Start Tracking', 'Browse Trails', 'View Profile', 'Help'],
 };
 
 export const Chat: React.FC = () => {
@@ -69,7 +69,6 @@ export const Chat: React.FC = () => {
       setMessages((prev) => [...prev, userMsg]);
       setIsTyping(true);
 
-      // Small delay to mimic assistant thinking
       await new Promise((resolve) => setTimeout(resolve, 400));
 
       const parsed = parseCommand(text, isAuthed, principalStr);
@@ -89,7 +88,6 @@ export const Chat: React.FC = () => {
         setHasUnread(true);
       }
 
-      // Execute side-effects
       if (parsed.navigationPath) {
         await new Promise((resolve) => setTimeout(resolve, 600));
         navigate(parsed.navigationPath);
@@ -135,12 +133,11 @@ export const Chat: React.FC = () => {
 
   return (
     <>
-      {/* Floating chat button */}
       <button
         className={`chat-fab ${hasUnread ? 'chat-fab--unread' : ''}`}
         onClick={() => setIsOpen((open) => !open)}
-        aria-label={isOpen ? 'Close chat assistant' : 'Open chat assistant'}
-        title="AllTracks Assistant"
+        aria-label={isOpen ? 'Close quick help' : 'Open quick help'}
+        title="AllTracks Quick Help"
       >
         {isOpen ? (
           <span className="material-icons">close</span>
@@ -152,17 +149,15 @@ export const Chat: React.FC = () => {
         )}
       </button>
 
-      {/* Chat panel */}
       {isOpen && (
-        <div className="chat-panel" role="dialog" aria-label="AllTracks Chat Assistant">
-          {/* Header */}
+        <div className="chat-panel" role="dialog" aria-label="AllTracks Quick Help">
           <div className="chat-panel__header">
             <div className="chat-panel__header-info">
-              <span className="material-icons chat-panel__header-icon">smart_toy</span>
+              <span className="material-icons chat-panel__header-icon">assistant</span>
               <div>
-                <div className="chat-panel__header-title">AllTracks Assistant</div>
+                <div className="chat-panel__header-title">Quick Help</div>
                 <div className="chat-panel__header-subtitle">
-                  {isAuthed ? '● Online' : 'Sign in for full access'}
+                  {isAuthed ? 'Actions and navigation' : 'Sign in for account actions'}
                 </div>
               </div>
             </div>
@@ -179,20 +174,19 @@ export const Chat: React.FC = () => {
                 className="chat-panel__icon-btn"
                 onClick={() => setIsOpen(false)}
                 title="Close"
-                aria-label="Close chat"
+                aria-label="Close quick help"
               >
                 <span className="material-icons">close</span>
               </button>
             </div>
           </div>
 
-          {/* Messages */}
           <div className="chat-panel__messages">
             {messages.map((msg) => (
               <div key={msg.id} className={`chat-message chat-message--${msg.role}`}>
                 {msg.role === 'assistant' && (
                   <div className="chat-message__avatar">
-                    <span className="material-icons">smart_toy</span>
+                    <span className="material-icons">assistant</span>
                   </div>
                 )}
                 <div className="chat-message__bubble">
@@ -220,7 +214,7 @@ export const Chat: React.FC = () => {
             {isTyping && (
               <div className="chat-message chat-message--assistant">
                 <div className="chat-message__avatar">
-                  <span className="material-icons">smart_toy</span>
+                  <span className="material-icons">assistant</span>
                 </div>
                 <div className="chat-message__bubble chat-message__bubble--typing">
                   <span className="chat-typing-dot" />
@@ -232,10 +226,9 @@ export const Chat: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggestions (shown when no user messages yet) */}
           {messages.length <= 1 && (
             <div className="chat-panel__suggestions">
-              <div className="chat-panel__suggestions-label">Try asking:</div>
+              <div className="chat-panel__suggestions-label">Try a command:</div>
               <div className="chat-panel__suggestions-list">
                 {SUGGESTED_COMMANDS.slice(0, 5).map((s) => (
                   <button key={s} className="chat-suggestion" onClick={() => handleSuggestion(s)}>
@@ -246,23 +239,22 @@ export const Chat: React.FC = () => {
             </div>
           )}
 
-          {/* Input */}
           <div className="chat-panel__input-area">
             <input
               ref={inputRef}
               type="text"
               className="chat-panel__input"
-              placeholder="Ask me anything..."
+              placeholder="Try “Start tracking” or “Open trails”"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              aria-label="Chat input"
+              aria-label="Quick help command"
             />
             <button
               className="chat-panel__send-btn"
               onClick={handleSend}
               disabled={!inputValue.trim()}
-              aria-label="Send message"
+              aria-label="Send command"
               title="Send"
             >
               <span className="material-icons">send</span>

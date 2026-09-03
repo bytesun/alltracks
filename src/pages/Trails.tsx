@@ -20,7 +20,6 @@ type RouteFilter = '' | 'loop' | 'out-and-back' | 'point-to-point';
 type SortOption = 'latest' | 'distance' | 'rating';
 
 const PAGE_SIZE = 100n;
-const DEFAULT_TRAIL_IMAGE = '/alltracks_hero.png';
 
 export const Trails = () => {
   const alltracks = useAlltracks();
@@ -84,7 +83,7 @@ export const Trails = () => {
     return sortTrails(filtered);
   }, [searchTerm, selectedDifficulty, selectedRouteType, sortTrails, trails]);
 
-  const latestTrails = useMemo(() => sortTrails(trails).slice(0, 6), [sortTrails, trails]);
+  const hasActiveSearch = Boolean(searchTerm.trim() || selectedDifficulty || selectedRouteType);
 
   const fetchTrails = useCallback(async () => {
     setIsLoading(true);
@@ -217,115 +216,90 @@ export const Trails = () => {
 
       {errorMessage && <div className="trails-alert">{errorMessage}</div>}
 
-      <section className="trails-content-grid">
-        <div className="trails-map-card">
-          <div className="trails-section-heading">
-            <div>
-              <h2>Explore on the map</h2>
-              <span>{visibleTrails.length} trail{visibleTrails.length === 1 ? '' : 's'} matching your filters</span>
-            </div>
-            {isLoading && <span className="trails-loading"><span className="material-icons spinning">refresh</span> Loading</span>}
-          </div>
-          <MapContainer center={defaultCenter} zoom={13} className="trails-map" ref={mapRef}>
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap contributors'
-            />
-            <MapEvents />
-            {visibleTrails.map(trail => (
-              trail.startPoint && (
-                <Marker key={trail.id} position={[trail.startPoint.latitude, trail.startPoint.longitude]} icon={customIcon}>
-                  <Popup>
-                    <div className="trail-popup">
-                      <h3>{trail.name}</h3>
-                      <div className="trail-stats">
-                        <span>{trail.distance} km</span>
-                        <span>{trail.duration} hours</span>
-                        <span>{trail.elevationGain} m</span>
-                      </div>
-                      <div className="trail-actions">
-                        <Link to={`/trail/${trail.id}`} className="icon-button trail-detail-link" title="Open trail details" aria-label={`Open details for ${trail.name}`}>
-                          <span className="material-icons">open_in_new</span>
-                        </Link>
-                        <button className={`icon-button ${selectedTrailId === Number(trail.id) ? 'active' : ''}`} onClick={() => handleTrailToggle(trail)} title="Show route on map" aria-label={`Show route for ${trail.name}`}>
-                          <span className="material-icons">route</span>
-                        </button>
-                        <a href={trail.trailfile.url} download className="icon-button" title="Download trail file" aria-label={`Download ${trail.name} trail file`}>
-                          <span className="material-icons">download</span>
-                        </a>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              )
-            ))}
-            {selectedTrailId && trailPath && <Polyline positions={trailPath} color="#ff4400" weight={3} />}
-          </MapContainer>
-        </div>
-
-        <aside className="latest-trails-card">
-          <div className="trails-section-heading">
-            <div>
-              <h2>Latest added trails</h2>
-              <span>Fresh routes from the community</span>
-            </div>
-          </div>
-          <div className="latest-trails-list">
-            {latestTrails.length > 0 ? latestTrails.map((trail) => (
-              <Link to={`/trail/${trail.id}`} className="latest-trail-item" key={trail.id}>
-                <img src={trail.photos[0] || DEFAULT_TRAIL_IMAGE} alt="" />
-                <div>
-                  <strong>{trail.name}</strong>
-                  <span>{trail.distance} km · {trail.difficulty} · {trail.rating}/5</span>
-                </div>
-              </Link>
-            )) : <p className="trails-empty">No trails have been added yet.</p>}
-          </div>
-        </aside>
-      </section>
-
-      <section className="trail-results-section">
+      <section className="trails-map-card">
         <div className="trails-section-heading">
           <div>
-            <h2>Trail list</h2>
-            <span>Sorted by {sortBy === 'latest' ? 'latest added' : sortBy === 'rating' ? 'highest rated' : 'shortest distance'}</span>
+            <h2>Explore on the map</h2>
+            <span>{visibleTrails.length} trail{visibleTrails.length === 1 ? '' : 's'} {hasActiveSearch ? 'matching your search' : 'shown in this area'}</span>
           </div>
+          {isLoading && <span className="trails-loading"><span className="material-icons spinning">refresh</span> Loading</span>}
         </div>
-        <div className="trails-grid">
-          {visibleTrails.length > 0 ? visibleTrails.map((trail) => (
-            <article className="trail-card" key={trail.id}>
-              <div className="trail-image">
-                <img src={trail.photos[0] || DEFAULT_TRAIL_IMAGE} alt={trail.name} />
-                <span className={`difficulty-badge ${trail.difficulty}`}>{trail.difficulty}</span>
-              </div>
-              <div className="trail-info">
-                <h3>{trail.name}</h3>
-                <p>{trail.description}</p>
-                <div className="trail-stats">
-                  <span>{trail.distance} km</span>
-                  <span>{trail.duration} hrs</span>
-                  <span>{trail.elevationGain} m gain</span>
-                </div>
-                <div className="trail-tags">
-                  {trail.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}
-                </div>
-                <div className="trail-actions">
-                  <Link to={`/trail/${trail.id}`} className="trail-card-link">View details</Link>
-                  <button className="show-trail-btn" onClick={() => handleTrailToggle(trail)}>
-                    <span className="material-icons">route</span>
-                    {selectedTrailId === Number(trail.id) ? 'Hide route' : 'Show route'}
-                  </button>
-                </div>
-              </div>
-            </article>
-          )) : (
-            <div className="trails-empty">
-              <span className="material-icons">hiking</span>
-              <p>No trails match your filters.</p>
-              <button type="button" onClick={resetFilters}>Clear filters</button>
+
+        {hasActiveSearch && (
+          <div className="search-results-panel" aria-live="polite">
+            <div className="search-results-header">
+              <strong>Search results</strong>
+              <span>Sorted by {sortBy === 'latest' ? 'latest added' : sortBy === 'rating' ? 'highest rated' : 'shortest distance'}</span>
             </div>
-          )}
-        </div>
+            {visibleTrails.length > 0 ? (
+              <div className="search-results-list">
+                {visibleTrails.map((trail) => (
+                  <article className="search-result-card" key={trail.id}>
+                    <div>
+                      <h3>{trail.name}</h3>
+                      <p>{trail.description}</p>
+                      <div className="trail-stats">
+                        <span>{trail.distance} km</span>
+                        <span>{trail.duration} hrs</span>
+                        <span>{trail.elevationGain} m gain</span>
+                        <span>{trail.difficulty}</span>
+                      </div>
+                    </div>
+                    <div className="trail-actions">
+                      <Link to={`/trail/${trail.id}`} className="trail-card-link">View</Link>
+                      <button className="show-trail-btn" onClick={() => handleTrailToggle(trail)}>
+                        <span className="material-icons">route</span>
+                        {selectedTrailId === Number(trail.id) ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="trails-empty compact">
+                <span className="material-icons">hiking</span>
+                <p>No trails match your filters.</p>
+                <button type="button" onClick={resetFilters}>Clear filters</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <MapContainer center={defaultCenter} zoom={13} className="trails-map" ref={mapRef}>
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <MapEvents />
+          {visibleTrails.map(trail => (
+            trail.startPoint && (
+              <Marker key={trail.id} position={[trail.startPoint.latitude, trail.startPoint.longitude]} icon={customIcon}>
+                <Popup>
+                  <div className="trail-popup">
+                    <h3>{trail.name}</h3>
+                    <div className="trail-stats">
+                      <span>{trail.distance} km</span>
+                      <span>{trail.duration} hours</span>
+                      <span>{trail.elevationGain} m</span>
+                    </div>
+                    <div className="trail-actions">
+                      <Link to={`/trail/${trail.id}`} className="icon-button trail-detail-link" title="Open trail details" aria-label={`Open details for ${trail.name}`}>
+                        <span className="material-icons">open_in_new</span>
+                      </Link>
+                      <button className={`icon-button ${selectedTrailId === Number(trail.id) ? 'active' : ''}`} onClick={() => handleTrailToggle(trail)} title="Show route on map" aria-label={`Show route for ${trail.name}`}>
+                        <span className="material-icons">route</span>
+                      </button>
+                      <a href={trail.trailfile.url} download className="icon-button" title="Download trail file" aria-label={`Download ${trail.name} trail file`}>
+                        <span className="material-icons">download</span>
+                      </a>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          ))}
+          {selectedTrailId && trailPath && <Polyline positions={trailPath} color="#ff4400" weight={3} />}
+        </MapContainer>
       </section>
     </div>
   );
