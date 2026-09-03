@@ -1,14 +1,12 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
-import MainApp  from './MainApp';
+import MainApp from './MainApp';
 
 import { Trails } from './pages/Trails';
 import { Events } from './pages/Events';
 import { TrackPage } from './pages/Track';
 import { TracksPage } from './pages/TracksPage';
-// ...existing code...
-
 import { Live } from './pages/Live';
 import { Status } from './pages/Status';
 import { Profile } from './pages/Profile';
@@ -37,37 +35,37 @@ function App() {
     <NotificationProvider>
       <StatsProvider>
         <Store>
-          
-            <Layout>
-              <Routes>
-                <Route path="/" element={<MainApp />} />
-                <Route path="/tracking" element={<Tracking />} />
-                <Route path="/explore" element={<Explore />} />
-                <Route path="/trails" element={<Trails />} />
-                <Route path="/trail/:trailId" element={<TrailDetail />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/track/:trackId" element={<TrackPage />} />
-                <Route path="/event/:eventId" element={<EventPage />} />
-                <Route path="/live/:liveId" element={<Live />} />
-                <Route path="/status" element={<Status />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/guide" element={<Guide />} />
-                <Route path="/group/:groupId" element={<GroupPage />} />
-                <Route path="/user/:userKey" element={<UserPage />} />
-                <Route path="/tracks/:userId" element={<TracksPage />} />
-                <Route path="/spots" element={<Spots />} />
-                <Route path="/spots/:spotId" element={<SpotDetail />} />
-                <Route path="/posts" element={<Posts />} />
-                <Route path="/everpeace" element={<Everpeace />} />
-                <Route path="/trackathons" element={<Trackathons />} />
-                <Route path="/trackathon/:trackathonId" element={<TrackathonDetail />} />
-                
-              </Routes>
-            </Layout>
-          
+          <Layout>
+            <Routes>
+              <Route path="/" element={<MainApp />} />
+              <Route path="/tracking" element={<Tracking />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/trails" element={<Trails />} />
+              <Route path="/trail/:trailId" element={<TrailDetail />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/track/:trackId" element={<TrackPage />} />
+              <Route path="/event/:eventId" element={<EventPage />} />
+              <Route path="/live/:liveId" element={<Live />} />
+              <Route path="/status" element={<Status />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/guide" element={<Guide />} />
+              <Route path="/group/:groupId" element={<GroupPage />} />
+              <Route path="/user/:userKey" element={<UserPage />} />
+              <Route path="/history" element={<TracksPage />} />
+              <Route path="/tracks/:userId" element={<TracksPage />} />
+              <Route path="/spots" element={<Spots />} />
+              <Route path="/spots/:spotId" element={<SpotDetail />} />
+              <Route path="/posts" element={<Posts />} />
+              <Route path="/everpeace" element={<Everpeace />} />
+              <Route path="/trackathons" element={<Trackathons />} />
+              <Route path="/trackathon/:trackathonId" element={<TrackathonDetail />} />
+            </Routes>
+          </Layout>
         </Store>
         <Analytics />
       </StatsProvider>
     </NotificationProvider>
   );
-}export default App;
+}
+
+export default App;
