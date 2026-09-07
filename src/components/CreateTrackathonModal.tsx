@@ -127,7 +127,6 @@ export const CreateTrackathonModal: React.FC<CreateTrackathonModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>
-              <span className="material-icons">title</span>
               Name *
             </label>
             <input
