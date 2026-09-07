@@ -114,7 +114,7 @@ export const Status: React.FC = () => {
                 longitude: p.longitude,
                 elevation: p.elevation,
                 timestamp: Number(p.timestamp),
-                comment: p.note[0],
+                comment: p.note || undefined,
                 photo: p.photo.length > 0 ? p.photo[0] : undefined,
             } as TrackPoint;
         });
