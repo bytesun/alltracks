@@ -329,6 +329,31 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
   });
   const Result = IDL.Variant({ 'ok' : Spot, 'err' : IDL.Text });
+  // These additive methods ship in ICEvent/alltracks backend PR #1.
+  const ObjectGuestPolicy = IDL.Record({
+    'enabled': IDL.Bool,
+    'gateway': IDL.Principal,
+  });
+  const GuestAction = IDL.Variant({ 'found': IDL.Null, 'carried': IDL.Null, 'left': IDL.Null });
+  const GuestCheckinInput = IDL.Record({
+    'objectId': IDL.Text,
+    'latitude': IDL.Float64,
+    'longitude': IDL.Float64,
+    'accuracyMeters': IDL.Nat,
+    'action': GuestAction,
+    'note': IDL.Text,
+    'requestId': IDL.Text,
+  });
+  const GuestError = IDL.Variant({
+    'unauthorized': IDL.Null,
+    'notFound': IDL.Null,
+    'disabled': IDL.Null,
+    'invalid': IDL.Null,
+    'duplicate': IDL.Null,
+    'rateLimited': IDL.Null,
+  });
+  const GuestResult = IDL.Variant({ 'ok': IDL.Nat, 'err': GuestError });
+  const SetGuestPolicyResult = IDL.Variant({ 'ok': IDL.Bool, 'err': IDL.Text });
   return IDL.Service({
     'addCheckpointComment' : IDL.Func(
         [
@@ -433,6 +458,9 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'getObjectGuestPolicy': IDL.Func([IDL.Text], [IDL.Opt(ObjectGuestPolicy)], ['query']),
+    'setObjectGuestPolicy': IDL.Func([IDL.Text, IDL.Bool, IDL.Principal], [SetGuestPolicyResult], []),
+    'submitGuestCheckin': IDL.Func([GuestCheckinInput], [GuestResult], []),
     'getMyCredential' : IDL.Func([], [IDL.Opt(UserCredential)], ['query']),
     'getMyGroups' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Group)], ['query']),
     'getMyPhotos' : IDL.Func([Time, Time], [IDL.Vec(Photo)], ['query']),

@@ -411,7 +411,28 @@ type ActivityType =
    running;
    track;
  };
+// Object guest methods added in ICEvent/alltracks backend PR #1.
+type ObjectGuestPolicy = record { enabled : bool; gateway : principal };
+type GuestAction = variant { found; carried; left };
+type GuestCheckinInput = record {
+  objectId : text;
+  latitude : float64;
+  longitude : float64;
+  accuracyMeters : nat;
+  action : GuestAction;
+  note : text;
+  requestId : text;
+};
+type GuestError = variant {
+  unauthorized; notFound; disabled; invalid; duplicate; rateLimited
+};
+type GuestResult = variant { ok : nat; err : GuestError };
+type SetGuestPolicyResult = variant { ok : bool; err : text };
+
 service : {
+  getObjectGuestPolicy: (text) -> (opt ObjectGuestPolicy) query;
+  setObjectGuestPolicy: (text, bool, principal) -> (SetGuestPolicyResult);
+  submitGuestCheckin: (GuestCheckinInput) -> (GuestResult);
   addCheckpointComment: (checkpointTimestamp: Time, checkpointCreatedBy:
    principal, comment:
    record {

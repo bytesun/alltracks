@@ -23,6 +23,8 @@ import { TrackathonDetail } from './pages/TrackathonDetail';
 import { Tracking } from './pages/Tracking';
 import { TrailDetail } from './pages/TrailDetail';
 import Explore from './pages/Explore';
+import { ObjectJourney } from './pages/ObjectJourney';
+import { ObjectTracking } from './pages/ObjectTracking';
 import SpotCheckIn from './pages/SpotCheckIn';
 
 import { NotificationProvider } from './context/NotificationContext';
@@ -41,6 +43,8 @@ function App() {
             <Routes>
               <Route path="/" element={<MainApp />} />
               <Route path="/tracking" element={<Tracking />} />
+              <Route path="/object/:objectId" element={<ObjectJourney />} />
+              <Route path="/objects" element={<ObjectTracking />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/trails" element={<Trails />} />
               <Route path="/trail/:trailId" element={<TrailDetail />} />

@@ -36,6 +36,7 @@ export const Navbar = () => {
           <Link to="/explore" className="nav-link"><span className="material-icons">explore</span>Explore</Link>
           <Link to="/spots" className="nav-link"><span className="material-icons">qr_code</span>Check In</Link>
           <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Challenges</Link>
+          <Link to="/objects" className="nav-link"><span className="material-icons">qr_code_2</span>Objects</Link>
           <Link to="/history" className="nav-link"><span className="material-icons">history</span>History</Link>
           {isAuthed && (
             <Link to="/profile" className="nav-link"><span className="material-icons">person</span>Me</Link>

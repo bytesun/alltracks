@@ -1,0 +1,22 @@
+// PROPOSED addition to EXISTING AllTracks canister. NOT YET DEPLOYED.
+type GuestAction = variant { found; carried; left };
+type GuestCheckinInput = record {
+  objectId : text;
+  latitude : float64;
+  longitude : float64;
+  accuracyMeters : nat;
+  action : GuestAction;
+  note : text;
+  requestId : text;
+};
+type GuestCheckinError = variant {
+  unauthorized;
+  notFound;
+  disabled;
+  invalid;
+  duplicate;
+  rateLimited;
+};
+type GuestCheckinResult = variant { ok : nat; err : GuestCheckinError };
+// Append to EXISTING service after implementing method in Motoko:
+// submitGuestCheckin : (GuestCheckinInput) -> (GuestCheckinResult);
