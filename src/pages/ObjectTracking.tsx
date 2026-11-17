@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Principal } from '@dfinity/principal';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
+import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import './ObjectJourney.css';
 
 function QRCode({ url, name }: { url: string; name: string }) {
@@ -31,6 +32,7 @@ export function ObjectTracking() {
   const [description, setDescription] = useState('');
   const [emoji, setEmoji] = useState('📦');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [printingObject, setPrintingObject] = useState<ObjectRecord | null>(null);
   const [gatewayPrincipal, setGatewayPrincipal] = useState<string | null>(null);
   const [guestPolicies, setGuestPolicies] = useState<Record<string, boolean>>({});
   const [changingGuestId, setChangingGuestId] = useState<string | null>(null);
@@ -174,6 +176,9 @@ export function ObjectTracking() {
               <div className="journey-card-actions">
                 <Link to={'/object/' + encodeURIComponent(object.id)}>View journey</Link>
                 <button type="button" onClick={() => setExpandedId(expandedId === object.id ? null : object.id)}>{expandedId === object.id ? 'Hide QR' : 'Show QR'}</button>
+                <button type="button" onClick={() => setPrintingObject(object)}>
+                  Print sticker label
+                </button>
                 {gatewayPrincipal && <button type="button"
                   disabled={changingGuestId === object.id}
                   onClick={() => void toggleGuestCheckin(object.id)}
@@ -185,6 +190,15 @@ export function ObjectTracking() {
         </div>
       </section>
     </>}
+    {printingObject && <PrintableQrLabel
+      kind="object"
+      url={objectLink(printingObject.id)}
+      name={printingObject.name}
+      icon={printingObject.emoji}
+      code={printingObject.id.slice(4, 12)}
+      guestCheckinEnabled={Boolean(gatewayPrincipal && guestPolicies[printingObject.id])}
+      onClose={() => setPrintingObject(null)}
+    />}
     <footer className="journey-footer">QR codes are public links, not GPS transmitters. AllTracks stores voluntary reports in its existing ICP tracking canister. Pass objects on with permission; do not leave litter on trails.</footer>
   </main>;
 }

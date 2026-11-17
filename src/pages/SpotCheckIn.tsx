@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '../components/Store';
 import type { Comment } from '../api/comment/comment.did';
 import { CheckinPhoto } from '../components/CheckinPhoto';
+import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { normalizeCheckinPhotoUrl } from '../lib/checkinPhoto';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, queueSpotCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins } from '../lib/checkinSync';
@@ -47,6 +48,7 @@ export default function SpotCheckIn() {
   const [note, setNote] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [printSignOpen, setPrintSignOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -203,11 +205,12 @@ export default function SpotCheckIn() {
           </section>
           <section className="spot-checkin-card spot-checkin-share">
             <h3>Share QR code</h3>
-            <img src={qr} alt={'QR code for ' + spot.name} width={256} height={256} />
+            <img src={qr} alt={'QR code for ' + (spot?.name || 'Spot')} width={256} height={256} />
             <label>Public check-in URL <input readOnly value={url} onFocus={event => event.target.select()} /></label>
             <div className="spot-checkin-actions">
               <button type="button" className="secondary-btn" onClick={copy}>{copied ? 'Copied!' : 'Copy link'}</button>
-              <button type="button" className="secondary-btn" onClick={() => window.print()}>Print QR</button>
+              <button type="button" className="secondary-btn" disabled={!spot}
+                onClick={() => setPrintSignOpen(true)}>Print Trail Sign</button>
             </div>
           </section>
           <section className="spot-checkin-card">
@@ -233,6 +236,13 @@ export default function SpotCheckIn() {
           </section>
         </>
       )}
+      {printSignOpen && spot && <PrintableQrLabel
+        kind="trail"
+        url={url}
+        name={spot.name || 'Trail Check-in'}
+        code={String(spot.id)}
+        onClose={() => setPrintSignOpen(false)}
+      />}
     </div>
   );
 }
