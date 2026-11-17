@@ -1,0 +1,8 @@
+{
+  "canisters": {
+    "object_journey": {
+      "main": "canisters/object_journey/main.mo",
+      "type": "motoko"
+    }
+  }
+}
