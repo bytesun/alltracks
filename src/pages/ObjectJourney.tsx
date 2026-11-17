@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ObjectJourney.css';
-import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
-import { getObject, loadObjectCheckins, submitObjectCheckin, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
+import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '../components/Store';
+import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
-import { encodeObjectCheckinNote } from '../lib/checkinPhoto';
+import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
+  queueObjectCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
+import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -31,7 +33,8 @@ const distanceKm = (a: Checkin, b: Checkin) => {
 export function ObjectJourney() {
   const { objectId = '' } = useParams<'objectId'>();
   const backend = useAlltracks();
-  const { state: { isAuthed } } = useGlobalContext();
+  const comments = useComment();
+  const { state: { isAuthed, principal } } = useGlobalContext();
   const [, setLoginModal] = useSetLoginModal();
   const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -52,11 +55,42 @@ export function ObjectJourney() {
   });
   const [guestToken, setGuestToken] = useState('');
   const [guestReset, setGuestReset] = useState(0);
-  const [guestRequestId, setGuestRequestId] = useState(() => crypto.randomUUID());
+  const [online, setOnline] = useState(() => !isOffline());
+  const [pendingForObject, setPendingForObject] = useState<PendingObjectCheckin[]>([]);
+  const guestSyncing = useRef(false);
   const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey) && Boolean(guestConfig.gatewayPrincipal);
-  const canCheckin = isAuthed || guestMode;
+  const canCheckin = isAuthed || guestMode || !online;
 
   useEffect(() => {
+    const update = () => setOnline(!isOffline());
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const load = () => {
+      void listPendingCheckins().then(items => {
+        if (active) {
+          setPendingForObject(items.filter((item): item is PendingObjectCheckin =>
+            item.kind === 'object' && item.objectId === objectId));
+        }
+      }).catch(() => {});
+    };
+    load();
+    window.addEventListener(CHECKIN_OUTBOX_EVENT, load);
+    return () => {
+      active = false;
+      window.removeEventListener(CHECKIN_OUTBOX_EVENT, load);
+    };
+  }, [objectId]);
+
+  useEffect(() => {
+    if (!online) return;
     const controller = new AbortController();
     // A gateway being live is NOT enough: each owner must opt in for the
     // specific object using its exact registered public relay Principal.
@@ -85,7 +119,7 @@ export function ObjectJourney() {
       }
     })();
     return () => controller.abort();
-  }, [objectId, backend]);
+  }, [objectId, backend, online]);
 
   const refresh = async () => {
     try {
@@ -124,7 +158,6 @@ export function ObjectJourney() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setGuestRequestId(crypto.randomUUID());
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -140,45 +173,75 @@ export function ObjectJourney() {
     );
   };
 
+  // A freshly generated Turnstile token is single-use. Once connectivity is
+  // restored, a pending guest check-in syncs when a new challenge succeeds.
+  // Turnstile may require human interaction; it cannot be bypassed offline.
+  const nextGuest = !isAuthed && guestMode
+    ? pendingForObject.find(item => item.principal === null)
+    : undefined;
+  useEffect(() => {
+    if (!online || !nextGuest || !guestToken || guestSyncing.current) return;
+    guestSyncing.current = true;
+    const pending = nextGuest;
+    const token = guestToken;
+    void (async () => {
+      try {
+        await syncOneGuestCheckin(pending, token);
+        setMessage('Saved check-in synced to ICP.');
+        await refresh();
+      } catch (error) {
+        await markPendingError(pending.id, error);
+        setMessage('Your check-in is still saved on this device. Verification or connectivity may be needed.');
+      } finally {
+        setGuestToken('');
+        setGuestReset(v => v + 1);
+        guestSyncing.current = false;
+      }
+    })();
+    // Do not retry until the widget supplies a fresh token.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, nextGuest?.id, guestToken, guestMode]);
+
   const submit = async () => {
-    if (!location || !consented || sending || loadError || !canCheckin || (guestMode && !guestToken)) return;
+    if (!location || !consented || sending || !canCheckin ||
+        (online && Boolean(loadError))) return;
+    if (isAuthed && !principal) {
+      setMessage('Your login is still loading. Try again after your account appears.');
+      return;
+    }
     setSending(true);
     setMessage('');
     try {
-      // Keep the existing guest Candid signature: its note embeds the optional
-      // photo URL, and the backend still validates the total 280-character cap.
-      const guestNote = encodeObjectCheckinNote(note, photoUrl);
-      if (guestMode) {
-        const response = await fetch('/api/objects/' + encodeURIComponent(objectId) + '/guest-checkin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            latitude: Number(location.latitude.toFixed(3)),
-            longitude: Number(location.longitude.toFixed(3)),
-            accuracyMeters: Math.round(location.accuracyMeters),
-            action,
-            note: guestNote,
-            requestId: guestRequestId,
-            turnstileToken: guestToken,
-          }),
-        });
-        const payload = await response.json() as { error?: string };
-        if (!response.ok) throw new Error(payload.error || 'Guest check-in failed.');
-      } else {
-        await submitObjectCheckin(backend, objectId, { ...location, action, note, photoUrl });
-      }
-      setMessage('Thank you! This stop is now part of the object’s journey on ICP.');
-      setGuestToken('');
-      setGuestReset(value => value + 1);
-      setGuestRequestId(crypto.randomUUID());
+      // Queue FIRST, whether online or offline. A failed ICP write never
+      // destroys the visitor's consented note or rounded GPS position.
+      const queued = await queueObjectCheckin({
+        kind: 'object',
+        objectId,
+        principal: isAuthed ? principal!.toText() : null,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracyMeters: location.accuracyMeters,
+        action,
+        note,
+        photoUrl,
+      });
       setLocation(null);
       setNote('');
       setPhotoUrl('');
       setConsented(false);
-      await refresh();
+      setMessage('Check-in saved on this device. It will sync when connectivity and authorization are available.');
+      if (!isOffline() && isAuthed && principal) {
+        await flushSignedInCheckins(backend, comments, principal.toText(), true);
+        const items = await listPendingCheckins();
+        if (!items.some(item => item.id === queued.id)) {
+          setMessage('Check-in synced to ICP.');
+          await refresh();
+        }
+      }
+      // Guest queued items trigger automatic upload when Turnstile issues a
+      // fresh online token; the page never stores or reuses an old token.
     } catch (error) {
-      if (guestMode) { setGuestToken(''); setGuestReset(value => value + 1); }
-      setMessage(error instanceof Error ? error.message : 'Check-in failed. Please retry.');
+      setMessage(error instanceof Error ? error.message : 'Unable to save this check-in locally.');
     } finally {
       setSending(false);
     }
@@ -203,7 +266,15 @@ export function ObjectJourney() {
 
       <section className="journey-panel journey-checkin">
         <div className="journey-section-title"><h2>Join the adventure</h2><span>01 / CHECK IN</span></div>
-        {!isAuthed && !guestMode && <p className="journey-login-notice">
+        {!online && <p className="journey-login-notice" role="status">
+          📴 Offline. Save your check-in on this device now; the app will retry after reconnecting.
+          Keep this page available if it has not been installed for offline use.
+        </p>}
+        {pendingForObject.length > 0 && <p className="journey-login-notice" role="status">
+          {pendingForObject.length} local check-in{pendingForObject.length === 1 ? '' : 's'} waiting for sync.
+          Guest entries will need a fresh human-verification token when online.
+        </p>}
+        {!isAuthed && !guestMode && online && <p className="journey-login-notice">
           Guest check-in is not enabled for this deployment. Sign in to add a location.
           <button type="button" onClick={() => setLoginModal(true)}>Sign in to check in</button>
         </p>}
@@ -216,7 +287,7 @@ export function ObjectJourney() {
           {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : ' Guest submissions will be attributed to the service gateway, not a user login.'}
         </p>
         <label htmlFor="journey-action">What happened?</label>
-        <select id="journey-action" value={action} onChange={(event) => { setAction(event.target.value as Action); setGuestRequestId(crypto.randomUUID()); }}>
+        <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
           {Object.entries(ACTIONS).map(([value, details]) => (
             <option value={value} key={value}>{details.icon} {details.title}</option>
           ))}
@@ -225,18 +296,18 @@ export function ObjectJourney() {
         <textarea
           id="journey-note" maxLength={280} rows={3}
           placeholder="A rainy morning on the trail..."
-          value={note} onChange={(event) => { setNote(event.target.value); setGuestRequestId(crypto.randomUUID()); }}
+          value={note} onChange={(event) => setNote(event.target.value)}
         />
         <label htmlFor="journey-photo-url">Photo URL (optional)</label>
         <input
           id="journey-photo-url" type="url" inputMode="url" maxLength={220}
           placeholder="https://example.com/photo.jpg"
           value={photoUrl}
-          onChange={(event) => { setPhotoUrl(event.target.value); setGuestRequestId(crypto.randomUUID()); }}
+          onChange={(event) => setPhotoUrl(event.target.value)}
         />
         <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
           On guest check-ins, the note and link together must fit in 280 characters.</p>
-        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError) || !canCheckin}>
+        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || (online && Boolean(loadError)) || !canCheckin}>
           {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
         </button>
         {location && (
@@ -254,8 +325,8 @@ export function ObjectJourney() {
           siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
         />}
         <button className="journey-button" type="button" onClick={submit}
-          disabled={!location || !consented || !canCheckin || (guestMode && !guestToken) || sending || Boolean(loadError)}>
-          {sending ? 'Saving check-in…' : 'Add this stop to the journey'}
+          disabled={!location || !consented || !canCheckin || sending || (online && Boolean(loadError))}>
+          {sending ? 'Saving check-in…' : online ? 'Save and sync this stop' : 'Save check-in offline'}
         </button>
         {message && <p className="journey-message" role="status">{message}</p>}
         {loadError && <p className="journey-error" role="alert">{loadError}</p>}
