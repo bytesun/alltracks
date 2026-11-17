@@ -46,7 +46,7 @@ test('rejects forged values, replay IDs, oversized notes and invalid actions', (
     { action: 'admin' },
     { requestId: 'duplicate' },
     { note: 'a'.repeat(281) },
-    { note: '☕'.repeat(280) },
+    { note: '☕'.repeat(281) },
     { turnstileToken: '' },
     { turnstileToken: 'x'.repeat(2049) },
   ];
@@ -55,6 +55,9 @@ test('rejects forged values, replay IDs, oversized notes and invalid actions', (
   }
   assert.throws(() => parseGuestRequest(valid, 'obj-1'), GuestRequestError);
   assert.throws(() => parseGuestRequest([], id), GuestRequestError);
+});
+test('accepts 280 Unicode code points at the limit', () => {
+  assert.equal(parseGuestRequest({ ...valid, note: '☕'.repeat(280) }, id).note.length, 280);
 });
 test('requires strict same-origin match including protocol and port', () => {
   assert.equal(originAllowed('https://alltracks.icevent.app', 'https://alltracks.icevent.app'), true);
