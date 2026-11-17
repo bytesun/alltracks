@@ -14,7 +14,7 @@ Objects are identified with unique `obj-<UUID>` track IDs. The QR contains a pub
 
 ## Why existing Track / CheckPoint, not a new canister?
 
-The repository contains the deployed AllTracks Candid interface and client but does **not** contain the source of the existing production Motoko canister. The current backend has no Object-specific APIs or anonymous Checkpoint write API. To respect the request to avoid another canister, the implementation reuses the existing data model without pretending these unsupported methods exist:
+The frontend repository contains the deployed AllTracks Candid interface and client; the corresponding restored backend Motoko source is now separately maintained in https://github.com/ICEvent/alltracks (draft backend PR #1). The currently deployed backend has no Object-specific guest methods yet; backend PR #1 adds owner-scoped guest authorization while retaining existing Checkpoint authentication. To respect the request to avoid another canister, the implementation reuses the existing data model without pretending these unsupported methods exist:
 
 - `createTrack` creates the object, with `trackType = #other`, `isPublic = true`, a unique `obj-` ID, and a versioned `description` prefixed with `alltracks:object:v1:`.
 - `getTracks({user = principal}, page, pageSize)` lists the signed-in user's objects; objects are selected by ID prefix and versioned description, then owner principal.
@@ -26,7 +26,7 @@ No frontend-only database or browser local storage is used for persistent object
 
 ## Authentication and optional guest gateway
 
-**Creating objects requires login. Posting check-ins currently requires login until the guest gateway and existing backend are both upgraded and explicitly enabled.** The existing `createCheckpoint` method requires an authenticated caller, and the repository does not provide the corresponding Motoko backend code to safely add public/anonymous writes. The QR landing page is public, but the check-in control asks visitors to sign in to AllTracks before using GPS.
+**Creating objects requires login. Posting check-ins currently requires login until the guest gateway and existing backend are both upgraded and explicitly enabled.** The existing deployed `createCheckpoint` method requires an authenticated caller. Backend PR #1 implements a separate owner-authorized relay method on the same persistent actor, but has not been deployed to mainnet. The QR landing page is public, but the check-in control asks visitors to sign in to AllTracks before using GPS.
 
 A fail-closed HTTP gateway and conditional guest UI are now included in the PR. When fully configured, a guest may complete Cloudflare Turnstile and post via a least-privilege service identity to a **dedicated method on the existing canister**. The method has not yet been implemented on the production canister. The gate remains disabled by default and the existing logged-in checkpoint flow is unchanged.
 
@@ -58,4 +58,4 @@ The earlier proof-of-concept QR for `cup-7h9m4k` **is no longer associated with 
 
 ## Future backend enhancement
 
-When the source of the *existing* AllTracks canister is accessible, introduce dedicated stable `Object` and `ObjectCheckin` types and APIs **inside that same canister**, with owner-scoped management, pagination, moderation/deletion and a secure anonymous/guest write policy. That change needs stable-state upgrade compatibility and test coverage. The present object IDs and public URLs could be migrated without changing their QR codes.
+After backend PR #1 is safely released, consider dedicated stable `Object` and `ObjectCheckin` types and APIs **inside that same canister**, with owner-scoped management, pagination, moderation/deletion and a secure anonymous/guest write policy. That change needs stable-state upgrade compatibility and test coverage. The present object IDs and public URLs could be migrated without changing their QR codes.
