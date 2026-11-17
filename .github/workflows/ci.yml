@@ -56,3 +56,5 @@ jobs:
           dfx canister call object_journey getCheckins '("cup-7h9m4k")' --query
           dfx --identity anonymous canister call object_journey addCheckin '("cup-7h9m4k", record { latitude = 49.177777; longitude = -122.633333; accuracyMeters = opt 20; action = variant { found }; note = "CI checkpoint" })' | grep -q 'ok'
           dfx canister call object_journey getCheckins '("cup-7h9m4k")' --query | grep -q 'CI checkpoint'
+          dfx canister install object_journey --mode upgrade
+          dfx canister call object_journey getCheckins '("cup-7h9m4k")' --query | grep -q 'CI checkpoint'
