@@ -49,4 +49,4 @@ jobs:
         run: |
           dfx start --background --clean
           dfx canister create object_journey
-          dfx canister build object_journey
+          dfx build object_journey
