@@ -36,3 +36,17 @@ jobs:
       - name: Type-check mobile
         run: npx tsc --noEmit
         working-directory: mobile
+
+  object-journey-motoko:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+        with:
+          dfx-version: '0.30.2'
+      - name: Compile Object Journey canister
+        run: |
+          dfx start --background --clean
+          dfx canister create object_journey
+          dfx canister build object_journey
