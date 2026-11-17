@@ -33,8 +33,8 @@ export function parseGuestRequest(raw: unknown, pathId: unknown): ReceivedGuestI
   }
   const p = raw as Record<string, unknown>;
   if (
-    !Number.isFinite(p.latitude) || !Number.isFinite(p.longitude) ||
     typeof p.latitude !== 'number' || typeof p.longitude !== 'number' ||
+    !Number.isFinite(p.latitude) || !Number.isFinite(p.longitude) ||
     p.latitude < -90 || p.latitude > 90 ||
     p.longitude < -180 || p.longitude > 180
   ) throw new GuestRequestError(400, 'Invalid GPS coordinates.');
