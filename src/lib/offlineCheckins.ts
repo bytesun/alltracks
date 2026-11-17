@@ -11,6 +11,7 @@ type BasePending = {
   createdAt: number;
   attempts: number;
   lastError: string;
+  nextAttemptAt?: number;
 };
 
 export type PendingObjectCheckin = BasePending & {
@@ -145,6 +146,7 @@ export async function markPendingError(id: string, error: unknown): Promise<void
       ...current,
       attempts: current.attempts + 1,
       lastError: message.slice(0, 180),
+      nextAttemptAt: Date.now() + Math.min(5 * 60_000, 10_000 * 2 ** Math.min(5, current.attempts)),
     });
   }
   await tx.done;
