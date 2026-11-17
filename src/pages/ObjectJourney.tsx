@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CircleMarker, MapContainer, Polyline, Popup, TileLayer } from 'react-leaflet';
+import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
+import type { CircleMarker as LeafletCircleMarker } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ObjectJourney.css';
 import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
+import { ObjectPhoto } from '../components/ObjectPhoto';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
@@ -22,6 +24,21 @@ const ACTIONS: Record<Action, { title: string; icon: string }> = {
 };
 const formatDate = (value: string) => new Date(value).toLocaleString();
 const toRadians = (value: number) => value * Math.PI / 180;
+/** Move the existing Leaflet map without remounting it when a visitor
+ * selects a Check-in from the journey timeline. */
+function JourneyMapFocus({ selected }: { selected: Checkin | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!selected) return;
+    const position: [number, number] = [selected.latitude, selected.longitude];
+    const zoom = Math.max(map.getZoom(), 13);
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) map.setView(position, zoom);
+    else map.flyTo(position, zoom, { duration: 0.65 });
+  }, [map, selected?.id, selected?.latitude, selected?.longitude]);
+  return null;
+}
+
 const distanceKm = (a: Checkin, b: Checkin) => {
   const latDelta = toRadians(b.latitude - a.latitude);
   const lonDelta = toRadians(b.longitude - a.longitude);
@@ -38,6 +55,9 @@ export function ObjectJourney() {
   const [, setLoginModal] = useSetLoginModal();
   const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
+  const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
+  const mapSectionRef = useRef<HTMLElement | null>(null);
+  const mapMarkersRef = useRef(new Map<string, LeafletCircleMarker>());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [location, setLocation] = useState<LocationPreview | null>(null);
@@ -144,6 +164,27 @@ export function ObjectJourney() {
   }, [objectId, backend]);
 
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
+  const selectedCheckin = useMemo(
+    () => checkins.find(entry => entry.id === selectedCheckinId) || null,
+    [checkins, selectedCheckinId],
+  );
+  useEffect(() => {
+    if (selectedCheckinId && !checkins.some(entry => entry.id === selectedCheckinId)) {
+      setSelectedCheckinId(null);
+    }
+  }, [selectedCheckinId, checkins]);
+
+  const selectCheckin = (id: string) => {
+    setSelectedCheckinId(id);
+    // The map is above the history list; navigate back to it on small screens.
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    mapSectionRef.current?.scrollIntoView({
+      behavior: reducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+    // When a visitor selects the same item twice, still open the marker popup.
+    mapMarkersRef.current.get(id)?.openPopup();
+  };
   const positions = chronological.map((entry): [number, number] => [entry.latitude, entry.longitude]);
   const center: [number, number] = positions.length ? positions[positions.length - 1] : [49.17, -122.65];
   const straightLineKm = chronological.slice(1).reduce(
@@ -266,6 +307,12 @@ export function ObjectJourney() {
         <p className="journey-zh">扫码查看物品旅程。登录后可自愿添加一次位置；不会持续追踪你。 <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
       </section>
 
+      {object?.photoUrl && (
+        <section className="journey-object-cover" aria-label="Object photo">
+          <ObjectPhoto url={object.photoUrl} name={object.name} />
+        </section>
+      )}
+
       <section className="journey-stats" aria-label="Journey statistics">
         <div><strong>{checkins.length}</strong><span>Check-ins</span></div>
         <div><strong>{straightLineKm.toFixed(1)} km</strong><span>Between reported stops*</span></div>
@@ -340,32 +387,50 @@ export function ObjectJourney() {
         {loadError && <p className="journey-error" role="alert">{loadError}</p>}
       </section>
 
-      <section className="journey-panel">
+      <section className="journey-panel journey-map-section" ref={mapSectionRef}>
         <div className="journey-section-title"><h2>Journey map</h2><span>02 / MAP</span></div>
         <div className="journey-map">
           <MapContainer key={checkins[0]?.id || 'empty'} center={center} zoom={positions.length ? 11 : 8} scrollWheelZoom={false} style={{ height: 350, width: '100%' }}>
+            <JourneyMapFocus selected={selectedCheckin} />
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {positions.length > 1 && <Polyline positions={positions} pathOptions={{ color: '#355e48', weight: 3, dashArray: '7 7' }} />}
             {chronological.map((entry, index) => (
-              <CircleMarker key={entry.id} center={[entry.latitude, entry.longitude]} radius={index === chronological.length - 1 ? 9 : 6}
-                pathOptions={{ color: '#234c37', fillColor: '#a2d4a3', fillOpacity: 1, weight: 2 }}>
+              <CircleMarker
+                key={entry.id}
+                ref={(marker) => {
+                  if (marker) mapMarkersRef.current.set(entry.id, marker);
+                  else mapMarkersRef.current.delete(entry.id);
+                }}
+                center={[entry.latitude, entry.longitude]}
+                radius={selectedCheckinId === entry.id ? 15 : index === chronological.length - 1 ? 9 : 6}
+                eventHandlers={{ click: () => setSelectedCheckinId(entry.id) }}
+                pathOptions={selectedCheckinId === entry.id
+                  ? { color: '#a83f12', fillColor: '#ffdc50', fillOpacity: 1, weight: 5 }
+                  : { color: '#234c37', fillColor: '#a2d4a3', fillOpacity: 1, weight: 2 }}>
                 <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p>{entry.note && <p>{entry.note}</p>}{entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Check-in photo" />}</Popup>
               </CircleMarker>
             ))}
           </MapContainer>
         </div>
-        <p className="journey-map-note">* Dashed connections join voluntary check-in points, not the actual route traveled. Anyone with the QR link can see this approximate public map.</p>
+        <p className="journey-map-note">Select a check-in below to highlight its location on the map. * Dashed connections join voluntary reports, not the actual route traveled. Anyone with the QR link can see this approximate public map.</p>
         {loading && <p>Loading the journey…</p>}
         {!loading && checkins.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
         <div className="journey-timeline">
           {checkins.map((entry) => (
-            <article className="journey-stop" key={entry.id}>
-              <span className="journey-stop-icon">{ACTIONS[entry.action]?.icon || '📍'}</span>
-              <div><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong>
-                <small>{formatDate(entry.createdAt)} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
-                {entry.note && <p>{entry.note}</p>}
-                {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
-              </div>
+            <article className={'journey-stop' + (selectedCheckinId === entry.id ? ' journey-stop--selected' : '')} key={entry.id}>
+              <button type="button" className="journey-stop-select"
+                aria-pressed={selectedCheckinId === entry.id}
+                aria-label={'Highlight this check-in on map: ' + (ACTIONS[entry.action]?.title || 'Object spotted') + ', ' + formatDate(entry.createdAt)}
+                onClick={() => selectCheckin(entry.id)}>
+                <span className="journey-stop-icon">{ACTIONS[entry.action]?.icon || '📍'}</span>
+                <span className="journey-stop-content">
+                  <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
+                  <small>{formatDate(entry.createdAt)} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
+                  {entry.note && <span className="journey-stop-note">{entry.note}</span>}
+                  <span className="journey-stop-hint">{selectedCheckinId === entry.id ? '● Highlighted on map' : '◎ View on map'}</span>
+                </span>
+              </button>
+              {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
             </article>
           ))}
         </div>

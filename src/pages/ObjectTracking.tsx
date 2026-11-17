@@ -4,6 +4,7 @@ import { Principal } from '@dfinity/principal';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
+import { ObjectPhoto } from '../components/ObjectPhoto';
 import './ObjectJourney.css';
 
 function QRCode({ url, name }: { url: string; name: string }) {
@@ -30,6 +31,7 @@ export function ObjectTracking() {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [emoji, setEmoji] = useState('📦');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [printingObject, setPrintingObject] = useState<ObjectRecord | null>(null);
@@ -113,11 +115,12 @@ export function ObjectTracking() {
     setSaving(true);
     setError('');
     try {
-      const object = await createObject(backend, name, description, emoji);
+      const object = await createObject(backend, name, description, emoji, photoUrl);
       setObjects(old => [object, ...old]);
       setExpandedId(object.id);
       setName('');
       setDescription('');
+      setPhotoUrl('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create object.');
     } finally {
@@ -151,7 +154,14 @@ export function ObjectTracking() {
           </select>
           <label htmlFor="object-description">Story or instructions</label>
           <textarea id="object-description" rows={3} maxLength={500} placeholder="Help me see the world! Share where you found me…" value={description} onChange={e => setDescription(e.target.value)} />
-          <p>Object details and check-ins are public. Please don't include personal contact information.</p>
+          <label htmlFor="object-photo-url">Photo URL (optional)</label>
+          <input id="object-photo-url" type="url" inputMode="url" maxLength={220}
+            placeholder="https://example.com/my-cup.jpg"
+            value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} />
+          <p className="journey-photo-hint">Use a public HTTPS image link. It will appear on
+            the object's public journey page and in your collection. The image is hosted externally.</p>
+          {photoUrl.trim() && <ObjectPhoto key={photoUrl} url={photoUrl} name={name || 'your object'} compact />}
+          <p>Object details, photos and check-ins are public. Please don't include personal contact information.</p>
           <button type="submit" className="journey-button" disabled={saving || !name.trim()}>{saving ? 'Creating on ICP…' : 'Create object & QR code'}</button>
         </form>
         {error && <p className="journey-error" role="alert">{error}</p>}
@@ -169,6 +179,7 @@ export function ObjectTracking() {
         <div className="journey-objects-grid">
           {objects.map(object => <article className="journey-object-card" key={object.id}>
             <div className="journey-object-icon">{object.emoji}</div>
+            {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} compact />}
             <div className="journey-object-body">
               <h3>{object.name}</h3>
               <p>{object.description || 'Start a journey and see where it travels.'}</p>

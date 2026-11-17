@@ -2,6 +2,7 @@ import type { ActorSubclass } from '@dfinity/agent';
 import type { Principal } from '@dfinity/principal';
 import type { _SERVICE, CheckPoint, Track } from '../alltracks/backend.did';
 import { decodeObjectCheckinNote, encodeObjectCheckinNote } from '../../lib/checkinPhoto';
+import { decodeObjectMetadata, encodeObjectMetadata } from '../../lib/objectMetadata';
 
 export type Action = 'found' | 'carried' | 'left';
 export type ObjectRecord = {
@@ -9,6 +10,7 @@ export type ObjectRecord = {
   name: string;
   description: string;
   emoji: string;
+  photoUrl: string;
   createdAt: string;
   owner: string;
 };
@@ -24,7 +26,6 @@ export type JourneyCheckin = {
 };
 type Backend = ActorSubclass<_SERVICE>;
 
-const PREFIX = 'alltracks:object:v1:';
 export const OBJECT_ID_PREFIX = 'obj-';
 const CHECKIN_PREFIX = 'alltracks:object-checkin:v1:';
 
@@ -34,21 +35,18 @@ export const objectLink = (id: string): string => {
 };
 
 const objectFromTrack = (track: Track): ObjectRecord | null => {
-  if (!track.id.startsWith(OBJECT_ID_PREFIX) || !track.description.startsWith(PREFIX)) return null;
-  try {
-    const data = JSON.parse(track.description.slice(PREFIX.length));
-    if (!data || typeof data !== 'object' || typeof data.description !== 'string') return null;
-    return {
-      id: track.id,
-      name: track.name,
-      description: data.description.slice(0, 500),
-      emoji: typeof data.emoji === 'string' ? data.emoji.slice(0, 4) : '📦',
-      createdAt: new Date(Number(track.startime / 1_000_000n)).toISOString(),
-      owner: track.createdBy.toText(),
-    };
-  } catch {
-    return null;
-  }
+  if (!track.id.startsWith(OBJECT_ID_PREFIX)) return null;
+  const data = decodeObjectMetadata(track.description);
+  if (!data) return null;
+  return {
+    id: track.id,
+    name: track.name,
+    description: data.description,
+    emoji: data.emoji,
+    photoUrl: data.photoUrl,
+    createdAt: new Date(Number(track.startime / 1_000_000n)).toISOString(),
+    owner: track.createdBy.toText(),
+  };
 };
 
 export const getObject = async (backend: Backend, objectId: string): Promise<ObjectRecord | null> => {
@@ -77,6 +75,7 @@ export const createObject = async (
   name: string,
   description: string,
   emoji: string,
+  photoUrl = '',
 ): Promise<ObjectRecord> => {
   const cleanName = name.trim().slice(0, 100);
   if (!cleanName) throw new Error('Enter an object name.');
@@ -85,10 +84,7 @@ export const createObject = async (
   const result = await backend.createTrack({
     id,
     name: cleanName,
-    description: PREFIX + JSON.stringify({
-      description: description.trim().slice(0, 500),
-      emoji: emoji.trim().slice(0, 4) || '📦',
-    }),
+    description: encodeObjectMetadata(description, emoji, photoUrl),
     duration: 0,
     elevation: 0,
     groupId: [],
