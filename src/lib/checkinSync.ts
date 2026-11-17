@@ -17,7 +17,11 @@ export type CommentActor = ActorSubclass<CommentService>;
 
 let inFlight: Promise<number> | null = null;
 
-async function syncSpot(comment: CommentActor, item: PendingSpotCheckin) {
+async function syncSpot(backend: AlltracksActor, comment: CommentActor, item: PendingSpotCheckin) {
+  // A QR URL can be typed arbitrarily. Verify the Spot exists before creating
+  // a Comment, particularly for an offline submission saved without a lookup.
+  const spots = await backend.getSpotById(BigInt(item.spotId));
+  if (!spots.length) throw new Error('This Spot no longer exists.');
   const target = { other: 'spot-checkin:' + item.spotId } as const;
   const existing = await comment.getComments(target, 0n);
   const alreadySaved = existing.some(entry => {
@@ -68,7 +72,7 @@ export async function flushSignedInCheckins(
             capturedAt: item.createdAt,
           });
         } else {
-          await syncSpot(comment, item);
+          await syncSpot(backend, comment, item);
         }
         await deletePendingCheckin(item.id);
         completed++;
