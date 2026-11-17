@@ -52,7 +52,6 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
       {isOpen && (
         <div className="nav-dropdown-menu" role="menu">
           <ul>
-            {menuItem('/', 'radio_button_checked', 'Record')}
             {menuItem('/explore', 'explore', 'Explore')}
             {menuItem('/spots', 'qr_code', 'Check In')}
             {menuItem('/trackathons', 'flag', 'Challenges')}
