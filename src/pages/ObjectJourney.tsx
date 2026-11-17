@@ -6,6 +6,8 @@ import './ObjectJourney.css';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { getObject, loadObjectCheckins, submitObjectCheckin, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
 import { GuestTurnstile } from '../components/GuestTurnstile';
+import { CheckinPhoto } from '../components/CheckinPhoto';
+import { encodeObjectCheckinNote } from '../lib/checkinPhoto';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -39,6 +41,7 @@ export function ObjectJourney() {
   const [locating, setLocating] = useState(false);
   const [action, setAction] = useState<Action>('carried');
   const [note, setNote] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [consented, setConsented] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
@@ -142,6 +145,9 @@ export function ObjectJourney() {
     setSending(true);
     setMessage('');
     try {
+      // Keep the existing guest Candid signature: its note embeds the optional
+      // photo URL, and the backend still validates the total 280-character cap.
+      const guestNote = encodeObjectCheckinNote(note, photoUrl);
       if (guestMode) {
         const response = await fetch('/api/objects/' + encodeURIComponent(objectId) + '/guest-checkin', {
           method: 'POST',
@@ -151,7 +157,7 @@ export function ObjectJourney() {
             longitude: Number(location.longitude.toFixed(3)),
             accuracyMeters: Math.round(location.accuracyMeters),
             action,
-            note,
+            note: guestNote,
             requestId: guestRequestId,
             turnstileToken: guestToken,
           }),
@@ -159,7 +165,7 @@ export function ObjectJourney() {
         const payload = await response.json() as { error?: string };
         if (!response.ok) throw new Error(payload.error || 'Guest check-in failed.');
       } else {
-        await submitObjectCheckin(backend, objectId, { ...location, action, note });
+        await submitObjectCheckin(backend, objectId, { ...location, action, note, photoUrl });
       }
       setMessage('Thank you! This stop is now part of the object’s journey on ICP.');
       setGuestToken('');
@@ -167,6 +173,7 @@ export function ObjectJourney() {
       setGuestRequestId(crypto.randomUUID());
       setLocation(null);
       setNote('');
+      setPhotoUrl('');
       setConsented(false);
       await refresh();
     } catch (error) {
@@ -220,6 +227,15 @@ export function ObjectJourney() {
           placeholder="A rainy morning on the trail..."
           value={note} onChange={(event) => { setNote(event.target.value); setGuestRequestId(crypto.randomUUID()); }}
         />
+        <label htmlFor="journey-photo-url">Photo URL (optional)</label>
+        <input
+          id="journey-photo-url" type="url" inputMode="url" maxLength={220}
+          placeholder="https://example.com/photo.jpg"
+          value={photoUrl}
+          onChange={(event) => { setPhotoUrl(event.target.value); setGuestRequestId(crypto.randomUUID()); }}
+        />
+        <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
+          On guest check-ins, the note and link together must fit in 280 characters.</p>
         <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError) || !canCheckin}>
           {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
         </button>
@@ -232,7 +248,7 @@ export function ObjectJourney() {
         )}
         <label className="journey-consent">
           <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
-          <span>I agree to publish this approximate location and note on the public journey map.</span>
+          <span>I agree to publish this approximate location, note and optional photo link on the public journey map.</span>
         </label>
         {guestMode && guestConfig.siteKey && <GuestTurnstile
           siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
@@ -254,7 +270,7 @@ export function ObjectJourney() {
             {chronological.map((entry, index) => (
               <CircleMarker key={entry.id} center={[entry.latitude, entry.longitude]} radius={index === chronological.length - 1 ? 9 : 6}
                 pathOptions={{ color: '#234c37', fillColor: '#a2d4a3', fillOpacity: 1, weight: 2 }}>
-                <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p>{entry.note && <p>{entry.note}</p>}</Popup>
+                <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p>{entry.note && <p>{entry.note}</p>}{entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Check-in photo" />}</Popup>
               </CircleMarker>
             ))}
           </MapContainer>
@@ -269,6 +285,7 @@ export function ObjectJourney() {
               <div><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong>
                 <small>{formatDate(entry.createdAt)} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
                 {entry.note && <p>{entry.note}</p>}
+                {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
               </div>
             </article>
           ))}
