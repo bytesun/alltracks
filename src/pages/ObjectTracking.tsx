@@ -124,7 +124,7 @@ export function ObjectTracking() {
   };
 
   return <main className="journey-page">
-    <section className="journey-hero">
+    <section className="journey-hero journey-hero--compact">
       <div className="journey-overline">ALLTRACKS · OBJECT TRACKING</div>
       <div className="journey-cup">🎒</div>
       <h1>Track Me Down</h1>
