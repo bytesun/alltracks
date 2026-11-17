@@ -35,7 +35,7 @@ export const Navbar = () => {
         <div className="desktop-menu">
           <Link to="/" className="nav-link"><span className="material-icons">radio_button_checked</span>Record</Link>
           <Link to="/explore" className="nav-link"><span className="material-icons">explore</span>Explore</Link>
-          <Link to="/check-ins" className="nav-link"><span className="material-icons">qr_code</span>Check In</Link>
+          <Link to="/spots" className="nav-link"><span className="material-icons">qr_code</span>Check In</Link>
           <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Challenges</Link>
           <Link to="/history" className="nav-link"><span className="material-icons">history</span>History</Link>
           {isAuthed && (
