@@ -4,6 +4,8 @@ import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '..
 import type { Comment } from '../api/comment/comment.did';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { normalizeCheckinPhotoUrl } from '../lib/checkinPhoto';
+import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, queueSpotCheckin } from '../lib/offlineCheckins';
+import { flushSignedInCheckins } from '../lib/checkinSync';
 import './SpotCheckIn.css';
 
 type Spot = {
@@ -36,7 +38,7 @@ export default function SpotCheckIn() {
   const validId = !!spotId && /^\d+$/.test(spotId);
   const alltracks = useAlltracks();
   const comments = useComment();
-  const { state: { isAuthed } } = useGlobalContext();
+  const { state: { isAuthed, principal } } = useGlobalContext();
   const [, openLogin] = useSetLoginModal();
 
   const [spot, setSpot] = useState<Spot | null>(null);
@@ -49,6 +51,33 @@ export default function SpotCheckIn() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [online, setOnline] = useState(() => !isOffline());
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const updateOnline = () => setOnline(!isOffline());
+    window.addEventListener('online', updateOnline);
+    window.addEventListener('offline', updateOnline);
+    return () => {
+      window.removeEventListener('online', updateOnline);
+      window.removeEventListener('offline', updateOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const update = () => {
+      void listPendingCheckins().then(items => {
+        if (active) setPendingCount(items.filter(item => item.kind === 'spot' && item.spotId === spotId).length);
+      }).catch(() => {});
+    };
+    update();
+    window.addEventListener(CHECKIN_OUTBOX_EVENT, update);
+    return () => {
+      active = false;
+      window.removeEventListener(CHECKIN_OUTBOX_EVENT, update);
+    };
+  }, [spotId]);
 
   const url = useMemo(() => validId ? new URL('/check-in/' + spotId, window.location.origin).toString() : '', [validId, spotId]);
   const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=256x256&margin=12&data=' + encodeURIComponent(url);
@@ -79,30 +108,45 @@ export default function SpotCheckIn() {
     }).catch(err => { if (!cancelled) setError('Failed to load Spot check-in: ' + String(err)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [spotId, validId, alltracks, comments]);
+  }, [spotId, validId, alltracks, comments, online]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!spotId || !spot || !isAuthed) { openLogin(true); return; }
+    if (!spotId || !validId || !isAuthed || !principal) {
+      openLogin(true);
+      return;
+    }
     setError('');
     setSuccess('');
     setSaving(true);
     try {
-      const payload: GuestMessage = { v: 1, name: name.trim(), note: note.trim(), photoUrl: normalizeCheckinPhotoUrl(photoUrl) };
-      const result = await comments.addComment({
-        comto: checkInTarget(spotId),
-        comment: JSON.stringify(payload),
-        attachments: [],
+      // Save locally first, then sync if possible. This preserves the
+      // participant's note even after a connection timeout or page refresh.
+      const item = await queueSpotCheckin({
+        kind: 'spot',
+        spotId,
+        principal: principal.toText(),
+        name,
+        note,
+        photoUrl: normalizeCheckinPhotoUrl(photoUrl),
       });
-      if ('err' in result) throw new Error(result.err);
-      setSuccess('Check-in saved successfully.');
       setName('');
       setNote('');
       setPhotoUrl('');
-      setEntries(await comments.getComments(checkInTarget(spotId), 0n));
+      setSuccess('Check-in saved on this device; it will sync automatically when possible.');
+      if (!isOffline()) {
+        await flushSignedInCheckins(alltracks, comments, principal.toText(), true);
+        const pending = await listPendingCheckins();
+        if (!pending.some(p => p.id === item.id)) {
+          setSuccess('Check-in synced successfully.');
+          setEntries(await comments.getComments(checkInTarget(spotId), 0n));
+        }
+      }
     } catch (err) {
-      setError('Check-in failed: ' + String(err));
-    } finally { setSaving(false); }
+      setError('Could not save check-in on this device: ' + String(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const copy = async () => {
@@ -117,19 +161,21 @@ export default function SpotCheckIn() {
       <Link to={validId ? '/spots/' + spotId : '/spots'}>← Back to Spot</Link>
       {loading && <p>Loading check-in…</p>}
       {error && <p className="spot-checkin-error" role="alert">{error}</p>}
-      {spot && (
+      {(spot || (!online && validId)) && (
         <>
           <section className="spot-checkin-card">
-            <h2>{spot.name} · Check In</h2>
-            {spot.description && <p>{spot.description}</p>}
-            {spot.latitude !== null && spot.longitude !== null && (
+            <h2>{spot?.name || 'Spot'} · Check In</h2>
+            {spot?.description && <p>{spot.description}</p>}
+            {spot && spot.latitude !== null && spot.longitude !== null && (
               <a
                 href={'https://www.openstreetmap.org/?mlat=' + spot.latitude + '&mlon=' + spot.longitude + '#map=16/' + spot.latitude + '/' + spot.longitude}
                 target="_blank"
                 rel="noopener noreferrer"
               >View location on map</a>
             )}
-            <p className="spot-checkin-hint">Anyone can open this public link. Signing in is currently required to save a check-in because the existing ICP comment service rejects anonymous writes. A scan alone does not prove physical presence.</p>
+            {!online && <p className="spot-checkin-hint" role="status">📴 Offline. Your check-in can be saved on this device and will retry when the app is open and network access returns.</p>}
+            {pendingCount > 0 && <p className="spot-checkin-hint" role="status">{pendingCount} locally saved Spot check-in{pendingCount === 1 ? '' : 's'} waiting for sync.</p>}
+            <p className="spot-checkin-hint">Anyone can open this public link. Signed-in visitors can save check-ins to sync after reconnecting. A QR scan alone does not prove physical presence.</p>
           </section>
           <section className="spot-checkin-card">
             <h3>Check In</h3>
@@ -149,7 +195,7 @@ export default function SpotCheckIn() {
                 with your check-in and may be loaded from the external photo host.</p>
               <div className="spot-checkin-actions">
                 {isAuthed
-                  ? <button className="primary-btn" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Check In'}</button>
+                  ? <button className="primary-btn" type="submit" disabled={saving}>{saving ? 'Saving…' : online ? 'Save and Check In' : 'Save Offline'}</button>
                   : <button className="primary-btn" type="button" onClick={() => openLogin(true)}>Sign in to Check In</button>}
                 {success && <span className="spot-checkin-success" role="status">{success}</span>}
               </div>

@@ -140,6 +140,7 @@ export const submitObjectCheckin = async (
   input: {
     latitude: number; longitude: number; accuracyMeters: number;
     action: Action; note: string; photoUrl?: string;
+    requestId?: string; capturedAt?: number;
   },
 ): Promise<void> => {
   if (!/^obj-[a-z0-9-]{12,65}$/.test(objectId)) throw new Error('Invalid object ID.');
@@ -147,6 +148,19 @@ export const submitObjectCheckin = async (
       Math.abs(input.latitude) > 90 || Math.abs(input.longitude) > 180 ||
       input.accuracyMeters < 0 || input.accuracyMeters > 2000) {
     throw new Error('Invalid GPS coordinates or accuracy.');
+  }
+  // Signed-in createCheckpoint has no native idempotency key. Before retrying
+  // an offline submission, check whether its stable request ID is already on
+  // chain. This prevents ordinary repeated syncs after lost HTTP responses;
+  // without a native atomic backend endpoint it is not an exactly-once proof.
+  if (input.requestId) {
+    const prior = await backend.getCheckPointsByTrackId(objectId);
+    if (prior.some(point => {
+      if (!point.note.startsWith(CHECKIN_PREFIX)) return false;
+      try {
+        return JSON.parse(point.note.slice(CHECKIN_PREFIX.length)).requestId === input.requestId;
+      } catch { return false; }
+    })) return;
   }
   const target = await getObject(backend, objectId);
   if (!target) throw new Error('This object is not available.');
@@ -157,13 +171,14 @@ export const submitObjectCheckin = async (
     elevation: 0,
     groupId: [],
     isPublic: true,
-    timestamp: BigInt(Date.now()) * 1_000_000n,
+    timestamp: BigInt(input.capturedAt ?? Date.now()) * 1_000_000n,
     trackId: objectId,
     photo: [],
     note: CHECKIN_PREFIX + JSON.stringify({
       action: input.action,
       accuracyMeters: Math.round(input.accuracyMeters),
       note: encodeObjectCheckinNote(input.note, input.photoUrl || ''),
+      ...(input.requestId ? { requestId: input.requestId } : {}),
     }),
   });
   if ('err' in result) throw new Error(result.err);

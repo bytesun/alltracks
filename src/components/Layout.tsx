@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './Navbar';
+import { CheckinOutboxManager } from './CheckinOutboxManager';
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
 import { LoginModal } from './LoginModal';
@@ -179,6 +180,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <>
       <Navbar />
+      <CheckinOutboxManager />
       {children}
       <Chat />
       <LoginModal
