@@ -23,6 +23,7 @@ import { TrackathonDetail } from './pages/TrackathonDetail';
 import { Tracking } from './pages/Tracking';
 import { TrailDetail } from './pages/TrailDetail';
 import Explore from './pages/Explore';
+import { QRCheckInHome, QRCheckInDetail } from './pages/QRCheckIn';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -55,6 +56,8 @@ function App() {
               <Route path="/history" element={<TracksPage />} />
               <Route path="/tracks/:userId" element={<TracksPage />} />
               <Route path="/spots" element={<Spots />} />
+              <Route path="/check-ins" element={<QRCheckInHome />} />
+              <Route path="/check-in/:locationId" element={<QRCheckInDetail />} />
               <Route path="/spots/:spotId" element={<SpotDetail />} />
               <Route path="/posts" element={<Posts />} />
               <Route path="/everpeace" element={<Everpeace />} />
