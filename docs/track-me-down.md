@@ -24,11 +24,13 @@ The repository contains the deployed AllTracks Candid interface and client but d
 
 No frontend-only database or browser local storage is used for persistent object data. Creation and check-in data are written into the **same deployed AllTracks ICP canister** as other tracking entries.
 
-## Authentication limitation (important)
+## Authentication and optional guest gateway
 
-**Creating objects requires login. Posting check-ins also currently requires login.** The existing `createCheckpoint` method requires an authenticated caller, and the repository does not provide the corresponding Motoko backend code to safely add public/anonymous writes. The QR landing page is public, but the check-in control asks visitors to sign in to AllTracks before using GPS.
+**Creating objects requires login. Posting check-ins currently requires login until the guest gateway and existing backend are both upgraded and explicitly enabled.** The existing `createCheckpoint` method requires an authenticated caller, and the repository does not provide the corresponding Motoko backend code to safely add public/anonymous writes. The QR landing page is public, but the check-in control asks visitors to sign in to AllTracks before using GPS.
 
-Preserving the original **anyone-can-check-in-without-login** ambition would require a reviewed, rate-limited, owner-aware guest submission endpoint in the **existing** canister's backend source, followed by a compatible upgrade to that same canister. Simply adding a Candid method on the frontend would not make the backend implement it. Do not deploy an anonymous credential on the browser or use an unrestricted private signing proxy as a workaround.
+A fail-closed HTTP gateway and conditional guest UI are now included in the PR. When fully configured, a guest may complete Cloudflare Turnstile and post via a least-privilege service identity to a **dedicated method on the existing canister**. The method has not yet been implemented on the production canister. The gate remains disabled by default and the existing logged-in checkpoint flow is unchanged.
+
+See docs/guest-checkin-security.md for the exact authorization rules, deployment variables, WAF/Turnstile setup, test plan and release gates. See docs/object-guest-checkin-contract.did for the proposed *additive* Candid shape. Do not put the guest service identity in client source or weaken ordinary createCheckpoint authorization.
 
 ## Privacy and safety
 
