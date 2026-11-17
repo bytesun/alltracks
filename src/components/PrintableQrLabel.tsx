@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import './PrintableQrLabel.css';
+import { objectLabelSubtitle, printLabelQrUrl } from '../lib/printLabel';
 
 type LabelKind = 'object' | 'trail';
 type Direction = 'none' | 'left' | 'ahead' | 'right';
@@ -24,19 +25,6 @@ function cleanText(text: string, limit: number): string {
   return text.replace(/\s+/g, ' ').trim().slice(0, limit);
 }
 
-export function printableQrSource(url: string): string {
-  const parsed = new URL(url);
-  if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost') {
-    throw new Error('A secure public QR link is required.');
-  }
-  if (!/^\/(?:object\/obj-[a-z0-9-]+|check-in\/\d+)$/.test(parsed.pathname)) {
-    throw new Error('This URL is not an AllTracks check-in link.');
-  }
-  // Public URLs only. No owner Principal or visitor GPS is included.
-  return 'https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=18&data=' +
-    encodeURIComponent(parsed.origin + parsed.pathname);
-}
-
 export interface PrintableQrLabelProps {
   kind: LabelKind;
   url: string;
@@ -55,7 +43,7 @@ export function PrintableQrLabel({
   const [size, setSize] = useState<PrintSize>(kind === 'object' ? '4x6' : 'a5');
   const [direction, setDirection] = useState<Direction>('none');
   const [headline, setHeadline] = useState(
-    kind === 'object' ? 'I AM A ' + cleanText(name.replace(/^(my|the|an?|this)\s+/i, ''), 40).toUpperCase() :
+    kind === 'object' ? objectLabelSubtitle(name) :
       cleanText(name, 46).toUpperCase(),
   );
   const [instruction, setInstruction] = useState(kind === 'object'
@@ -65,7 +53,7 @@ export function PrintableQrLabel({
   const [qrBroken, setQrBroken] = useState(false);
 
   const imageUrl = useMemo(() => {
-    try { return printableQrSource(url); }
+    try { return printLabelQrUrl(url); }
     catch { return ''; }
   }, [url]);
 
