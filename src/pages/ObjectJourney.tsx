@@ -3,18 +3,10 @@ import { useParams } from 'react-router-dom';
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ObjectJourney.css';
+import { loadObjectCheckins, submitObjectCheckin, type JourneyCheckin } from '../api/object-journey/client';
 
 type Action = 'found' | 'carried' | 'left';
-type Checkin = {
-  id: string;
-  latitude: number;
-  longitude: number;
-  accuracyMeters: number | null;
-  action: Action;
-  note: string;
-  createdAt: string;
-};
-type JourneyResponse = { objectId: string; checkins: Checkin[]; error?: string };
+type Checkin = JourneyCheckin;
 type LocationPreview = { latitude: number; longitude: number; accuracyMeters: number };
 
 const ACTIONS: Record<Action, { title: string; icon: string }> = {
@@ -47,10 +39,8 @@ export function ObjectJourney() {
 
   const refresh = async () => {
     try {
-      const result = await fetch(`/api/objects/${encodeURIComponent(objectId)}`, { cache: 'no-store' });
-      const data = await result.json() as JourneyResponse;
-      if (!result.ok) throw new Error(data.error || 'Unable to load journey.');
-      setCheckins(data.checkins);
+      const stops = await loadObjectCheckins(objectId);
+      setCheckins(stops);
       setLoadError('');
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to load journey.');
@@ -101,13 +91,7 @@ export function ObjectJourney() {
     setSending(true);
     setMessage('');
     try {
-      const response = await fetch(`/api/objects/${encodeURIComponent(objectId)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...location, action, note }),
-      });
-      const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || 'Check-in failed.');
+      await submitObjectCheckin(objectId, { ...location, action, note });
       setMessage('Thank you! Your check-in is now part of the cup’s journey.');
       setLocation(null);
       setNote('');
@@ -170,7 +154,7 @@ export function ObjectJourney() {
           {sending ? 'Saving check-in…' : 'Add this stop to the journey'}
         </button>
         {message && <p className="journey-message" role="status">{message}</p>}
-        {loadError && <p className="journey-error" role="alert">{loadError} The public check-in service must be configured before field testing.</p>}
+        {loadError && <p className="journey-error" role="alert">{loadError} Deploy and configure the ICP Object Journey canister before field testing.</p>}
       </section>
 
       <section className="journey-panel">
