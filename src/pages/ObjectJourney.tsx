@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ObjectJourney.css';
-import { loadObjectCheckins, submitObjectCheckin, type JourneyCheckin } from '../api/object-journey/client';
+import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
+import { getObject, loadObjectCheckins, submitObjectCheckin, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -26,6 +27,10 @@ const distanceKm = (a: Checkin, b: Checkin) => {
 
 export function ObjectJourney() {
   const { objectId = '' } = useParams<'objectId'>();
+  const backend = useAlltracks();
+  const { state: { isAuthed } } = useGlobalContext();
+  const [, setLoginModal] = useSetLoginModal();
+  const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -39,7 +44,10 @@ export function ObjectJourney() {
 
   const refresh = async () => {
     try {
-      const stops = await loadObjectCheckins(objectId);
+      const item = await getObject(backend, objectId);
+      if (!item) throw new Error('Object not found or not public.');
+      const stops = await loadObjectCheckins(backend, objectId);
+      setObject(item);
       setCheckins(stops);
       setLoadError('');
     } catch (error) {
@@ -53,7 +61,7 @@ export function ObjectJourney() {
     void refresh();
     // Refresh when a new physical object's QR URL is opened.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectId]);
+  }, [objectId, backend]);
 
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
   const positions = chronological.map((entry): [number, number] => [entry.latitude, entry.longitude]);
@@ -87,12 +95,12 @@ export function ObjectJourney() {
   };
 
   const submit = async () => {
-    if (!location || !consented || sending || loadError) return;
+    if (!location || !consented || sending || loadError || !isAuthed) return;
     setSending(true);
     setMessage('');
     try {
-      await submitObjectCheckin(objectId, { ...location, action, note });
-      setMessage('Thank you! Your check-in is now part of the cup’s journey.');
+      await submitObjectCheckin(backend, objectId, { ...location, action, note });
+      setMessage('Thank you! This stop is now part of the object’s journey on ICP.');
       setLocation(null);
       setNote('');
       setConsented(false);
@@ -107,12 +115,12 @@ export function ObjectJourney() {
   return (
     <main className="journey-page">
       <section className="journey-hero">
-        <div className="journey-overline">ALLTRACKS · OBJECT RELAY EXPERIMENT</div>
-        <div className="journey-cup">☕</div>
-        <h1>Track Me Down</h1>
-        <p className="journey-intro">I'm a wandering cup. Found me on a trail? Help me travel, then check me in so everyone can see where I've been.</p>
-        <span className="journey-id">Cup ID · {objectId}</span>
-        <p className="journey-zh">这是一个传递杯子的户外实验。扫描后自愿记录一次位置，不会持续追踪你。</p>
+        <div className="journey-overline">ALLTRACKS · OBJECT JOURNEY</div>
+        <div className="journey-cup">{object?.emoji || '📦'}</div>
+        <h1>{object?.name || 'Track Me Down'}</h1>
+        <p className="journey-intro">{object?.description || 'Found this object? Help it travel and share where it has been.'}</p>
+        <span className="journey-id">Object ID · {objectId}</span>
+        <p className="journey-zh">扫码查看物品旅程。登录后可自愿添加一次位置；不会持续追踪你。 <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
       </section>
 
       <section className="journey-stats" aria-label="Journey statistics">
@@ -123,7 +131,8 @@ export function ObjectJourney() {
 
       <section className="journey-panel journey-checkin">
         <div className="journey-section-title"><h2>Join the adventure</h2><span>01 / CHECK IN</span></div>
-        <p>You control whether to share a location. We only save an approximate point (rounded to ~100 m), an optional note, and the time.</p>
+        {!isAuthed && <p className="journey-login-notice">Check-ins use the existing AllTracks ICP checkpoint API and require signing in. <button type="button" onClick={() => setLoginModal(true)}>Sign in to check in</button></p>}
+        <p>You control whether to share a location. We save an approximate point (rounded to ~100 m), a note, and the timestamp to the existing AllTracks ICP canister. Your signed-in account is associated with the checkpoint on-chain.</p>
         <label htmlFor="journey-action">What happened?</label>
         <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
           {Object.entries(ACTIONS).map(([value, details]) => (
@@ -136,7 +145,7 @@ export function ObjectJourney() {
           placeholder="A rainy morning on the trail..."
           value={note} onChange={(event) => setNote(event.target.value)}
         />
-        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError)}>
+        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError) || !isAuthed}>
           {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
         </button>
         {location && (
@@ -150,15 +159,15 @@ export function ObjectJourney() {
           <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
           <span>I agree to publish this approximate location and note on the public journey map.</span>
         </label>
-        <button className="journey-button" type="button" onClick={submit} disabled={!location || !consented || sending || Boolean(loadError)}>
+        <button className="journey-button" type="button" onClick={submit} disabled={!location || !consented || !isAuthed || sending || Boolean(loadError)}>
           {sending ? 'Saving check-in…' : 'Add this stop to the journey'}
         </button>
         {message && <p className="journey-message" role="status">{message}</p>}
-        {loadError && <p className="journey-error" role="alert">{loadError} Deploy and configure the ICP Object Journey canister before field testing.</p>}
+        {loadError && <p className="journey-error" role="alert">{loadError}</p>}
       </section>
 
       <section className="journey-panel">
-        <div className="journey-section-title"><h2>The cup's journey</h2><span>02 / MAP</span></div>
+        <div className="journey-section-title"><h2>Journey map</h2><span>02 / MAP</span></div>
         <div className="journey-map">
           <MapContainer key={checkins[0]?.id || 'empty'} center={center} zoom={positions.length ? 11 : 8} scrollWheelZoom={false} style={{ height: 350, width: '100%' }}>
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -187,7 +196,7 @@ export function ObjectJourney() {
         </div>
       </section>
 
-      <footer className="journey-footer">Please keep the trail clean and respect park rules. Never take another person's property. This is an opt-in experiment about an object, not live tracking of people.</footer>
+      <footer className="journey-footer">Keep trails clean and respect park rules. Never take another person's property. QR codes are links, not location trackers. Signed-in checkpoint contributors can be identified by their public ICP principal; do not post sensitive locations.</footer>
     </main>
   );
 }
