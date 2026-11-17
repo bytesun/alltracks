@@ -1,0 +1,46 @@
+
+.checkin-outbox {
+  position: relative;
+  z-index: 1100;
+  margin: 8px auto 12px;
+  width: min(96%, 1050px);
+  padding: 12px 15px;
+  color: #263d32;
+  border: 1px solid #d8d9c0;
+  background: #f8f6e9;
+  border-radius: 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.checkin-outbox-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.checkin-outbox-main > span:nth-child(2) { flex: 1; min-width: 180px; }
+.checkin-outbox button {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  color: #204b38;
+  background: white;
+  border: 1px solid #bfcbbd;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.checkin-outbox button:disabled { opacity: .55; cursor: not-allowed; }
+.checkin-outbox p { margin: 10px 0 0; font-size: 13px; }
+.checkin-outbox a { color: #145c46; text-decoration: underline; }
+.checkin-outbox ul { list-style: none; padding: 0; margin: 12px 0 0; }
+.checkin-outbox li {
+  border-top: 1px solid #e0e4cf;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.checkin-outbox li span { min-width: 0; overflow-wrap: anywhere; }
+.checkin-outbox small { display: block; color: #775d41; margin-top: 3px; }
