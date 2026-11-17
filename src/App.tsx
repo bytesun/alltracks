@@ -24,6 +24,7 @@ import { Tracking } from './pages/Tracking';
 import { TrailDetail } from './pages/TrailDetail';
 import Explore from './pages/Explore';
 import { ObjectJourney } from './pages/ObjectJourney';
+import { ObjectTracking } from './pages/ObjectTracking';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -42,6 +43,7 @@ function App() {
               <Route path="/" element={<MainApp />} />
               <Route path="/tracking" element={<Tracking />} />
               <Route path="/object/:objectId" element={<ObjectJourney />} />
+              <Route path="/objects" element={<ObjectTracking />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/trails" element={<Trails />} />
               <Route path="/trail/:trailId" element={<TrailDetail />} />
