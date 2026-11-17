@@ -159,7 +159,7 @@ export function PrintableQrLabel({
                   {imageUrl && <img src={imageUrl} alt={'QR code for ' + name}
                     onLoad={() => { setQrReady(true); setQrBroken(false); }}
                     onError={() => { setQrReady(false); setQrBroken(true); }}
-                    crossOrigin="anonymous" />}
+                    />}
                 </div>
                 <footer className="qr-label-object-footer">
                   <h3>FOUND ME? SCAN &amp; CHECK IN</h3>
@@ -184,7 +184,7 @@ export function PrintableQrLabel({
                   {imageUrl && <img src={imageUrl} alt={'QR code for ' + name}
                     onLoad={() => { setQrReady(true); setQrBroken(false); }}
                     onError={() => { setQrReady(false); setQrBroken(true); }}
-                    crossOrigin="anonymous" />}
+                    />}
                 </div>
                 <footer className="qr-label-trail-footer">
                   <strong>POINT CAMERA HERE</strong>
