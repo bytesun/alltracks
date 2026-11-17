@@ -5,15 +5,16 @@ import 'leaflet/dist/leaflet.css';
 import './ObjectJourney.css';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { getObject, loadObjectCheckins, submitObjectCheckin, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
+import { GuestTurnstile } from '../components/GuestTurnstile';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
 type LocationPreview = { latitude: number; longitude: number; accuracyMeters: number };
 
 const ACTIONS: Record<Action, { title: string; icon: string }> = {
-  found: { title: 'I found the cup', icon: '👀' },
+  found: { title: 'I found it', icon: '👀' },
   carried: { title: 'I brought it here', icon: '🥾' },
-  left: { title: 'I left it for the next explorer', icon: '☕' },
+  left: { title: 'I left it for the next explorer', icon: '📍' },
 };
 const formatDate = (value: string) => new Date(value).toLocaleString();
 const toRadians = (value: number) => value * Math.PI / 180;
@@ -41,6 +42,27 @@ export function ObjectJourney() {
   const [consented, setConsented] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
+  const [guestConfig, setGuestConfig] = useState<{ enabled: boolean; siteKey: string | null }>({
+    enabled: false, siteKey: null,
+  });
+  const [guestToken, setGuestToken] = useState('');
+  const [guestReset, setGuestReset] = useState(0);
+  const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey);
+  const canCheckin = isAuthed || guestMode;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/objects/guest-config', { cache: 'no-store', signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) return;
+        const config = await response.json() as { enabled?: boolean; siteKey?: string | null };
+        if (!controller.signal.aborted && config.enabled && typeof config.siteKey === 'string') {
+          setGuestConfig({ enabled: true, siteKey: config.siteKey });
+        }
+      })
+      .catch(() => { /* Existing login-based check-in remains available. */ });
+    return () => controller.abort();
+  }, []);
 
   const refresh = async () => {
     try {
@@ -95,17 +117,38 @@ export function ObjectJourney() {
   };
 
   const submit = async () => {
-    if (!location || !consented || sending || loadError || !isAuthed) return;
+    if (!location || !consented || sending || loadError || !canCheckin || (guestMode && !guestToken)) return;
     setSending(true);
     setMessage('');
     try {
-      await submitObjectCheckin(backend, objectId, { ...location, action, note });
+      if (guestMode) {
+        const response = await fetch('/api/objects/' + encodeURIComponent(objectId) + '/guest-checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            latitude: Number(location.latitude.toFixed(3)),
+            longitude: Number(location.longitude.toFixed(3)),
+            accuracyMeters: Math.round(location.accuracyMeters),
+            action,
+            note,
+            requestId: crypto.randomUUID(),
+            turnstileToken: guestToken,
+          }),
+        });
+        const payload = await response.json() as { error?: string };
+        if (!response.ok) throw new Error(payload.error || 'Guest check-in failed.');
+      } else {
+        await submitObjectCheckin(backend, objectId, { ...location, action, note });
+      }
       setMessage('Thank you! This stop is now part of the object’s journey on ICP.');
+      setGuestToken('');
+      setGuestReset(value => value + 1);
       setLocation(null);
       setNote('');
       setConsented(false);
       await refresh();
     } catch (error) {
+      if (guestMode) { setGuestToken(''); setGuestReset(value => value + 1); }
       setMessage(error instanceof Error ? error.message : 'Check-in failed. Please retry.');
     } finally {
       setSending(false);
@@ -131,8 +174,18 @@ export function ObjectJourney() {
 
       <section className="journey-panel journey-checkin">
         <div className="journey-section-title"><h2>Join the adventure</h2><span>01 / CHECK IN</span></div>
-        {!isAuthed && <p className="journey-login-notice">Check-ins use the existing AllTracks ICP checkpoint API and require signing in. <button type="button" onClick={() => setLoginModal(true)}>Sign in to check in</button></p>}
-        <p>You control whether to share a location. We save an approximate point (rounded to ~100 m), a note, and the timestamp to the existing AllTracks ICP canister. Your signed-in account is associated with the checkpoint on-chain.</p>
+        {!isAuthed && !guestMode && <p className="journey-login-notice">
+          Guest check-in is not enabled for this deployment. Sign in to add a location.
+          <button type="button" onClick={() => setLoginModal(true)}>Sign in to check in</button>
+        </p>}
+        {guestMode && <p className="journey-login-notice">
+          No account required. Your location is shared only after you grant GPS permission,
+          pass anti-spam verification, and consent to publishing an approximate point.
+        </p>}
+        <p>You choose whether to share a location. Only an approximate point (rounded to ~100 m),
+          a note, and a timestamp are saved on the existing AllTracks ICP canister.
+          {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : ' Guest submissions will be attributed to the service gateway, not a user login.'}
+        </p>
         <label htmlFor="journey-action">What happened?</label>
         <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
           {Object.entries(ACTIONS).map(([value, details]) => (
@@ -145,7 +198,7 @@ export function ObjectJourney() {
           placeholder="A rainy morning on the trail..."
           value={note} onChange={(event) => setNote(event.target.value)}
         />
-        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError) || !isAuthed}>
+        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError) || !canCheckin}>
           {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
         </button>
         {location && (
@@ -159,7 +212,11 @@ export function ObjectJourney() {
           <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
           <span>I agree to publish this approximate location and note on the public journey map.</span>
         </label>
-        <button className="journey-button" type="button" onClick={submit} disabled={!location || !consented || !isAuthed || sending || Boolean(loadError)}>
+        {guestMode && guestConfig.siteKey && <GuestTurnstile
+          siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
+        />}
+        <button className="journey-button" type="button" onClick={submit}
+          disabled={!location || !consented || !canCheckin || (guestMode && !guestToken) || sending || Boolean(loadError)}>
           {sending ? 'Saving check-in…' : 'Add this stop to the journey'}
         </button>
         {message && <p className="journey-message" role="status">{message}</p>}
@@ -196,7 +253,10 @@ export function ObjectJourney() {
         </div>
       </section>
 
-      <footer className="journey-footer">Keep trails clean and respect park rules. Never take another person's property. QR codes are links, not location trackers. Signed-in checkpoint contributors can be identified by their public ICP principal; do not post sensitive locations.</footer>
+      <footer className="journey-footer">Keep trails clean and respect park rules. Never take another person's property.
+        QR codes are links, not live trackers. Signed-in checkpoint authors may be identifiable
+        by their public ICP Principal; guest reports are not proof of physical custody.
+        Do not publish sensitive locations.</footer>
     </main>
   );
 }
