@@ -7,6 +7,7 @@ import {
   isOffline,
   listPendingCheckins,
   type PendingCheckin,
+  type PendingObjectCheckin,
 } from '../lib/offlineCheckins';
 import { flushSignedInCheckins } from '../lib/checkinSync';
 import './CheckinOutboxManager.css';
@@ -81,7 +82,7 @@ export function CheckinOutboxManager() {
   }, [reload, sync]);
 
   if (!items.length) return null;
-  const guestItems = items.filter(item => item.kind === 'object' && !item.principal);
+  const guestItems = items.filter((item): item is PendingObjectCheckin => item.kind === 'object' && !item.principal);
   const awaitingOtherLogin = items.some(item => item.principal && item.principal !== principalText);
   const firstGuest = guestItems[0];
 
