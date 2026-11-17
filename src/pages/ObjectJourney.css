@@ -61,3 +61,20 @@
   .journey-stats span { font-size: .73rem; }
   .journey-section-title span { font-size: .62rem; }
 }
+
+/* Object management and printable QR cards */
+.journey-checkin input:not([type="checkbox"]) { display:block; width:100%; padding:14px; border-radius:12px; border:1px solid #bdccbf; background:#fff; font:inherit; color:#233b2f; }
+.journey-objects-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr)); gap:16px; margin-top:20px; }
+.journey-object-card { display:flex; flex-direction:column; gap:12px; padding:20px; border:1px solid #d8e1d5; border-radius:18px; background:#fbfdf9; min-width:0; }
+.journey-object-icon { font-size:46px; }
+.journey-object-body h3 { font-size:1.2rem; margin:0 0 8px; }
+.journey-object-body p { color:#526556; overflow-wrap:anywhere; }
+.journey-object-body small { color:#748176; }
+.journey-card-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.journey-card-actions a,.journey-card-actions button,.journey-login-notice button { color:#174b32; background:#e4f0e0; border:1px solid #bdd9c2; border-radius:10px; padding:9px 12px; font:inherit; text-decoration:none; cursor:pointer; }
+.journey-qr { margin-top:20px; text-align:center; padding:16px 8px; background:white; border:1px dashed #bdd4be; border-radius:12px; }
+.journey-qr img { display:block; max-width:100%; height:auto; margin:0 auto; }
+.journey-qr p { word-break:break-all; font-size:12px; }
+.journey-qr .journey-card-actions { justify-content:center; }
+.journey-login-notice { background:#f1f5ed; padding:14px; border-radius:12px; }
+@media print { nav,.journey-hero,.journey-panel:not(:has(.journey-qr)),.journey-footer,.journey-card-actions { display:none!important; } .journey-object-card:not(:has(.journey-qr)) {display:none!important;} }
