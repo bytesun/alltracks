@@ -19,7 +19,7 @@ jobs:
       - name: Type-check guest gateway
         run: npx tsc --project tsconfig.guest.json
       - name: Test anonymous check-in security
-        run: node --test tests/guest-checkin.test.mjs
+        run: node --test tests/guest-checkin.test.mjs tests/checkin-photo.test.mjs
 
   mobile-types:
     runs-on: ubuntu-latest

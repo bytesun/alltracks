@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '../components/Store';
 import type { Comment } from '../api/comment/comment.did';
+import { CheckinPhoto } from '../components/CheckinPhoto';
+import { normalizeCheckinPhotoUrl } from '../lib/checkinPhoto';
 import './SpotCheckIn.css';
 
 type Spot = {
@@ -12,14 +14,18 @@ type Spot = {
   longitude: number | null;
 };
 
-type GuestMessage = { v: 1; name: string; note: string };
+type GuestMessage = { v: 1; name: string; note: string; photoUrl?: string };
 
 const checkInTarget = (id: string) => ({ other: 'spot-checkin:' + id });
 const parseMessage = (content: string): GuestMessage => {
   try {
     const parsed = JSON.parse(content);
     if (parsed?.v === 1 && typeof parsed.name === 'string' && typeof parsed.note === 'string') {
-      return { v: 1, name: parsed.name, note: parsed.note };
+      let photoUrl = '';
+      if (typeof parsed.photoUrl === 'string') {
+        try { photoUrl = normalizeCheckinPhotoUrl(parsed.photoUrl); } catch { /* Don't display unsafe URLs. */ }
+      }
+      return { v: 1, name: parsed.name, note: parsed.note, photoUrl };
     }
   } catch { /* Legacy plain text */ }
   return { v: 1, name: '', note: content };
@@ -37,6 +43,7 @@ export default function SpotCheckIn() {
   const [entries, setEntries] = useState<Comment[]>([]);
   const [name, setName] = useState('');
   const [note, setNote] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,7 +88,7 @@ export default function SpotCheckIn() {
     setSuccess('');
     setSaving(true);
     try {
-      const payload: GuestMessage = { v: 1, name: name.trim(), note: note.trim() };
+      const payload: GuestMessage = { v: 1, name: name.trim(), note: note.trim(), photoUrl: normalizeCheckinPhotoUrl(photoUrl) };
       const result = await comments.addComment({
         comto: checkInTarget(spotId),
         comment: JSON.stringify(payload),
@@ -91,6 +98,7 @@ export default function SpotCheckIn() {
       setSuccess('Check-in saved successfully.');
       setName('');
       setNote('');
+      setPhotoUrl('');
       setEntries(await comments.getComments(checkInTarget(spotId), 0n));
     } catch (err) {
       setError('Check-in failed: ' + String(err));
@@ -132,6 +140,13 @@ export default function SpotCheckIn() {
               <label>Note (optional)
                 <textarea rows={3} maxLength={500} value={note} onChange={event => setNote(event.target.value)} placeholder="Leave a note about your visit…" />
               </label>
+              <label>Photo URL (optional)
+                <input type="url" inputMode="url" maxLength={220} value={photoUrl}
+                  onChange={event => setPhotoUrl(event.target.value)}
+                  placeholder="https://example.com/photo.jpg" />
+              </label>
+              <p className="spot-checkin-hint">Use a public HTTPS link to an image. The image will appear
+                with your check-in and may be loaded from the external photo host.</p>
               <div className="spot-checkin-actions">
                 {isAuthed
                   ? <button className="primary-btn" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Check In'}</button>
@@ -163,6 +178,7 @@ export default function SpotCheckIn() {
                         <time>{new Date(Number(entry.timestamp / 1_000_000n)).toLocaleString()}</time>
                       </div>
                       {message.note && <p>{message.note}</p>}
+                      {message.photoUrl && <CheckinPhoto url={message.photoUrl} label="Photo from this Spot check-in" />}
                     </li>
                   );
                 })}
