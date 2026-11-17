@@ -1,0 +1,23 @@
+type Action = variant { found; carried; left };
+type CheckinInput = record {
+  latitude : float64;
+  longitude : float64;
+  accuracyMeters : opt nat;
+  action : Action;
+  note : text;
+};
+type Checkin = record {
+  id : nat;
+  objectId : text;
+  latitude : float64;
+  longitude : float64;
+  accuracyMeters : opt nat;
+  action : Action;
+  note : text;
+  createdAt : int;
+};
+type SubmitResult = variant { ok : Checkin; err : text };
+service : {
+  getCheckins : (text) -> (vec Checkin) query;
+  addCheckin : (text, CheckinInput) -> (SubmitResult);
+}
