@@ -7,6 +7,7 @@ import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '..
 import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
+import { ObjectPhoto } from '../components/ObjectPhoto';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
@@ -265,6 +266,12 @@ export function ObjectJourney() {
         <span className="journey-id">Object ID · {objectId}</span>
         <p className="journey-zh">扫码查看物品旅程。登录后可自愿添加一次位置；不会持续追踪你。 <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
       </section>
+
+      {object?.photoUrl && (
+        <section className="journey-object-cover" aria-label="Object photo">
+          <ObjectPhoto url={object.photoUrl} name={object.name} />
+        </section>
+      )}
 
       <section className="journey-stats" aria-label="Journey statistics">
         <div><strong>{checkins.length}</strong><span>Check-ins</span></div>
