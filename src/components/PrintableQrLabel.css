@@ -276,7 +276,7 @@
 /* Print the actual configured label, not the entire SPA, map, navbar or modal.
    A body class is toggled only for the print dialog; all other pages remain
    printable as before. */
-@page { margin: 0; }
+@page alltracks-qr-label { margin: 0; }
 @media print {
   body.qr-label-print-active * { visibility: hidden !important; }
   body.qr-label-print-active .qr-label-overlay,
@@ -311,6 +311,7 @@
   body.qr-label-print-active .qr-label-print-hint,
   body.qr-label-print-active .qr-label-error { display: none !important; }
   body.qr-label-print-active .qr-label-sheet {
+    page: alltracks-qr-label;
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
