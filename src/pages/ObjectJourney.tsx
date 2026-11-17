@@ -57,6 +57,7 @@ export function ObjectJourney() {
   const [guestReset, setGuestReset] = useState(0);
   const [online, setOnline] = useState(() => !isOffline());
   const [pendingForObject, setPendingForObject] = useState<PendingObjectCheckin[]>([]);
+  const [retryClock, setRetryClock] = useState(() => Date.now());
   const guestSyncing = useRef(false);
   const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey) && Boolean(guestConfig.gatewayPrincipal);
   const canCheckin = isAuthed || guestMode || !online;
@@ -173,11 +174,18 @@ export function ObjectJourney() {
     );
   };
 
+  useEffect(() => {
+    if (!online || !guestMode || !pendingForObject.length) return;
+    const interval = window.setInterval(() => setRetryClock(Date.now()), 10_000);
+    return () => window.clearInterval(interval);
+  }, [online, guestMode, pendingForObject.length]);
+
   // A freshly generated Turnstile token is single-use. Once connectivity is
   // restored, a pending guest check-in syncs when a new challenge succeeds.
   // Turnstile may require human interaction; it cannot be bypassed offline.
   const nextGuest = !isAuthed && guestMode
-    ? pendingForObject.find(item => item.principal === null)
+    ? pendingForObject.find(item =>
+      item.principal === null && (!item.nextAttemptAt || item.nextAttemptAt <= retryClock))
     : undefined;
   useEffect(() => {
     if (!online || !nextGuest || !guestToken || guestSyncing.current) return;
