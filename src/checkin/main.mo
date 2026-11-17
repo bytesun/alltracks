@@ -5,7 +5,7 @@ import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Time "mo:base/Time";
 
-actor QRCheckIn {
+persistent actor QRCheckIn {
   public type Location = {
     id : Nat;
     name : Text;
