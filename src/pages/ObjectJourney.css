@@ -86,6 +86,53 @@
 .journey-qr p { word-break:break-all; font-size:12px; }
 .journey-qr .journey-card-actions { justify-content:center; }
 .journey-login-notice { background:#f1f5ed; padding:14px; border-radius:12px; }
+
+/* Creator-supplied Object photo, shown separately from visitor check-in media. */
+.journey-object-cover {
+  margin: 18px 0 22px;
+  border: 1px solid #d8e1d5;
+  border-radius: 18px;
+  padding: 14px;
+  background: #fbfdf9;
+}
+.journey-object-photo {
+  margin: 0;
+  max-width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+.journey-object-photo > a {
+  max-width: 100%;
+  display: block;
+}
+.journey-object-photo img {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  max-height: 380px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #edf1ec;
+}
+.journey-object-photo figcaption {
+  font-size: .82rem;
+  color: #54715e;
+  overflow-wrap: anywhere;
+}
+.journey-object-photo figcaption a { color: #2a6446; text-decoration: underline; }
+.journey-object-photo--compact {
+  margin: 12px 0;
+  justify-items: start;
+}
+.journey-object-photo--compact img {
+  max-width: min(100%, 240px);
+  max-height: 170px;
+  border-radius: 10px;
+}
+.journey-photo-hint { color: #65796c; font-size: .86rem; line-height: 1.45; }
+
 @media print { nav,.journey-hero,.journey-panel:not(:has(.journey-qr)),.journey-footer,.journey-card-actions { display:none!important; } .journey-object-card:not(:has(.journey-qr)) {display:none!important;} }
 
 .journey-captcha { padding: 14px 0; display: flex; flex-direction: column; gap: 8px; }
