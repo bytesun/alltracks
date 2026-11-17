@@ -321,7 +321,27 @@ export interface UserStats {
   'totalDistance' : number,
   'totalElevation' : number,
 }
+export type GuestAction = { 'found': null } | { 'carried': null } | { 'left': null };
+export interface GuestCheckinInput {
+  objectId: string;
+  latitude: number;
+  longitude: number;
+  accuracyMeters: bigint;
+  action: GuestAction;
+  note: string;
+  requestId: string;
+}
+export type GuestCheckinError =
+  | { unauthorized: null } | { notFound: null } | { disabled: null }
+  | { invalid: null } | { duplicate: null } | { rateLimited: null };
+export type GuestCheckinResult = { ok: bigint } | { err: GuestCheckinError };
+export interface ObjectGuestPolicy { enabled: boolean; gateway: Principal; }
+export type SetGuestPolicyResult = { ok: boolean } | { err: string };
+
 export interface _SERVICE {
+  'getObjectGuestPolicy': ActorMethod<[string], [] | [ObjectGuestPolicy]>,
+  'setObjectGuestPolicy': ActorMethod<[string, boolean, Principal], SetGuestPolicyResult>,
+  'submitGuestCheckin': ActorMethod<[GuestCheckinInput], GuestCheckinResult>,
   'addCheckpointComment' : ActorMethod<
     [
       Time,
