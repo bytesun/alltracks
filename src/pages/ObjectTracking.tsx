@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Principal } from '@dfinity/principal';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import './ObjectJourney.css';
@@ -30,6 +31,61 @@ export function ObjectTracking() {
   const [description, setDescription] = useState('');
   const [emoji, setEmoji] = useState('📦');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [gatewayPrincipal, setGatewayPrincipal] = useState<string | null>(null);
+  const [guestPolicies, setGuestPolicies] = useState<Record<string, boolean>>({});
+  const [changingGuestId, setChangingGuestId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/objects/guest-config', { cache: 'no-store', signal: controller.signal })
+      .then(async response => response.ok ? response.json() : null)
+      .then((config: { enabled?: boolean; gatewayPrincipal?: string } | null) => {
+        if (!controller.signal.aborted && config?.enabled && config.gatewayPrincipal) {
+          setGatewayPrincipal(config.gatewayPrincipal);
+        }
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthed || !gatewayPrincipal || !objects.length) return;
+    let cancelled = false;
+    void Promise.all(objects.map(async object => {
+      try {
+        const policy = await backend.getObjectGuestPolicy(object.id);
+        const enabled = !!policy.length && policy[0].enabled &&
+          policy[0].gateway.toText() === gatewayPrincipal;
+        return [object.id, enabled] as const;
+      } catch {
+        return [object.id, false] as const;
+      }
+    })).then(pairs => {
+      if (!cancelled) setGuestPolicies(Object.fromEntries(pairs));
+    });
+    return () => { cancelled = true; };
+  }, [isAuthed, backend, gatewayPrincipal, objects.map(x => x.id).join('|')]);
+
+  const toggleGuestCheckin = async (objectId: string) => {
+    if (!gatewayPrincipal || !isAuthed) return;
+    setChangingGuestId(objectId);
+    setError('');
+    try {
+      const newEnabled = !guestPolicies[objectId];
+      const result = await backend.setObjectGuestPolicy(
+        objectId,
+        newEnabled,
+        Principal.fromText(gatewayPrincipal),
+      );
+      if ('err' in result) throw new Error(result.err);
+      setGuestPolicies(old => ({ ...old, [objectId]: newEnabled }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not change guest policy.');
+    } finally {
+      setChangingGuestId(null);
+    }
+  };
+
 
   const refresh = async () => {
     if (!isAuthed || !principal) {
@@ -101,6 +157,11 @@ export function ObjectTracking() {
       </section>
 
       <section className="journey-panel">
+        {!gatewayPrincipal && <p className="journey-login-notice">
+          Guest check-ins are not enabled on this deployment. Your objects and QR links work
+          with the existing signed-in Checkpoint flow. Guest policy controls will appear
+          after the existing ICP backend and anti-abuse gateway are deployed.
+        </p>}
         <div className="journey-section-title"><h2>My objects</h2><span>02 / MY COLLECTION</span></div>
         {loading && <p>Loading objects from ICP…</p>}
         {!loading && objects.length === 0 && <p>No objects yet. Create your first object above.</p>}
@@ -114,6 +175,10 @@ export function ObjectTracking() {
               <div className="journey-card-actions">
                 <Link to={'/object/' + encodeURIComponent(object.id)}>View journey</Link>
                 <button type="button" onClick={() => setExpandedId(expandedId === object.id ? null : object.id)}>{expandedId === object.id ? 'Hide QR' : 'Show QR'}</button>
+                {gatewayPrincipal && <button type="button"
+                  disabled={changingGuestId === object.id}
+                  onClick={() => void toggleGuestCheckin(object.id)}
+                >{guestPolicies[object.id] ? 'Disable guest check-ins' : 'Enable guest check-ins'}</button>}
               </div>
               {expandedId === object.id && <QRCode name={object.name} url={objectLink(object.id)} />}
             </div>
