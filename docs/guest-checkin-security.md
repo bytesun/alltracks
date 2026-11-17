@@ -1,6 +1,6 @@
 # AllTracks Object Tracking — guest security integration
 
-Status: GATEWAY CODE READY BUT DISABLED. The existing production canister is NOT upgraded.
+Status: FRONTEND GATEWAY + BACKEND CODE IN DRAFT PRS. No mainnet deployment. Frontend: https://github.com/bytesun/alltracks/pull/38 ; existing backend: https://github.com/ICEvent/alltracks/pull/1 .
 
 ## Threat model
 The QR is a public identifier, not a credential. GPS can be spoofed. Turnstile success means a challenge was passed, not proof a visitor physically possesses the object. Risks: spam, cycle exhaustion, replay, phishing, inappropriate notes, leaked signing credentials, unauthorized object edits.
@@ -43,12 +43,12 @@ Keep ALL private values outside the source repo and frontend build. The gateway 
 Configure rate limits in the *edge WAF* (e.g. 5 attempts / 10 min per IP with appropriately configured exceptions). A serverless instance's in-memory limiter is NOT durable and must not be used alone. Enforce independent per-object quotas on chain. No Redis or extra Canister is required.
 
 ## Release gates
-1. Obtain production AllTracks Motoko source, stable types and current canister controllers.
-2. Implement owner policy, specific gateway ACL and submitGuestCheckin INSIDE existing Motoko actor.
-3. Test locally on dfx/PocketIC: anonymous directly rejected, trusted gateway allowed, others rejected, owner policy enabled/disabled, spoofed object ID, daily quota, replay and concurrent replay, normal Checkpoints unchanged, upgrade preserves data.
+1. The Motoko source is now synced at https://github.com/ICEvent/alltracks . Verify the restored source and stable types against the actual deployed module, and confirm the current canister controllers.
+2. Review the implemented owner policy, per-object gateway ACL and submitGuestCheckin in backend PR #1; keep object policy off by default.
+3. Backend CI compiles, and local dfx integration tests cover owner policy, unauthorized callers, accepted gateway submission, replay, GPS validation, quota gap, ordinary Checkpoints unchanged and upgrade persistence. Review untested concurrent bursts, full daily-quota rollover and mainnet migration separately.
 4. Review stable compatibility and cycles, and back up data.
 5. Provision least-privilege relay identity and grant its Principal via authorized canister administration.
 6. Configure Turnstile and WAF in preview; run two-device, retry, GPS denial, forged request, expired CAPTCHA and outage tests.
 7. Only then enable guest mode in production and start placing authorized QR objects.
 
-**Do not set GUEST_CHECKINS_ENABLED=true before the existing backend method and ACL are deployed and independently verified.**
+**Do not set GUEST_CHECKINS_ENABLED=true before backend PR #1 is safely deployed to the existing canister, the owner opt-in is granted, and WAF + Turnstile have been independently verified.**
