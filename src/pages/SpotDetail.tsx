@@ -174,9 +174,7 @@ export default function SpotDetail() {
         />
       )}
 
-      {isAuthed && (
-        <p><button className="primary-btn" onClick={() => navigate('/check-ins?spotId=' + encodeURIComponent(spot.id))}>Create QR Check In for this spot</button></p>
-      )}
+      <p><button type="button" className="primary-btn" onClick={() => navigate('/check-in/' + encodeURIComponent(spot.id))}>Create / Share QR Check In</button></p>
 
       <h3>Comments</h3>
       {comments.length === 0 && <p>No comments yet.</p>}
