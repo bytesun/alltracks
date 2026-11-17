@@ -214,9 +214,21 @@
 }
 
 .App {
-  /* No animated or image background: keep a stable, high-contrast recording view. */
+  /* Neutral, quiet surface so recording controls and the map lead. */
   min-height: 100vh;
-  background: linear-gradient(180deg, #0f2741 0%, #163f54 100%);
+  background: #f7f8f6;
+  color: #263a31;
+}
+
+.App-header .controls > button:not(:disabled) {
+  background: #286348;
+  color: #ffffff;
+  border-radius: 12px;
+  font-weight: 650;
+}
+
+.App-header .controls > button:hover:not(:disabled) {
+  background: #1d4d37;
 }
 
 @media (max-width: 768px) {
