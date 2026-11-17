@@ -45,4 +45,7 @@ jobs:
         with:
           dfx-version: "0.30.2"
       - name: Compile check-in canister
-        run: dfx build checkin
+        run: |
+          dfx start --background
+          dfx canister create checkin
+          dfx build checkin
