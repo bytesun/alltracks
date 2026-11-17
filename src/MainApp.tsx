@@ -83,7 +83,6 @@ function MainApp() {
   const [showTrailList, setShowTrailList] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [finishAfterExport, setFinishAfterExport] = useState(false);
-  const [shouldPlayHeroVideo, setShouldPlayHeroVideo] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -135,25 +134,6 @@ function MainApp() {
     };
     saveIndexdb();
   }, [trackPoints, trackType, trackName, groupId, trackId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const mobileViewport = window.matchMedia('(max-width: 768px)');
-    const updateVideoPreference = () => {
-      setShouldPlayHeroVideo(!reducedMotion.matches && !mobileViewport.matches);
-    };
-
-    updateVideoPreference();
-    reducedMotion.addEventListener?.('change', updateVideoPreference);
-    mobileViewport.addEventListener?.('change', updateVideoPreference);
-
-    return () => {
-      reducedMotion.removeEventListener?.('change', updateVideoPreference);
-      mobileViewport.removeEventListener?.('change', updateVideoPreference);
-    };
-  }, []);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371;
@@ -697,23 +677,6 @@ function MainApp() {
 
   return (
     <div className="App">
-      <div className="hero-video-bg" aria-hidden="true">
-        {shouldPlayHeroVideo && !trackId && (
-          <video
-            className="hero-video"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            poster="/hero-bg-poster.jpg"
-          >
-            <source src="/hero-bg.mp4" type="video/mp4" />
-          </video>
-        )}
-        <div className="hero-video-overlay" />
-      </div>
-
       <header className="App-header">
         {locationError && <div className="location-error">{locationError}</div>}
         {message && <div className="location-error">{message}</div>}

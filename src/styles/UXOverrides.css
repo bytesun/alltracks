@@ -213,8 +213,10 @@
   font-size: 18px;
 }
 
-.hero-video-bg {
-  background: url('/hero-bg-poster.jpg') center / cover no-repeat;
+.App {
+  /* No animated or image background: keep a stable, high-contrast recording view. */
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f2741 0%, #163f54 100%);
 }
 
 @media (max-width: 768px) {
@@ -224,10 +226,6 @@
 
   .App-header {
     margin-top: 8px;
-  }
-
-  .hero-video {
-    display: none;
   }
 
   .main-map-container {
@@ -300,10 +298,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-video {
-    display: none;
-  }
-
   *, *::before, *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
