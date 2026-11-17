@@ -58,3 +58,8 @@ jobs:
           dfx --identity anonymous canister call checkin listCheckIns '(1, 0, 10)' | grep -q 'Hello from CI'
           dfx canister call checkin setLocationActive '(1, false)' | grep -q 'ok'
           dfx --identity anonymous canister call checkin checkIn '(1, "", "After closing")' | grep -q 'closed'
+      - name: Preserve public notes across canister upgrade
+        run: |
+          dfx deploy checkin --mode upgrade
+          dfx --identity anonymous canister call checkin listCheckIns '(1, 0, 10)' | grep -q 'Hello from CI'
+          dfx --identity anonymous canister call checkin listLocations '(0, 10)' | grep -q 'CI location'
