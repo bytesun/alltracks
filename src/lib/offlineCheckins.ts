@@ -1,5 +1,5 @@
 import { openDB } from 'idb';
-import { encodeObjectCheckinNote, normalizeCheckinPhotoUrl } from './checkinPhoto';
+import { encodeObjectCheckinNote, normalizeCheckinPhotoUrl } from './checkinPhoto.ts';
 
 export const CHECKIN_OUTBOX_EVENT = 'alltracks:checkin-outbox-updated';
 const DB_NAME = 'alltracks-checkin-outbox';
@@ -57,7 +57,7 @@ function announce(): void {
 }
 
 export function normalizeQueuedObject(data: NewObjectCheckin): NewObjectCheckin {
-  if (!/^obj-[0-9a-f-]{36}$/i.test(data.objectId)) throw new Error('Invalid object ID.');
+  if (!/^obj-[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.objectId)) throw new Error('Invalid object ID.');
   if (!['found', 'carried', 'left'].includes(data.action)) throw new Error('Invalid check-in action.');
   if (![data.latitude, data.longitude, data.accuracyMeters].every(Number.isFinite) ||
       Math.abs(data.latitude) > 90 || Math.abs(data.longitude) > 180 ||
