@@ -35,10 +35,14 @@ persistent actor ObjectJourney {
   let maxStored : Nat = 500;
   let maxReturned : Nat = 200;
   let cooldownNs : Int = 15_000_000_000;
+  let dayNs : Int = 86_400_000_000_000;
+  let maxDailyCheckins : Nat = 60;
 
   var checkins : [Checkin] = [];
   var nextId : Nat = 1;
   var lastSubmissionNs : Int = 0;
+  var dayBucket : Int = -1;
+  var dailyCount : Nat = 0;
 
   func approximate(value : Float) : Float {
     // Rounding here is important: the exact GPS location is never persisted.
@@ -75,6 +79,14 @@ persistent actor ObjectJourney {
     // Protect the pilot with a global cooldown and bounded storage; moderation
     // is required before a large-scale public rollout.
     let now = Time.now();
+    let today = now / dayNs;
+    if (today != dayBucket) {
+      dayBucket := today;
+      dailyCount := 0;
+    };
+    if (dailyCount >= maxDailyCheckins) {
+      return #err("Daily pilot check-in limit reached. Try tomorrow.");
+    };
     if (lastSubmissionNs > 0 and now - lastSubmissionNs < cooldownNs) {
       return #err("Please wait 15 seconds between check-ins");
     };
@@ -102,6 +114,7 @@ persistent actor ObjectJourney {
     };
 
     nextId += 1;
+    dailyCount += 1;
     lastSubmissionNs := now;
     #ok(entry)
   };
