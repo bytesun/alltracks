@@ -232,7 +232,7 @@ export default function Spots() {
     <div className="page-container spots-page">
       <div className="spots-header">
         <h2>Spots</h2>
-        <p>Save and explore favorite places for fishing, camping, swimming, and more.</p>
+        <p>Save and explore favorite places for fishing, camping, swimming, and more. Open any Spot to create and share its QR check-in link.</p>
       </div>
 
       {isAuthed && (
