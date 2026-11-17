@@ -47,6 +47,7 @@ export function ObjectJourney() {
   });
   const [guestToken, setGuestToken] = useState('');
   const [guestReset, setGuestReset] = useState(0);
+  const [guestRequestId, setGuestRequestId] = useState(() => crypto.randomUUID());
   const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey);
   const canCheckin = isAuthed || guestMode;
 
@@ -101,6 +102,7 @@ export function ObjectJourney() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        setGuestRequestId(crypto.randomUUID());
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -131,7 +133,7 @@ export function ObjectJourney() {
             accuracyMeters: Math.round(location.accuracyMeters),
             action,
             note,
-            requestId: crypto.randomUUID(),
+            requestId: guestRequestId,
             turnstileToken: guestToken,
           }),
         });
@@ -143,6 +145,7 @@ export function ObjectJourney() {
       setMessage('Thank you! This stop is now part of the object’s journey on ICP.');
       setGuestToken('');
       setGuestReset(value => value + 1);
+      setGuestRequestId(crypto.randomUUID());
       setLocation(null);
       setNote('');
       setConsented(false);
@@ -187,7 +190,7 @@ export function ObjectJourney() {
           {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : ' Guest submissions will be attributed to the service gateway, not a user login.'}
         </p>
         <label htmlFor="journey-action">What happened?</label>
-        <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
+        <select id="journey-action" value={action} onChange={(event) => { setAction(event.target.value as Action); setGuestRequestId(crypto.randomUUID()); }}>
           {Object.entries(ACTIONS).map(([value, details]) => (
             <option value={value} key={value}>{details.icon} {details.title}</option>
           ))}
@@ -196,7 +199,7 @@ export function ObjectJourney() {
         <textarea
           id="journey-note" maxLength={280} rows={3}
           placeholder="A rainy morning on the trail..."
-          value={note} onChange={(event) => setNote(event.target.value)}
+          value={note} onChange={(event) => { setNote(event.target.value); setGuestRequestId(crypto.randomUUID()); }}
         />
         <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || Boolean(loadError) || !canCheckin}>
           {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
