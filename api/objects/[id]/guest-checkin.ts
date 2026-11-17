@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const raw = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    if (Buffer.byteLength(JSON.stringify(raw), 'utf8') > 4096) {
+    if (raw === undefined || raw === null || Buffer.byteLength(JSON.stringify(raw), 'utf8') > 4096) {
       return res.status(413).json({ error: 'Request too large.' });
     }
     const pathId = Array.isArray(req.query.id) ? null : req.query.id;
