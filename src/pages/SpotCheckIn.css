@@ -1,0 +1,25 @@
+.spot-checkin-page { max-width: 850px; margin: 0 auto; padding: 24px 16px 56px; }
+.spot-checkin-card { border: 1px solid #dce3ec; border-radius: 12px; padding: 20px; background: #fff; margin: 16px 0; }
+.spot-checkin-card h2, .spot-checkin-card h3 { margin-top: 0; }
+.spot-checkin-hint { color: #667384; font-size: .93rem; line-height: 1.5; }
+.spot-checkin-form { display: grid; gap: 14px; }
+.spot-checkin-form label, .spot-checkin-share label { display: grid; gap: 6px; font-weight: 600; }
+.spot-checkin-form input, .spot-checkin-form textarea, .spot-checkin-share input { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #b9c5d2; padding: 10px; font: inherit; color: #172b41; background: #fff; }
+.spot-checkin-form textarea { resize: vertical; min-height: 88px; }
+.spot-checkin-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.spot-checkin-actions button { min-height: 42px; cursor: pointer; }
+.spot-checkin-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.spot-checkin-share { display: grid; justify-items: start; gap: 12px; }
+.spot-checkin-share label { width: 100%; }
+.spot-checkin-share img { max-width: 100%; border: 1px solid #dce3ec; }
+.spot-checkin-error { border-radius: 8px; background: #fff1f0; padding: 12px; color: #88281c; overflow-wrap: anywhere; }
+.spot-checkin-success { color: #236942; }
+.spot-checkin-visits { list-style: none; padding: 0; margin: 0; }
+.spot-checkin-visits li { border-top: 1px solid #e1e6ec; padding: 14px 0; }
+.spot-checkin-visit-heading { display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+.spot-checkin-visit-heading time { color: #667384; font-size: .85rem; }
+.spot-checkin-visits li p { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media print {
+  .navbar, .spot-checkin-page > a, .spot-checkin-card:not(.spot-checkin-share), .spot-checkin-share input, .spot-checkin-share label, .spot-checkin-share .spot-checkin-actions { display: none !important; }
+  .spot-checkin-share { display: grid !important; border: none; }
+}
