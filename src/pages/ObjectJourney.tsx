@@ -42,28 +42,47 @@ export function ObjectJourney() {
   const [consented, setConsented] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
-  const [guestConfig, setGuestConfig] = useState<{ enabled: boolean; siteKey: string | null }>({
-    enabled: false, siteKey: null,
+  const [guestConfig, setGuestConfig] = useState<{
+    enabled: boolean; siteKey: string | null; gatewayPrincipal: string | null;
+  }>({
+    enabled: false, siteKey: null, gatewayPrincipal: null,
   });
   const [guestToken, setGuestToken] = useState('');
   const [guestReset, setGuestReset] = useState(0);
   const [guestRequestId, setGuestRequestId] = useState(() => crypto.randomUUID());
-  const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey);
+  const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey) && Boolean(guestConfig.gatewayPrincipal);
   const canCheckin = isAuthed || guestMode;
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetch('/api/objects/guest-config', { cache: 'no-store', signal: controller.signal })
-      .then(async response => {
+    // A gateway being live is NOT enough: each owner must opt in for the
+    // specific object using its exact registered public relay Principal.
+    void (async () => {
+      try {
+        const response = await fetch('/api/objects/guest-config', {
+          cache: 'no-store', signal: controller.signal,
+        });
         if (!response.ok) return;
-        const config = await response.json() as { enabled?: boolean; siteKey?: string | null };
-        if (!controller.signal.aborted && config.enabled && typeof config.siteKey === 'string') {
-          setGuestConfig({ enabled: true, siteKey: config.siteKey });
+        const config = await response.json() as {
+          enabled?: boolean; siteKey?: string | null; gatewayPrincipal?: string | null;
+        };
+        if (!config.enabled || !config.siteKey || !config.gatewayPrincipal) return;
+        const policy = await backend.getObjectGuestPolicy(objectId);
+        if (controller.signal.aborted || !policy.length) return;
+        if (policy[0].enabled && policy[0].gateway.toText() === config.gatewayPrincipal) {
+          setGuestConfig({
+            enabled: true,
+            siteKey: config.siteKey,
+            gatewayPrincipal: config.gatewayPrincipal,
+          });
         }
-      })
-      .catch(() => { /* Existing login-based check-in remains available. */ });
+      } catch {
+        // Production canister may not yet have the guest methods.
+        // Keep the existing login-based route available instead.
+      }
+    })();
     return () => controller.abort();
-  }, []);
+  }, [objectId, backend]);
 
   const refresh = async () => {
     try {
