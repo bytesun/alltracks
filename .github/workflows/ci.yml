@@ -19,7 +19,7 @@ jobs:
       - name: Type-check guest gateway
         run: npx tsc --project tsconfig.guest.json
       - name: Test anonymous check-in security
-        run: node --test tests/guest-checkin.test.mjs tests/checkin-photo.test.mjs tests/offline-checkins.test.mjs
+        run: node --test tests/guest-checkin.test.mjs tests/checkin-photo.test.mjs tests/offline-checkins.test.mjs tests/print-label.test.mjs
       - name: Check offline service worker syntax
         run: node --check public/sw.js
 
