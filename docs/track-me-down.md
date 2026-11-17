@@ -38,7 +38,7 @@ Install dfx with a compatible Motoko compiler and fund the new canister with cyc
 
 ```bash
 dfx canister create object_journey --network ic
-dfx canister build object_journey --network ic
+dfx build object_journey --network ic
 dfx canister install object_journey --network ic
 dfx canister id object_journey --network ic
 ```
@@ -59,7 +59,7 @@ There is **no need** to configure `UPSTASH_REDIS_REST_URL` or `UPSTASH_REDIS_RES
 
 ## Smoke tests before publishing the QR
 
-1. `dfx canister build object_journey` succeeds with no Motoko errors.
+1. `dfx build object_journey` succeeds with no Motoko errors.
 2. `getCheckins("cup-7h9m4k")` returns an empty vector on a fresh canister.
 3. `addCheckin("cup-7h9m4k", { latitude=49.17; longitude=-122.65; accuracyMeters=opt 20; action=variant {found}; note="test" })` returns `ok` with rounded coordinates and a canister timestamp.
 4. Refresh the public page on a **second phone**. The same point appears, proving it is not local browser storage.
