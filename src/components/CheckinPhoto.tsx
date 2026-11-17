@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { normalizeCheckinPhotoUrl } from '../lib/checkinPhoto';
+import './CheckinPhoto.css';
 
 export function CheckinPhoto({ url, label = 'Check-in photo' }: {
   url: string;
