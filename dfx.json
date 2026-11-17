@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "canisters": {
-    "checkin": {
-      "type": "motoko",
-      "main": "src/checkin/main.mo"
-    }
-  }
-}
