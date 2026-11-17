@@ -124,12 +124,11 @@ export function ObjectTracking() {
   };
 
   return <main className="journey-page">
-    <section className="journey-hero">
+    <section className="journey-hero journey-hero--compact">
       <div className="journey-overline">ALLTRACKS · OBJECT TRACKING</div>
       <div className="journey-cup">🎒</div>
       <h1>Track Me Down</h1>
       <p className="journey-intro">Give an object a journey of its own. Create a page, print its QR code, and collect voluntary location check-ins on AllTracks.</p>
-      <p className="journey-zh">登录后创建自己的物品，每件物品拥有独立的旅行页面和二维码。</p>
     </section>
 
     {!isAuthed ? <section className="journey-panel">
