@@ -36,3 +36,13 @@ jobs:
       - name: Type-check mobile
         run: npx tsc --noEmit
         working-directory: mobile
+
+  checkin-motoko:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dfinity/setup-dfx@main
+        with:
+          dfx-version: "0.30.2"
+      - name: Compile check-in canister
+        run: dfx build checkin
