@@ -54,7 +54,7 @@ export const DropdownMenu = ({ isAuthed, onAuth }: DropdownMenuProps) => {
           <ul>
             {menuItem('/', 'radio_button_checked', 'Record')}
             {menuItem('/explore', 'explore', 'Explore')}
-            {menuItem('/check-ins', 'qr_code', 'Check In')}
+            {menuItem('/spots', 'qr_code', 'Check In')}
             {menuItem('/trackathons', 'flag', 'Challenges')}
             {menuItem('/history', 'history', 'History')}
             {isAuthed && menuItem('/profile', 'person', 'Me')}
