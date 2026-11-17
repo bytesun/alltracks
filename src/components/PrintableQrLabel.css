@@ -1,0 +1,329 @@
+/* Shared printable labels. No screenshots or generated QR placeholders:
+   QR <img> uses the actual public Object/Spot check-in URL. */
+.qr-label-overlay,
+.qr-label-overlay * { box-sizing: border-box; }
+.qr-label-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(13, 32, 23, .66);
+  overflow-y: auto;
+  padding: 20px;
+}
+.qr-label-dialog {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 26px);
+  border-radius: 20px;
+  background: #fff;
+  color: #23392f;
+  box-shadow: 0 16px 65px rgba(0,0,0,.22);
+}
+.qr-label-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.qr-label-toolbar strong { font-size: 22px; }
+.qr-label-toolbar p,
+.qr-label-print-hint { margin: 5px 0 0; color: #5b695f; line-height: 1.5; font-size: 13px; }
+.qr-label-close { padding: 2px 12px !important; font-size: 32px !important; background: #e7ede8 !important; color: #1e4533 !important; }
+.qr-label-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.qr-label-settings label { display: grid; gap: 5px; font-size: 13px; font-weight: 700; }
+.qr-label-settings input, .qr-label-settings select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #bdcfc2;
+  border-radius: 9px;
+  padding: 9px 10px;
+  background: white;
+  color: #1c3c2b;
+  font: inherit;
+  font-weight: 400;
+}
+.qr-label-preview-frame {
+  max-width: 530px;
+  margin: 0 auto;
+  padding: 10px;
+  overflow: auto;
+  background: #e9eee9;
+  border-radius: 12px;
+}
+.qr-label-sheet {
+  --qr-label-scale: 1;
+  width: min(100%, 430px);
+  aspect-ratio: 2 / 3;
+  margin: 0 auto;
+  padding: 4.5%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #184934;
+  background: #faf7ed;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  line-height: 1.15;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.qr-label-sheet--object.qr-label-size--3x4 { aspect-ratio: 3 / 4; }
+.qr-label-sheet--trail { aspect-ratio: 148 / 210; padding: 3.2%; }
+.qr-label-sheet--trail.qr-label-size--letter { aspect-ratio: 215.9 / 279.4; }
+.qr-label-sheet h2, .qr-label-sheet h3, .qr-label-sheet p { margin: 0; }
+.qr-label-sheet h2 { letter-spacing: -.03em; }
+.qr-label-object-header {
+  flex: 0 0 24%;
+  min-height: 0;
+  border-radius: 15px;
+  padding: 7px 6px 5px;
+  color: #fffbed;
+  background: #184b36;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-around;
+}
+.qr-label-object-header h2 {
+  color: #fff;
+  font-size: calc(35px * var(--qr-label-scale));
+  line-height: .98;
+  font-weight: 900;
+}
+.qr-label-object-header strong {
+  font-size: calc(15px * var(--qr-label-scale));
+  font-weight: 800;
+  line-height: 1.1;
+  max-width: 98%;
+  overflow-wrap: anywhere;
+}
+.qr-label-object-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 33%;
+  min-height: 0;
+  font-size: calc(40px * var(--qr-label-scale));
+  color: #f8f1d5;
+}
+.qr-label-object-icon svg { max-height: 100%; height: 100%; }
+.qr-label-image-panel {
+  margin: 3.5% auto 0;
+  padding: 3.5%;
+  width: 86%;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1.5px solid #bdcdbb;
+  border-radius: 15px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-label-image-panel img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  image-rendering: crisp-edges;
+}
+.qr-label-object-footer {
+  flex: 0 0 21%;
+  padding-top: 2.5%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+.qr-label-object-footer h3 {
+  font-size: calc(18px * var(--qr-label-scale));
+  line-height: 1;
+  font-weight: 900;
+}
+.qr-label-object-footer p {
+  color: #4b6252;
+  font-size: calc(12px * var(--qr-label-scale));
+  line-height: 1.05;
+}
+.qr-label-object-footer > strong {
+  padding-top: 2%;
+  font-size: calc(11px * var(--qr-label-scale));
+  letter-spacing: .03em;
+}
+.qr-label-object-footer > strong span,
+.qr-label-trail-footer b span { margin: 0 5px; }
+
+/* Trail signs should be readable from a distance and visually distinguishable
+   from small Object stickers, but never masquerade as official trail markers. */
+.qr-label-sheet--trail {
+  background: #fffcec;
+  border: 9px solid #ff5c20;
+  color: #101b12;
+}
+.qr-label-trail-header {
+  flex: 0 0 25%;
+  background: #fbff52;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  padding: 4px 8px;
+}
+.qr-label-trail-kicker {
+  font-size: calc(10px * var(--qr-label-scale));
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+.qr-label-trail-header h2 {
+  font-size: calc(43px * var(--qr-label-scale));
+  line-height: .92;
+  font-weight: 950;
+  margin: 2.5% 0;
+}
+.qr-label-trail-header strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: calc(15px * var(--qr-label-scale));
+  font-weight: 900;
+  line-height: 1.1;
+}
+.qr-label-trail-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 9%;
+  min-height: 0;
+  background: #151e17;
+  color: #fbff52;
+  gap: 8%;
+  font-weight: 900;
+}
+.qr-label-trail-arrow span { font-size: calc(53px * var(--qr-label-scale)); line-height: 1; }
+.qr-label-trail-arrow strong { font-size: calc(15px * var(--qr-label-scale)); }
+.qr-label-trail-qr {
+  border-radius: 5px;
+  border: none;
+  width: 89%;
+  margin-top: 3%;
+  padding: 2%;
+  background: white;
+}
+.qr-label-trail-footer {
+  flex: 0 0 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  min-height: 0;
+  padding-top: 2%;
+}
+.qr-label-trail-footer > strong {
+  font-size: calc(23px * var(--qr-label-scale));
+  font-weight: 950;
+  letter-spacing: -.025em;
+}
+.qr-label-trail-footer p {
+  font-size: calc(13px * var(--qr-label-scale));
+  line-height: 1.15;
+  font-weight: 650;
+}
+.qr-label-trail-footer small {
+  font-size: calc(8.5px * var(--qr-label-scale));
+  line-height: 1.1;
+  letter-spacing: .01em;
+}
+.qr-label-trail-footer b {
+  font-size: calc(11px * var(--qr-label-scale));
+}
+.qr-label-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+.qr-label-buttons button {
+  border: 1px solid #b8d1ba;
+  border-radius: 10px;
+  padding: 11px 22px;
+  font-size: 14px;
+  background: #e8f0e9;
+  color: #184a33;
+  cursor: pointer;
+}
+.qr-label-buttons button:first-child { background: #184a33; color: white; }
+.qr-label-buttons button:disabled { opacity: .45; cursor: not-allowed; }
+.qr-label-error { color: #a53c2a; text-align: center; }
+@media (max-width: 600px) {
+  .qr-label-overlay { padding: 6px; }
+  .qr-label-dialog { border-radius: 14px; padding: 12px; }
+  .qr-label-settings { grid-template-columns: 1fr; }
+  .qr-label-sheet { width: 100%; }
+  .qr-label-object-header h2 { font-size: calc(28px * var(--qr-label-scale)); }
+  .qr-label-trail-header h2 { font-size: calc(34px * var(--qr-label-scale)); }
+}
+
+/* Print the actual configured label, not the entire SPA, map, navbar or modal.
+   A body class is toggled only for the print dialog; all other pages remain
+   printable as before. */
+@page { margin: 0; }
+@media print {
+  body.qr-label-print-active * { visibility: hidden !important; }
+  body.qr-label-print-active .qr-label-overlay,
+  body.qr-label-print-active .qr-label-dialog,
+  body.qr-label-print-active .qr-label-preview-frame,
+  body.qr-label-print-active .qr-label-sheet,
+  body.qr-label-print-active .qr-label-sheet * { visibility: visible !important; }
+  body.qr-label-print-active .qr-label-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 10000 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  body.qr-label-print-active .qr-label-dialog,
+  body.qr-label-print-active .qr-label-preview-frame {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+  body.qr-label-print-active .qr-label-toolbar,
+  body.qr-label-print-active .qr-label-settings,
+  body.qr-label-print-active .qr-label-buttons,
+  body.qr-label-print-active .qr-label-print-hint,
+  body.qr-label-print-active .qr-label-error { display: none !important; }
+  body.qr-label-print-active .qr-label-sheet {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    width: var(--qr-label-width) !important;
+    height: var(--qr-label-height) !important;
+    aspect-ratio: auto !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.qr-label-print-active .qr-label-object-header { border-radius: 3mm; }
+  body.qr-label-print-active .qr-label-sheet--trail { border-width: 3mm; }
+}
