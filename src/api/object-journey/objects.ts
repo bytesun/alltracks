@@ -1,6 +1,7 @@
 import type { ActorSubclass } from '@dfinity/agent';
 import type { Principal } from '@dfinity/principal';
 import type { _SERVICE, CheckPoint, Track } from '../alltracks/backend.did';
+import { decodeObjectCheckinNote, encodeObjectCheckinNote } from '../../lib/checkinPhoto';
 
 export type Action = 'found' | 'carried' | 'left';
 export type ObjectRecord = {
@@ -18,6 +19,7 @@ export type JourneyCheckin = {
   accuracyMeters: number | null;
   action: Action;
   note: string;
+  photoUrl: string;
   createdAt: string;
 };
 type Backend = ActorSubclass<_SERVICE>;
@@ -109,13 +111,15 @@ const parseCheckpoint = (point: CheckPoint, index: number): JourneyCheckin | nul
   try {
     const data = JSON.parse(point.note.slice(CHECKIN_PREFIX.length));
     if (!['found', 'carried', 'left'].includes(data.action)) return null;
+    const decoded = decodeObjectCheckinNote(typeof data.note === 'string' ? data.note : '');
     return {
       id: point.createdBy.toText() + '-' + point.timestamp.toString() + '-' + index,
       latitude: point.latitude,
       longitude: point.longitude,
       accuracyMeters: typeof data.accuracyMeters === 'number' ? data.accuracyMeters : null,
       action: data.action,
-      note: typeof data.note === 'string' ? data.note.slice(0, 280) : '',
+      note: decoded.note.slice(0, 280),
+      photoUrl: decoded.photoUrl,
       createdAt: new Date(Number(point.timestamp / 1_000_000n)).toISOString(),
     };
   } catch {
@@ -135,7 +139,7 @@ export const submitObjectCheckin = async (
   objectId: string,
   input: {
     latitude: number; longitude: number; accuracyMeters: number;
-    action: Action; note: string;
+    action: Action; note: string; photoUrl?: string;
   },
 ): Promise<void> => {
   if (!/^obj-[a-z0-9-]{12,65}$/.test(objectId)) throw new Error('Invalid object ID.');
@@ -159,7 +163,7 @@ export const submitObjectCheckin = async (
     note: CHECKIN_PREFIX + JSON.stringify({
       action: input.action,
       accuracyMeters: Math.round(input.accuracyMeters),
-      note: input.note.trim().slice(0, 280),
+      note: encodeObjectCheckinNote(input.note, input.photoUrl || ''),
     }),
   });
   if ('err' in result) throw new Error(result.err);
