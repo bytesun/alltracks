@@ -25,6 +25,7 @@ import { TrailDetail } from './pages/TrailDetail';
 import Explore from './pages/Explore';
 import { ObjectJourney } from './pages/ObjectJourney';
 import { ObjectTracking } from './pages/ObjectTracking';
+import SpotCheckIn from './pages/SpotCheckIn';
 
 import { NotificationProvider } from './context/NotificationContext';
 import { StatsProvider } from './context/StatsContext';
@@ -59,6 +60,7 @@ function App() {
               <Route path="/history" element={<TracksPage />} />
               <Route path="/tracks/:userId" element={<TracksPage />} />
               <Route path="/spots" element={<Spots />} />
+              <Route path="/check-in/:spotId" element={<SpotCheckIn />} />
               <Route path="/spots/:spotId" element={<SpotDetail />} />
               <Route path="/posts" element={<Posts />} />
               <Route path="/everpeace" element={<Everpeace />} />
