@@ -177,12 +177,13 @@ export const useSetAgent = () => {
     agent,
     isAuthed,
   }: {
-    agent: HttpAgent
+    agent: HttpAgent | null
     isAuthed?: boolean
   }) => {
     dispatch({ type: "SET_AGENT", agent, isAuthed })
 
     if (isAuthed) {
+      if (!agent) throw new Error('Authenticated agent is required');
       const principal = await agent.getPrincipal()
       console.log("authed", principal.toText())
 
