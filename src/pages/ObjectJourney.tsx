@@ -11,7 +11,7 @@ import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { ObjectPhoto } from '../components/ObjectPhoto';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
-  queueObjectCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
+  queueObjectCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
 import { buildJourneyTimeline } from '../lib/journeyTimeline';
 
@@ -75,6 +75,7 @@ export function ObjectJourney() {
   const [note, setNote] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [consented, setConsented] = useState(false);
+  const [publishAsGuest, setPublishAsGuest] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
   const [guestConfig, setGuestConfig] = useState<{
@@ -89,7 +90,8 @@ export function ObjectJourney() {
   const [retryClock, setRetryClock] = useState(() => Date.now());
   const guestSyncing = useRef(false);
   const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey) && Boolean(guestConfig.gatewayPrincipal);
-  const canCheckin = isAuthed || guestMode || !online;
+  const canCheckin = !isAuthed || Boolean(principal);
+  const useGuestGateway = !isAuthed && guestMode && publishAsGuest;
   const isOwner = Boolean(isAuthed && principal && object && principal.toText() === object.owner);
 
   useEffect(() => {
@@ -274,7 +276,7 @@ export function ObjectJourney() {
   // Turnstile may require human interaction; it cannot be bypassed offline.
   const nextGuest = !isAuthed && guestMode
     ? pendingForObject.find(item =>
-      item.principal === null && (!item.nextAttemptAt || item.nextAttemptAt <= retryClock))
+      isGuestGatewayCheckin(item) && (!item.nextAttemptAt || item.nextAttemptAt <= retryClock))
     : undefined;
   useEffect(() => {
     if (!online || !nextGuest || !guestToken || guestSyncing.current) return;
@@ -355,6 +357,7 @@ export function ObjectJourney() {
         kind: 'object',
         objectId,
         principal: isAuthed ? principal!.toText() : null,
+        claimOnLogin: !isAuthed && !useGuestGateway,
         latitude: location.latitude,
         longitude: location.longitude,
         accuracyMeters: location.accuracyMeters,
@@ -366,7 +369,10 @@ export function ObjectJourney() {
       setNote('');
       setPhotoUrl('');
       setConsented(false);
-      setMessage('Check-in saved on this device. It will sync when connectivity and authorization are available.');
+      setPublishAsGuest(false);
+      setMessage(isDeferredLoginCheckin(queued)
+        ? 'Stop saved on this device. It will publish automatically after you sign in.'
+        : 'Check-in saved on this device. It will sync when connectivity and authorization are available.');
       // Local persistence has succeeded. Dismiss the form even if cloud
       // synchronization is still pending; the page shows the save status.
       // Guest verification resumes in the pending-check-in panel.
@@ -437,10 +443,10 @@ export function ObjectJourney() {
         <p>Found this object? Add a note and one approximate location to its journey whenever you choose.</p>
         {pendingForObject.length > 0 && <p className="journey-login-notice" role="status">
           {pendingForObject.length} check-in{pendingForObject.length === 1 ? '' : 's'} saved on this device, waiting to sync.
-          {!isAuthed && guestMode && ' Guest entries require human verification before they can sync.'}
+          {pendingForObject.some(isDeferredLoginCheckin) && ' Sign in on this device to automatically publish your saved stops.'}
         </p>}
         {!checkinDialogOpen && online && guestMode &&
-          pendingForObject.some(item => item.principal === null) && guestConfig.siteKey && (
+          pendingForObject.some(isGuestGatewayCheckin) && guestConfig.siteKey && (
             <div className="journey-pending-verification">
               <p>Verify to sync your saved guest check-in.</p>
               <GuestTurnstile siteKey={guestConfig.siteKey}
@@ -467,23 +473,23 @@ export function ObjectJourney() {
           </p>}
           {pendingForObject.length > 0 && <p className="journey-login-notice" role="status">
             {pendingForObject.length} local check-in{pendingForObject.length === 1 ? '' : 's'} waiting for sync.
-            Guest entries will need a fresh human-verification token when online.
+            Unpublished stops stay on this device until sign-in or authorized guest verification.
           </p>}
-          {!isAuthed && !guestMode && online && <p className="journey-login-notice">
-            Guest check-in is not enabled for this deployment. Sign in to add a location.
-            <button type="button" onClick={() => {
-              checkinDialogRef.current?.close();
-              setCheckinDialogOpen(false);
-              setLoginModal(true);
-            }}>Sign in to check in</button>
+          {!isAuthed && <p className="journey-login-notice">
+            No sign-in needed to save a stop. By default it stays on this device and will publish
+            automatically under the next account you sign in with here. Do not use this option
+            on a shared device unless you intend that account to publish it.
           </p>}
-          {guestMode && <p className="journey-login-notice">
-            No account required. Your location is shared only after you grant GPS permission,
-            pass anti-spam verification, and consent to publishing an approximate point.
-          </p>}
+          {guestMode && <label className="journey-consent">
+            <input type="checkbox" checked={publishAsGuest} onChange={event => {
+              setPublishAsGuest(event.target.checked);
+              setConsented(false);
+            }} />
+            <span>Publish as a guest instead (human verification required after saving).</span>
+          </label>}
           <p>You choose whether to share a location. Only an approximate point (rounded to ~100 m),
             a note, and a timestamp are saved on the existing AllTracks ICP canister.
-            {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : ' Guest submissions will be attributed to the service gateway, not a user login.'}
+            {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : useGuestGateway ? ' Guest submissions are attributed to the service gateway.' : ' Your saved stop will be attributed to the next account you sign in with on this device.'}
           </p>
           <label htmlFor="journey-action">What happened?</label>
           <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
@@ -524,16 +530,15 @@ export function ObjectJourney() {
           )}
           <label className="journey-consent">
             <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
-            <span>{commentsEnabled === false
-              ? 'I agree to publish this approximate location on the public journey map.'
-              : 'I agree to publish this approximate location, note and optional photo link on the public journey map.'}</span>
+            <span>{!isAuthed && !useGuestGateway
+              ? 'I agree to save this stop locally and automatically publish its approximate location, note and optional photo link under the next account I sign in with on this device.'
+              : commentsEnabled === false
+                ? 'I agree to publish this approximate location on the public journey map.'
+                : 'I agree to publish this approximate location, note and optional photo link on the public journey map.'}</span>
           </label>
-          {guestMode && guestConfig.siteKey && <GuestTurnstile
-            siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
-          />}
           <button className="journey-button" type="button" onClick={submit}
             disabled={!location || !consented || !canCheckin || sending || (online && Boolean(loadError))}>
-            {sending ? 'Saving check-in…' : online ? 'Save and sync this stop' : 'Save check-in offline'}
+            {sending ? 'Saving check-in…' : !isAuthed && !useGuestGateway ? 'Save stop · Sign in later' : online ? 'Save and sync this stop' : 'Save check-in offline'}
           </button>
           {message && <p className="journey-message" role="status">{message}</p>}
           {loadError && <p className="journey-error" role="alert">{loadError}</p>}
@@ -578,9 +583,11 @@ export function ObjectJourney() {
           {timeline.map(row => {
             if (row.kind === 'local') {
               const entry = row.item;
-              const status = !online ? 'Offline · Pending sync' : entry.lastError
-                ? 'Sync failed · Pending retry' : entry.principal === null
-                  ? 'Pending guest verification' : 'Pending sync';
+              const deferred = isDeferredLoginCheckin(entry);
+              const status = deferred ? (online ? 'Awaiting sign-in' : 'Offline · Awaiting sign-in')
+                : !online ? 'Offline · Pending sync' : entry.lastError
+                  ? 'Sync failed · Pending retry' : isGuestGatewayCheckin(entry)
+                    ? 'Pending guest verification' : 'Pending sync';
               return <article className="journey-stop journey-stop--local" key={'local-' + entry.id}>
                 <div className="journey-stop-local-body">
                   <span className="journey-stop-icon">{ACTIONS[entry.action]?.icon || '📍'}</span>
@@ -588,12 +595,13 @@ export function ObjectJourney() {
                     <span className="journey-local-badge">{status}</span>
                     <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
                     <small>{formatDate(new Date(entry.createdAt).toISOString())} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
-                    <small>{entry.principal === null ? 'Guest' : 'Saved by you'} · Only on this device</small>
+                    <small>{deferred ? 'Saved before sign-in' : entry.principal === null ? 'Guest' : 'Saved by you'} · Only on this device</small>
                     {entry.note && <span className="journey-stop-note">{entry.note}</span>}
                     {entry.photoUrl && !online && <small>Photo link saved · Preview available online</small>}
                   </span>
                 </div>
                 {entry.photoUrl && online && <CheckinPhoto url={entry.photoUrl} label="Locally saved check-in photo" />}
+                {deferred && !isAuthed && online && <button type="button" className="journey-button journey-button-soft" onClick={() => setLoginModal(true)}>Sign in to sync</button>}
               </article>;
             }
             const entry = row.item;
