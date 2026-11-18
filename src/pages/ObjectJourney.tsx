@@ -568,7 +568,8 @@ export function ObjectJourney() {
         </div>
         <p className="journey-map-note">Select a check-in below to highlight its location on the map. * Dashed connections join voluntary reports, not the actual route traveled. Anyone with the QR link can see this approximate public map.</p>
         {loading && <p>Loading the journey…</p>}
-        {!loading && timeline.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
+        {!online && <p className="journey-map-note">Offline — public journey history may be incomplete. Local check-ins remain available below.</p>}
+        {online && !loading && timeline.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
         {localCount > 0 && <p className="journey-map-note" role="status">
           {localCount} local check-in{localCount === 1 ? '' : 's'} below. Only visible on this device until synced;
           excluded from the public map and statistics.
