@@ -507,7 +507,7 @@ export function ObjectJourney() {
                 </span>
               </button>
               {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
-              {isAuthed && principal &&
+              {commentsEnabled !== null && isAuthed && principal &&
                 (isOwner || entry.author === principal.toText()) && (
                   <button type="button" className="journey-delete-comment"
                     disabled={deletingCheckpointId !== null} onClick={() => void deleteCheckpoint(entry)}>
