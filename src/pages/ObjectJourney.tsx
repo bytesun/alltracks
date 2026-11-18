@@ -59,7 +59,7 @@ export function ObjectJourney() {
   // Null means an older canister or an unavailable policy read: do not fake a setting.
   const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
   const [changingComments, setChangingComments] = useState(false);
-  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [deletingCheckpointId, setDeletingCommentId] = useState<string | null>(null);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const mapSectionRef = useRef<HTMLElement | null>(null);
   const mapMarkersRef = useRef(new Map<string, LeafletCircleMarker>());
@@ -287,19 +287,19 @@ export function ObjectJourney() {
     }
   };
 
-  const deleteComment = async (entry: Checkin) => {
-    if (!isAuthed || !principal || deletingCommentId) return;
+  const deleteCheckpoint = async (entry: Checkin) => {
+    if (!isAuthed || !principal || deletingCheckpointId) return;
     if (!isOwner && entry.author !== principal.toText()) return;
-    if (!window.confirm('Remove this comment and photo link? The location check-in will stay on the map.')) return;
+    if (!window.confirm('Delete this entire check-in? Its location, note and photo will disappear from the public journey.')) return;
     setDeletingCommentId(entry.id);
     setMessage('');
     try {
-      const result = await backend.deleteObjectComment(objectId, entry.timestamp, Principal.fromText(entry.author));
+      const result = await backend.deleteObjectCheckpoint(objectId, entry.timestamp, Principal.fromText(entry.author));
       if ('err' in result) throw new Error(result.err);
       await refresh();
-      setMessage('Comment removed. The location check-in remains on the map.');
+      setMessage('Check-in deleted from the Object journey.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to remove comment.');
+      setMessage(error instanceof Error ? error.message : 'Unable to delete check-in.');
     } finally {
       setDeletingCommentId(null);
     }
@@ -507,11 +507,11 @@ export function ObjectJourney() {
                 </span>
               </button>
               {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
-              {(entry.note || entry.photoUrl) && isAuthed && principal &&
+              {isAuthed && principal &&
                 (isOwner || entry.author === principal.toText()) && (
                   <button type="button" className="journey-delete-comment"
-                    disabled={deletingCommentId !== null} onClick={() => void deleteComment(entry)}>
-                    {deletingCommentId === entry.id ? 'Removing…' : 'Delete comment'}
+                    disabled={deletingCheckpointId !== null} onClick={() => void deleteCheckpoint(entry)}>
+                    {deletingCheckpointId === entry.id ? 'Deleting…' : 'Delete check-in'}
                   </button>
                 )}
             </article>
