@@ -32,12 +32,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     catch { /* Storage may be unavailable; local session still works. */ }
   };
 
-  const expireSession = useCallback(async (client: AuthClient) => {
+  const expireSession = useCallback(async (client: AuthClient, notifyOtherTabs = true) => {
     if (expiredRef.current) return;
     expiredRef.current = true;
+    lastPrincipal.current = null;
     setSessionNotice('expired');
     await setAgentRef.current({ agent: null });
-    broadcastSession('logout');
+    if (notifyOtherTabs) broadcastSession('logout');
     try { await client.logout(); } catch (error) { console.warn('Session logout failed', error); }
   }, []);
 
@@ -45,10 +46,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     try {
       const authenticated = await client.isAuthenticated();
       const identity = client.getIdentity();
-      const delegation = 'getDelegation' in identity
-        ? (identity as { getDelegation: () => { delegations: Array<{ delegation: { expiration: bigint } }> } }).getDelegation()
+      const delegation = 'getDelegation' in identity && typeof identity.getDelegation === 'function'
+        ? identity.getDelegation()
         : null;
-      const expirations = delegation?.delegations.map(item => item.delegation.expiration) ?? [];
+      const expirations: bigint[] = delegation?.delegations.map(item => BigInt(item.delegation.expiration)) ?? [];
       const expiresAt = expirations.length ? expirations.reduce((a, b) => a < b ? a : b) : null;
       const now = BigInt(Date.now()) * 1_000_000n;
       if (!authenticated || identity.getPrincipal().isAnonymous() || (expiresAt !== null && expiresAt <= now)) {
@@ -78,10 +79,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (!mounted) return;
       clientRef.current = client;
       setAuthClient(client);
-      if (await client.isAuthenticated() && await validateSession(client)) {
+      const authenticated = await client.isAuthenticated();
+      if (authenticated && await validateSession(client)) {
         const identity = client.getIdentity();
         lastPrincipal.current = identity.getPrincipal().toText();
         await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+      } else if (authenticated) {
+        setSessionNotice('expired');
       }
     }).catch(error => {
       console.error('Authentication initialization failed', error);
@@ -110,7 +114,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (event.key !== 'alltracks:session-event' || !event.newValue || !clientRef.current) return;
       try {
         const message = JSON.parse(event.newValue) as { event?: string };
-        if (message.event === 'logout') void expireSession(clientRef.current);
+        if (message.event === 'logout') void expireSession(clientRef.current, false);
         else if (message.event === 'login') void validateSession(clientRef.current);
       } catch { /* Ignore malformed cross-tab messages. */ }
     };
@@ -133,7 +137,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [expireSession]);
 
   const restoreSession = async (client: AuthClient) => {
-    if (!(await validateSession(client))) return;
+    if (!(await validateSession(client))) {
+      setAuthError('Sign-in did not establish a valid session. Please retry.');
+      return;
+    }
     const identity = client.getIdentity();
     lastPrincipal.current = identity.getPrincipal().toText();
     expiredRef.current = false;
@@ -141,6 +148,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     setAuthError(null);
     await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
     broadcastSession('login');
+    setLoginModal(false);
   };
 
   let windowFeatures = undefined
@@ -223,7 +231,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     } else if (method === 'iiv2') {
       handleII2Login();
     }
-    setLoginModal(false);
   };
 
   return (
@@ -234,9 +241,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <span>{authError || (networkError && !sessionNotice ? 'Network request failed. Your session has not been signed out.' : null) || (sessionNotice === 'expired'
             ? 'Your session has expired. Sign in again to continue. Your current page will be preserved.'
             : 'Your session will expire soon. Sign in again to continue without interruption.')}</span>
-          <button type="button" onClick={() => { setAuthError(null); setNetworkError(false); setLoginModal(true); }}>
+          {(sessionNotice || authError) && <button type="button" onClick={() => { setAuthError(null); setNetworkError(false); setLoginModal(true); }}>
             Sign In Again
-          </button>
+          </button>}
           {(authError || networkError) && <button type="button" onClick={() => { setNetworkError(false); setAuthError(null); if (authClient) void validateSession(authClient); }}>Retry</button>}
         </div>
       )}
