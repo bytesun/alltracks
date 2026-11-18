@@ -13,6 +13,7 @@ import { ObjectPhoto } from '../components/ObjectPhoto';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
+import { buildJourneyTimeline } from '../lib/journeyTimeline';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -102,24 +103,6 @@ export function ObjectJourney() {
   }, []);
 
   useEffect(() => {
-    let active = true;
-    const load = () => {
-      void listPendingCheckins().then(items => {
-        if (active) {
-          setPendingForObject(items.filter((item): item is PendingObjectCheckin =>
-            item.kind === 'object' && item.objectId === objectId));
-        }
-      }).catch(() => {});
-    };
-    load();
-    window.addEventListener(CHECKIN_OUTBOX_EVENT, load);
-    return () => {
-      active = false;
-      window.removeEventListener(CHECKIN_OUTBOX_EVENT, load);
-    };
-  }, [objectId]);
-
-  useEffect(() => {
     if (!online) return;
     const controller = new AbortController();
     // A gateway being live is NOT enough: each owner must opt in for the
@@ -175,8 +158,39 @@ export function ObjectJourney() {
   };
 
   useEffect(() => {
-    void refresh();
-    // Refresh when a new physical object's QR URL is opened.
+    if (online) void refresh();
+    else setLoading(false);
+    // Reload the public journey after reconnecting as well as on navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objectId, backend, online]);
+
+  useEffect(() => {
+    let active = true;
+    let generation = 0;
+    let previousIds: Set<string> | null = null;
+    const load = () => {
+      const version = ++generation;
+      void listPendingCheckins().then(items => {
+        if (!active || version !== generation) return;
+        const next = items.filter((item): item is PendingObjectCheckin =>
+          item.kind === 'object' && item.objectId === objectId);
+        const ids = new Set(next.map(item => item.id));
+        const removed = previousIds && [...previousIds].some(id => !ids.has(id));
+        previousIds = ids;
+        setPendingForObject(next);
+        // The global outbox manager can finish a sync independently of this
+        // page. Reload the public records when an item leaves the queue.
+        if (removed && !isOffline()) void refresh();
+      }).catch(() => {});
+    };
+    load();
+    window.addEventListener(CHECKIN_OUTBOX_EVENT, load);
+    window.addEventListener('focus', load);
+    return () => {
+      active = false;
+      window.removeEventListener(CHECKIN_OUTBOX_EVENT, load);
+      window.removeEventListener('focus', load);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectId, backend]);
 
@@ -193,6 +207,10 @@ export function ObjectJourney() {
     };
   }, [checkinDialogOpen]);
 
+  const principalText = isAuthed && principal ? principal.toText() : null;
+  const timeline = useMemo(() => buildJourneyTimeline(checkins, pendingForObject, objectId, principalText),
+    [checkins, pendingForObject, objectId, principalText]);
+  const localCount = timeline.filter(row => row.kind === 'local').length;
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
   const selectedCheckin = useMemo(
     () => checkins.find(entry => entry.id === selectedCheckinId) || null,
@@ -550,9 +568,35 @@ export function ObjectJourney() {
         </div>
         <p className="journey-map-note">Select a check-in below to highlight its location on the map. * Dashed connections join voluntary reports, not the actual route traveled. Anyone with the QR link can see this approximate public map.</p>
         {loading && <p>Loading the journey…</p>}
-        {!loading && checkins.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
+        {!loading && timeline.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
+        {localCount > 0 && <p className="journey-map-note" role="status">
+          {localCount} local check-in{localCount === 1 ? '' : 's'} below. Only visible on this device until synced;
+          excluded from the public map and statistics.
+        </p>}
         <div className="journey-timeline">
-          {checkins.map((entry) => (
+          {timeline.map(row => {
+            if (row.kind === 'local') {
+              const entry = row.item;
+              const status = !online ? 'Offline · Pending sync' : entry.lastError
+                ? 'Sync failed · Pending retry' : entry.principal === null
+                  ? 'Pending guest verification' : 'Pending sync';
+              return <article className="journey-stop journey-stop--local" key={'local-' + entry.id}>
+                <div className="journey-stop-local-body">
+                  <span className="journey-stop-icon">{ACTIONS[entry.action]?.icon || '📍'}</span>
+                  <span className="journey-stop-content">
+                    <span className="journey-local-badge">{status}</span>
+                    <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
+                    <small>{formatDate(new Date(entry.createdAt).toISOString())} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
+                    <small>{entry.principal === null ? 'Guest' : 'Saved by you'} · Only on this device</small>
+                    {entry.note && <span className="journey-stop-note">{entry.note}</span>}
+                    {entry.photoUrl && !online && <small>Photo link saved · Preview available online</small>}
+                  </span>
+                </div>
+                {entry.photoUrl && online && <CheckinPhoto url={entry.photoUrl} label="Locally saved check-in photo" />}
+              </article>;
+            }
+            const entry = row.item;
+            return (
             <article className={'journey-stop' + (selectedCheckinId === entry.id ? ' journey-stop--selected' : '')} key={entry.id}>
               <button type="button" className="journey-stop-select"
                 aria-pressed={selectedCheckinId === entry.id}
@@ -575,7 +619,8 @@ export function ObjectJourney() {
                   </button>
                 )}
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
