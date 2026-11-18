@@ -132,11 +132,11 @@ export async function listPendingCheckins(): Promise<PendingCheckin[]> {
   return records.sort((a, b) => a.createdAt - b.createdAt);
 }
 
-export function isDeferredLoginCheckin(item: PendingCheckin): item is PendingObjectCheckin {
+export function isDeferredLoginCheckin(item: PendingCheckin): item is PendingObjectCheckin & { principal: null; claimOnLogin: true } {
   return item.kind === 'object' && item.principal === null && item.claimOnLogin === true;
 }
 
-export function isGuestGatewayCheckin(item: PendingCheckin): item is PendingObjectCheckin {
+export function isGuestGatewayCheckin(item: PendingCheckin): item is PendingObjectCheckin & { principal: null; claimOnLogin?: false } {
   return item.kind === 'object' && item.principal === null && item.claimOnLogin !== true;
 }
 
