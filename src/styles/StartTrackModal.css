@@ -1,366 +1,453 @@
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 20px;
+/* Start Track is intentionally scoped: generic .modal-* rules are shared by other dialogs. */
+.start-track-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(12, 30, 24, 0.52);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-
-.modal-header {
-    padding: 20px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-body {
-    padding: 24px;
-    max-height: 70vh;
-    overflow-y: auto;
-}
-.modal-footer {
-    padding: 20px;
-    border-top: 1px solid #eee;
-    display: flex;
-    justify-content: center;  /* Changed from flex-end */
-    gap: 12px;
-}
-.modal-buttons button:first-child {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-}
-
-.modal-buttons button:first-child:hover {
-    background-color: #45a049;
-}
-
-.id-settings {
-    display: flex;
-    flex-direction: column;
-    width: 80%;
-}
-
-.form-group {
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-.input-with-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-with-icon input {
-    padding: 12px;
-    padding-left: 40px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    width: 100%;
-}
-
-.input-with-icon .material-icons {
-    position: absolute;
-    left: 12px;
-    color: #666;
-}
-
-.track-id-input {
-    width: 80%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.controls {
-    width: 100%;
-}
-   .recording-mode-toggle {
-    display: flex;
-    gap: 12px;
-    margin: 16px 0;
-    flex-wrap: wrap;
-}
-
-.mode-option {
-    flex: 1;
-    min-width: 140px;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.mode-option.active {
-      border-color: #007bff;
-      background: #f0f7ff;
-}
-
-.auto-settings {
-    margin-top: 16px;
-}
-
-@media (max-width: 480px) {
-    .mode-option {
-      flex: 1 0 100%;
-      justify-content: center;
-    }
-  
-    .value-display {
-      min-width: 60px;
-      text-align: right;
-      }
-}
-.setting-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px; /* Reduced from 8px */
-    margin-bottom: 12px; /* Reduced from 16px */
-    width: 100%;
-}
-
-@media (min-width: 768px) {
-      .setting-row {
-        flex-direction: row;
-        align-items: center;
-      }
-}
-
-.setting-label {
-    flex: 0 0 auto; /* Changed from fixed width */
-    font-size: 14px;
-    color: #666;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.setting-label .material-icons {
-        color: #666;
-}
-
-.setting-control {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-}
-
-.setting-control input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-}
-
-.setting-control input[type="range"] {
-        width: 100%;
-        max-width: 200px;
-        margin: 0;
-        padding: 8px 0;
-}
-
-@media (max-width: 480px) {
-        .setting-control input[type="range"] {
-          max-width: 100%;
-        }
-      
-        .setting-row {
-          margin-bottom: 8px;
-        }
-      
-        .setting-control input {
-          padding: 6px 8px;
-          height: 36px;
-        }
-      
-        .track-select {
-          padding: 6px 8px;
-          height: 36px;
-        }
-}
-
-.value-display {
-        min-width: 80px;
-        padding: 4px 8px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        text-align: center;
-}
-
-.value-display .unit {
-        color: #666;
-        margin-left: 4px;
-        font-size: 0.9em;
-}
-
-.track-select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
-}.wallet-button {
-    width: 100%;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: 8px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    cursor: pointer;
-}
-
-.wallet-button.connected {
-    background: #e8f5e9;
-    border-color: #4caf50;
-    color: #2e7d32;
-}
-
-.primary-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.primary-button:disabled {
-    background: #ccc;
-}
-
-.secondary-button {
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    padding: 12px 24px;
-    border-radius: 6px;
-}
-
-@media screen and (max-width: 768px) {
-    .track-id-input {
-      font-size: 16px;
-      padding: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-  .modal-content {
-    max-width: 100%;
-    margin: 0;
-    padding: 16px;
-  }
-  
-  .modal-body {
-    padding: 8px 0;
-  }
-  
-  .setting-control input,
-  .track-select {
-    font-size: 16px; /* Better for mobile tapping */
-  }
-  
-  .recording-mode {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .modal-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .modal-buttons button {
-    width: 100%;
-  }
-}
-.input-row {
+.start-track-dialog {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  width: min(100%, 492px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 84px rgba(6, 31, 20, 0.25), 0 4px 16px rgba(6, 31, 20, 0.1);
+  color: #1d3429;
+  color-scheme: light;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+  outline: none;
 }
 
-.input-row label {
-  min-width: 100px;
+.start-track-dialog button,
+.start-track-dialog input,
+.start-track-dialog select {
+  font: inherit;
+}
+
+.start-track-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 24px 24px 21px;
   flex-shrink: 0;
 }
 
-.input-row .input-with-icon {
-  flex: 1;
+.start-track-header-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: #e9f4ec;
+  color: #267250;
 }
 
-.track-selection {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
+.start-track-header-icon .material-icons {
+  font-size: 25px;
+}
+
+.start-track-heading {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.start-track-heading h2 {
+  margin: 0;
+  color: #173a29;
+  font-size: 23px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+
+.start-track-heading p {
+  margin: 5px 0 0;
+  color: #728278;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.start-track-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  margin: -3px -5px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #77877c;
+  cursor: pointer;
+}
+
+.start-track-close .material-icons {
+  font-size: 21px;
+}
+
+.start-track-close:hover {
+  background: #f0f4f1;
+  color: #284b36;
+}
+
+.start-track-form {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.start-track-fields {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 24px 22px;
+  scrollbar-width: thin;
+}
+
+.start-track-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
   margin-bottom: 20px;
 }
 
-.setting-control input[type="text"],
-.setting-control select {
+.start-track-field label,
+.start-track-activity-field legend {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: #304b3b;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.start-track-field input,
+.start-track-field select {
+  display: block;
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-}
-
-.setting-control input[type="text"]:focus,
-.setting-control select:focus {
-  border-color: #007bff;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid #dbe5dd;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 44, 29, 0.03);
+  color: #20392c;
+  font-size: 15px;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
-.modal-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
+.start-track-field input::placeholder {
+  color: #9aa99e;
+  opacity: 1;
 }
 
-.modal-close-btn .material-icons {
-    font-size: 20px;
-    color: #666;
+.start-track-field input:hover,
+.start-track-field select:hover {
+  border-color: #b9cfc0;
 }
 
-.modal-close-btn:hover .material-icons {
-    color: #333;
+.start-track-field input:focus,
+.start-track-field select:focus {
+  border-color: #328261;
+  box-shadow: 0 0 0 3px rgba(50, 130, 97, 0.13);
+}
+
+.start-track-select-wrap {
+  position: relative;
+}
+
+.start-track-select-wrap select {
+  padding-right: 43px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.start-track-select-wrap > .material-icons {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: #698373;
+  font-size: 21px;
+  pointer-events: none;
+}
+
+.start-track-activity-field {
+  min-width: 0;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+}
+
+.start-track-activity-field legend {
+  margin-bottom: 10px;
+}
+
+.start-track-activities {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.start-track-activity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 73px;
+  padding: 10px 4px 9px;
+  border: 1px solid #e0e9e2;
+  border-radius: 13px;
+  background: #fbfcfb;
+  box-shadow: none;
+  color: #5b7363;
+  cursor: pointer;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.2;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.start-track-activity .material-icons {
+  font-size: 23px;
+}
+
+.start-track-activity:hover {
+  border-color: #8bbca0;
+  background: #f2f8f4;
+  color: #235d40;
+}
+
+.start-track-activity.is-active,
+.start-track-activity.is-active:hover {
+  border-color: #398663;
+  background: #e9f5ed;
+  color: #1b6a46;
+}
+
+.start-track-activity:focus-visible,
+.start-track-close:focus-visible,
+.start-track-advanced-toggle:focus-visible,
+.start-track-footer button:focus-visible {
+  outline: 3px solid rgba(50, 130, 97, 0.35);
+  outline-offset: 2px;
+}
+
+.start-track-optional {
+  margin-left: 5px;
+  color: #91a096;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.start-track-hint {
+  margin: -4px 0 0;
+  color: #86958a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.start-track-fields > .start-track-field:last-child {
+  margin-bottom: 0;
+}
+
+.start-track-advanced {
+  padding-top: 4px;
+  border-top: 1px solid #edf1ed;
+}
+
+.start-track-advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 43px;
+  padding: 8px 0 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #607a68;
+  cursor: pointer;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-align: left;
+}
+
+.start-track-advanced-toggle:hover {
+  background: transparent;
+  color: #226849;
+}
+
+.start-track-advanced-toggle .material-icons {
+  font-size: 19px;
+}
+
+.start-track-chevron {
+  margin-left: auto;
+}
+
+.start-track-advanced-content {
+  padding-top: 13px;
+}
+
+.start-track-advanced-content .start-track-field {
+  margin-bottom: 0;
+}
+
+.start-track-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  gap: 11px;
+  flex-shrink: 0;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #edf1ed;
+  background: #ffffff;
+}
+
+.start-track-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 48px;
+  margin: 0;
+  padding: 11px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.2;
+  transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.start-track-cancel {
+  border: 1px solid #e1e8e2;
+  background: #ffffff;
+  color: #53695a;
+}
+
+.start-track-cancel:hover {
+  background: #f5f8f5;
+  color: #254c37;
+}
+
+.start-track-submit {
+  border: 1px solid #216c4a;
+  background: #286f4f;
+  color: #ffffff;
+}
+
+.start-track-submit:hover:not(:disabled) {
+  background: #1d5c40;
+}
+
+.start-track-submit:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.start-track-submit .material-icons {
+  font-size: 20px;
+}
+
+@media (max-width: 520px) {
+  .start-track-overlay {
+    padding: 10px;
+  }
+
+  .start-track-dialog {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    border-radius: 19px;
+  }
+
+  .start-track-header {
+    padding: 20px 18px 18px;
+    gap: 11px;
+  }
+
+  .start-track-header-icon {
+    flex-basis: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .start-track-header-icon .material-icons {
+    font-size: 22px;
+  }
+
+  .start-track-heading h2 {
+    font-size: 21px;
+  }
+
+  .start-track-fields {
+    padding: 0 18px 19px;
+  }
+
+  .start-track-activities {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .start-track-activity {
+    min-height: 65px;
+    padding-block: 8px;
+  }
+
+  .start-track-footer {
+    padding: 13px 18px max(15px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-height: 570px) {
+  .start-track-header {
+    padding-top: 14px;
+    padding-bottom: 13px;
+  }
+
+  .start-track-activity {
+    min-height: 59px;
+  }
+
+  .start-track-field,
+  .start-track-activity-field {
+    margin-bottom: 14px;
+  }
+
+  .start-track-footer {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start-track-dialog button,
+  .start-track-dialog input,
+  .start-track-dialog select {
+    transition: none;
+  }
 }
