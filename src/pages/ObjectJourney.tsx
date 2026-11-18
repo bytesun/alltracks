@@ -171,10 +171,11 @@ export function ObjectJourney() {
     if (!checkinDialogOpen) return;
     const dialog = checkinDialogRef.current;
     if (!dialog) return;
+    const trigger = checkinTriggerRef.current;
     dialog.showModal();
     return () => {
       if (dialog.open) dialog.close();
-      checkinTriggerRef.current?.focus();
+      trigger?.focus();
     };
   }, [checkinDialogOpen]);
 
@@ -338,8 +339,16 @@ export function ObjectJourney() {
         <p>Found this object? Add a note and one approximate location to its journey whenever you choose.</p>
         {pendingForObject.length > 0 && <p className="journey-login-notice" role="status">
           {pendingForObject.length} check-in{pendingForObject.length === 1 ? '' : 's'} saved on this device, waiting to sync.
-          {!isAuthed && guestMode && ' Open the check-in form to complete human verification when online.'}
+          {!isAuthed && guestMode && ' Guest entries require human verification before they can sync.'}
         </p>}
+        {!checkinDialogOpen && online && guestMode &&
+          pendingForObject.some(item => item.principal === null) && guestConfig.siteKey && (
+            <div className="journey-pending-verification">
+              <p>Verify to sync your saved guest check-in.</p>
+              <GuestTurnstile siteKey={guestConfig.siteKey}
+                onToken={setGuestToken} resetSignal={guestReset} />
+            </div>
+          )}
         <button ref={checkinTriggerRef} className="journey-button journey-join-cta" type="button"
           onClick={() => setCheckinDialogOpen(true)}>Add a check-in</button>
       </section>
