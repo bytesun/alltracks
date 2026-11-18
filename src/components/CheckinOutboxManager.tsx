@@ -5,9 +5,10 @@ import {
   CHECKIN_OUTBOX_EVENT,
   deletePendingCheckin,
   isOffline,
+  isDeferredLoginCheckin,
+  isGuestGatewayCheckin,
   listPendingCheckins,
   type PendingCheckin,
-  type PendingObjectCheckin,
 } from '../lib/offlineCheckins';
 import { flushSignedInCheckins } from '../lib/checkinSync';
 import './CheckinOutboxManager.css';
@@ -82,7 +83,8 @@ export function CheckinOutboxManager() {
   }, [reload, sync]);
 
   if (!items.length) return null;
-  const guestItems = items.filter((item): item is PendingObjectCheckin => item.kind === 'object' && !item.principal);
+  const guestItems = items.filter(isGuestGatewayCheckin);
+  const deferredItems = items.filter(isDeferredLoginCheckin);
   const awaitingOtherLogin = items.some(item => item.principal && item.principal !== principalText);
   const firstGuest = guestItems[0];
 
@@ -109,6 +111,7 @@ export function CheckinOutboxManager() {
           {expanded ? 'Hide' : 'Details'}
         </button>
       </div>
+      {deferredItems.length > 0 && <p>{deferredItems.length} stop{deferredItems.length === 1 ? '' : 's'} saved for automatic sync after sign-in on this device.</p>}
       {guestItems.length > 0 && (
         <p>
           {guestItems.length} guest check-in{guestItems.length === 1 ? '' : 's'} need a new
@@ -126,6 +129,7 @@ export function CheckinOutboxManager() {
               <span>
                 {item.kind === 'object' ? 'Object ' + item.objectId : 'Spot ' + item.spotId}
                 {' · '}{new Date(item.createdAt).toLocaleString()}
+                {isDeferredLoginCheckin(item) && <small>Awaiting sign-in</small>}
                 {item.lastError && <small>Last attempt: {item.lastError}</small>}
               </span>
               <button type="button" onClick={() => void discard(item)}>Discard</button>
