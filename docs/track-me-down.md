@@ -32,6 +32,36 @@ A fail-closed HTTP gateway and conditional guest UI are now included in the PR. 
 
 See docs/guest-checkin-security.md for the exact authorization rules, deployment variables, WAF/Turnstile setup, test plan and release gates. See docs/object-guest-checkin-contract.did for the proposed *additive* Candid shape. Do not put the guest service identity in client source or weaken ordinary createCheckpoint authorization.
 
+## Object comment moderation (backend-dependent)
+
+Object Check-in notes and photo links are embedded in public ICP Checkpoints, not
+a separate comment database. The owner sees **Pause new comments / Allow new
+comments** on their Object journey page. When comments are paused, visitors can
+still submit location-only check-ins; old Checkpoints and their notes stay visible.
+
+**Delete check-in** removes a *whole individual Object Checkpoint*: its map marker,
+location, action, note, photo link and contribution to journey statistics.
+A logged-in Checkpoint author can delete their own Checkpoint. The Object owner
+can delete any Checkpoint in their Object, including gateway-authored guest
+entries. Checkpoint records are selected by Object ID, exact timestamp and
+creator Principal; unknown or ambiguous matches fail closed.
+Because guest entries share a gateway Principal, guests cannot prove which
+earlier entry is theirs and cannot self-delete; they should ask the Object
+owner. Deletion does not reset guest write-rate quotas or replay receipts.
+
+These controls require the **existing** ICP backend to implement
+`getObjectCommentsEnabled`, `setObjectCommentsEnabled` and
+`deleteObjectCheckpoint`. The frontend displays an unavailable message when
+the owner setting cannot be fetched; it does not pretend a local/browser-only
+toggle works. The backend authorizes deletion and strips notes/photo pointers
+even if a visitor uses a stale client while comments are closed. Pending
+offline notes may be stripped upon later sync if closure happens meanwhile.
+
+Deletion removes the record from current canister state and its public
+Checkpoint query, not copies already seen in browsers, third-party indexes,
+screenshots, or any historical chain artifacts. It cannot guarantee retroactive
+erasure of all previously replicated content.
+
 ## Privacy and safety
 
 - Location permission is only requested when the visitor taps **Get my GPS location**.

@@ -16,6 +16,8 @@ export type ObjectRecord = {
 };
 export type JourneyCheckin = {
   id: string;
+  author: string;
+  timestamp: bigint;
   latitude: number;
   longitude: number;
   accuracyMeters: number | null;
@@ -110,6 +112,8 @@ const parseCheckpoint = (point: CheckPoint, index: number): JourneyCheckin | nul
     const decoded = decodeObjectCheckinNote(typeof data.note === 'string' ? data.note : '');
     return {
       id: point.createdBy.toText() + '-' + point.timestamp.toString() + '-' + index,
+      author: point.createdBy.toText(),
+      timestamp: point.timestamp,
       latitude: point.latitude,
       longitude: point.longitude,
       accuracyMeters: typeof data.accuracyMeters === 'number' ? data.accuracyMeters : null,
