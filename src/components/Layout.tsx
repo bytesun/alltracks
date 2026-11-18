@@ -119,8 +119,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (event.key !== 'alltracks:session-event' || !event.newValue || !clientRef.current) return;
       try {
         const message = JSON.parse(event.newValue) as { event?: string };
-        if (message.event === 'logout') void expireSession(clientRef.current, false);
-        else if (message.event === 'login') void validateSession(clientRef.current);
+        if (message.event === 'logout') {
+          sessionEpoch.current += 1;
+          if (!expiredRef.current) void expireSession(clientRef.current, false);
+        } else if (message.event === 'login') {
+          // AuthClient instances cache their identity. A storage event alone
+          // does not refresh the identity in this tab; never mark it signed in.
+          void validateSession(clientRef.current);
+        }
       } catch { /* Ignore malformed cross-tab messages. */ }
     };
     window.addEventListener('storage', onStorage);
@@ -155,6 +161,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     setSessionNotice(null);
     setAuthError(null);
     await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+    if (epoch !== sessionEpoch.current) {
+      await setAgentRef.current({ agent: null });
+      return;
+    }
     broadcastSession('login');
     setLoginModal(false);
   };
