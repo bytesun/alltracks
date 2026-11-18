@@ -339,6 +339,9 @@ export interface ObjectGuestPolicy { enabled: boolean; gateway: Principal; }
 export type SetGuestPolicyResult = { ok: boolean } | { err: string };
 
 export interface _SERVICE {
+  'getObjectCommentsEnabled': ActorMethod<[string], [] | [boolean]>,
+  'setObjectCommentsEnabled': ActorMethod<[string, boolean], SetGuestPolicyResult>,
+  'deleteObjectComment': ActorMethod<[string, Time, Principal], SetGuestPolicyResult>,
   'getObjectGuestPolicy': ActorMethod<[string], [] | [ObjectGuestPolicy]>,
   'setObjectGuestPolicy': ActorMethod<[string, boolean, Principal], SetGuestPolicyResult>,
   'submitGuestCheckin': ActorMethod<[GuestCheckinInput], GuestCheckinResult>,
