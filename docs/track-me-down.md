@@ -37,28 +37,30 @@ See docs/guest-checkin-security.md for the exact authorization rules, deployment
 Object Check-in notes and photo links are embedded in public ICP Checkpoints, not
 a separate comment database. The owner sees **Pause new comments / Allow new
 comments** on their Object journey page. When comments are paused, visitors can
-still submit location-only check-ins; old notes and map points stay visible.
+still submit location-only check-ins; old Checkpoints and their notes stay visible.
 
-A logged-in commenter may use **Delete comment** for their own Checkpoint; the
-Object owner can remove notes and photo URLs from any Checkpoint, including
-gateway-authored guest entries. Delete edits the existing Checkpoint in the
-canister to keep the action, location, author and timestamp while replacing
-the public note with a blank note and removing its photo pointer. Because
-guest entries share a gateway Principal, guests cannot prove which earlier
-entry is theirs and cannot self-delete; they should ask the Object owner.
+**Delete check-in** removes a *whole individual Object Checkpoint*: its map marker,
+location, action, note, photo link and contribution to journey statistics.
+A logged-in Checkpoint author can delete their own Checkpoint. The Object owner
+can delete any Checkpoint in their Object, including gateway-authored guest
+entries. Checkpoint records are selected by Object ID, exact timestamp and
+creator Principal; unknown or ambiguous matches fail closed.
+Because guest entries share a gateway Principal, guests cannot prove which
+earlier entry is theirs and cannot self-delete; they should ask the Object
+owner. Deletion does not reset guest write-rate quotas or replay receipts.
 
 These controls require the **existing** ICP backend to implement
-`getObjectCommentsEnabled`, `setObjectCommentsEnabled`, and
-`deleteObjectComment`. The frontend displays an unavailable message when
-they are missing; it does not pretend a local/browser-only toggle works.
-The backend authorizes mutations and strips notes/photo pointers even if a
-visitor uses a stale client while comments are closed. Pending offline notes
-may be stripped upon later synchronization if closure happens meanwhile.
+`getObjectCommentsEnabled`, `setObjectCommentsEnabled` and
+`deleteObjectCheckpoint`. The frontend displays an unavailable message when
+the owner setting cannot be fetched; it does not pretend a local/browser-only
+toggle works. The backend authorizes deletion and strips notes/photo pointers
+even if a visitor uses a stale client while comments are closed. Pending
+offline notes may be stripped upon later sync if closure happens meanwhile.
 
-Deletion removes the content from current canister state and its public
+Deletion removes the record from current canister state and its public
 Checkpoint query, not copies already seen in browsers, third-party indexes,
-screenshots, or any historical chain artifacts. Do not promise irreversible
-erasure from all possible copies.
+screenshots, or any historical chain artifacts. It cannot guarantee retroactive
+erasure of all previously replicated content.
 
 ## Privacy and safety
 
