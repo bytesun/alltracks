@@ -432,7 +432,7 @@ type SetGuestPolicyResult = variant { ok : bool; err : text };
 service : {
   getObjectCommentsEnabled: (text) -> (opt bool) query;
   setObjectCommentsEnabled: (text, bool) -> (SetGuestPolicyResult);
-  deleteObjectComment: (text, Time, principal) -> (SetGuestPolicyResult);
+  deleteObjectCheckpoint: (text, Time, principal) -> (SetGuestPolicyResult);
   getObjectGuestPolicy: (text) -> (opt ObjectGuestPolicy) query;
   setObjectGuestPolicy: (text, bool, principal) -> (SetGuestPolicyResult);
   submitGuestCheckin: (GuestCheckinInput) -> (GuestResult);
