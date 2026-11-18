@@ -62,6 +62,9 @@ export function ObjectJourney() {
   const [deletingCheckpointId, setDeletingCheckpointId] = useState<string | null>(null);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const mapSectionRef = useRef<HTMLElement | null>(null);
+  const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const checkinDialogRef = useRef<HTMLDialogElement | null>(null);
+  const checkinTriggerRef = useRef<HTMLButtonElement | null>(null);
   const mapMarkersRef = useRef(new Map<string, LeafletCircleMarker>());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -176,6 +179,19 @@ export function ObjectJourney() {
     // Refresh when a new physical object's QR URL is opened.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectId, backend]);
+
+  // Native modal dialog traps focus and Escape dismisses the check-in form.
+  useEffect(() => {
+    if (!checkinDialogOpen) return;
+    const dialog = checkinDialogRef.current;
+    if (!dialog) return;
+    const trigger = checkinTriggerRef.current;
+    dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+      trigger?.focus();
+    };
+  }, [checkinDialogOpen]);
 
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
   const selectedCheckin = useMemo(
@@ -357,9 +373,11 @@ export function ObjectJourney() {
         <div className="journey-cup">{object?.emoji || '📦'}</div>
         <h1>{object?.name || 'Track Me Down'}</h1>
         <p className="journey-intro">{object?.description || 'Found this object? Help it travel and share where it has been.'}</p>
-        <span className="journey-id">Object ID · {objectId}</span>
-        <p className="journey-zh">扫码查看物品旅程。登录后可自愿添加一次位置；不会持续追踪你。 <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
+        <p className="journey-hero-note">Scan the QR code to explore this object's journey. You can choose to share a one-time location check-in; this does not enable continuous tracking. <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
       </section>
+
+      {loadError && <p className="journey-error" role="alert">{loadError}</p>}
+      {!checkinDialogOpen && message && <p className="journey-message" role="status">{message}</p>}
 
       {object?.photoUrl && (
         <section className="journey-object-cover" aria-label="Object photo">
@@ -387,81 +405,114 @@ export function ObjectJourney() {
         <div><strong>{checkins.length ? formatDate(checkins[0].createdAt).split(',')[0] : '—'}</strong><span>Last spotted</span></div>
       </section>
 
-      <section className="journey-panel journey-checkin">
+      <section className="journey-panel journey-join-panel">
         <div className="journey-section-title"><h2>Join the adventure</h2><span>01 / CHECK IN</span></div>
-        {!online && <p className="journey-login-notice" role="status">
-          📴 Offline. Save your check-in on this device now; the app will retry after reconnecting.
-          Keep this page available if it has not been installed for offline use.
-        </p>}
+        <p>Found this object? Add a note and one approximate location to its journey whenever you choose.</p>
         {pendingForObject.length > 0 && <p className="journey-login-notice" role="status">
-          {pendingForObject.length} local check-in{pendingForObject.length === 1 ? '' : 's'} waiting for sync.
-          Guest entries will need a fresh human-verification token when online.
+          {pendingForObject.length} check-in{pendingForObject.length === 1 ? '' : 's'} saved on this device, waiting to sync.
+          {!isAuthed && guestMode && ' Guest entries require human verification before they can sync.'}
         </p>}
-        {!isAuthed && !guestMode && online && <p className="journey-login-notice">
-          Guest check-in is not enabled for this deployment. Sign in to add a location.
-          <button type="button" onClick={() => setLoginModal(true)}>Sign in to check in</button>
-        </p>}
-        {guestMode && <p className="journey-login-notice">
-          No account required. Your location is shared only after you grant GPS permission,
-          pass anti-spam verification, and consent to publishing an approximate point.
-        </p>}
-        <p>You choose whether to share a location. Only an approximate point (rounded to ~100 m),
-          a note, and a timestamp are saved on the existing AllTracks ICP canister.
-          {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : ' Guest submissions will be attributed to the service gateway, not a user login.'}
-        </p>
-        <label htmlFor="journey-action">What happened?</label>
-        <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
-          {Object.entries(ACTIONS).map(([value, details]) => (
-            <option value={value} key={value}>{details.icon} {details.title}</option>
-          ))}
-        </select>
-        {commentsEnabled === false ? (
-          <p className="journey-login-notice" role="status">
-            The owner has paused new comments and photo links. You can still share an approximate location check-in.
-          </p>
-        ) : <>
-          <label htmlFor="journey-note">A note for the next explorer (optional)</label>
-          <textarea
-            id="journey-note" maxLength={280} rows={3}
-            placeholder="A rainy morning on the trail..."
-            value={note} onChange={(event) => setNote(event.target.value)}
-          />
-          <label htmlFor="journey-photo-url">Photo URL (optional)</label>
-          <input
-            id="journey-photo-url" type="url" inputMode="url" maxLength={220}
-            placeholder="https://example.com/photo.jpg"
-            value={photoUrl}
-            onChange={(event) => setPhotoUrl(event.target.value)}
-          />
-          <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
-            On guest check-ins, the note and link together must fit in 280 characters.</p>
-        </>}
-        <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || (online && Boolean(loadError)) || !canCheckin}>
-          {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
-        </button>
-        {location && (
-          <div className="journey-location-preview">
-            <strong>Location ready</strong>
-            <span>Approximate public point: {location.latitude.toFixed(3)}, {location.longitude.toFixed(3)}</span>
-            <small>Device-reported accuracy: ±{Math.round(location.accuracyMeters)} m. Exact coordinates are not stored.</small>
-          </div>
-        )}
-        <label className="journey-consent">
-          <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
-          <span>{commentsEnabled === false
-            ? 'I agree to publish this approximate location on the public journey map.'
-            : 'I agree to publish this approximate location, note and optional photo link on the public journey map.'}</span>
-        </label>
-        {guestMode && guestConfig.siteKey && <GuestTurnstile
-          siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
-        />}
-        <button className="journey-button" type="button" onClick={submit}
-          disabled={!location || !consented || !canCheckin || sending || (online && Boolean(loadError))}>
-          {sending ? 'Saving check-in…' : online ? 'Save and sync this stop' : 'Save check-in offline'}
-        </button>
-        {message && <p className="journey-message" role="status">{message}</p>}
-        {loadError && <p className="journey-error" role="alert">{loadError}</p>}
+        {!checkinDialogOpen && online && guestMode &&
+          pendingForObject.some(item => item.principal === null) && guestConfig.siteKey && (
+            <div className="journey-pending-verification">
+              <p>Verify to sync your saved guest check-in.</p>
+              <GuestTurnstile siteKey={guestConfig.siteKey}
+                onToken={setGuestToken} resetSignal={guestReset} />
+            </div>
+          )}
+        <button ref={checkinTriggerRef} className="journey-button journey-join-cta" type="button"
+          onClick={() => setCheckinDialogOpen(true)}>Add a check-in</button>
       </section>
+
+      {checkinDialogOpen && (
+        <dialog ref={checkinDialogRef} className="journey-checkin-dialog journey-checkin"
+          aria-labelledby="journey-checkin-title"
+          onCancel={() => setCheckinDialogOpen(false)}>
+          <div className="journey-dialog-header">
+            <h2 id="journey-checkin-title">Join the adventure</h2>
+            <button type="button" className="journey-dialog-close"
+              aria-label="Close check-in form" onClick={() => setCheckinDialogOpen(false)}>×</button>
+          </div>
+          <div className="journey-dialog-body">
+          {!online && <p className="journey-login-notice" role="status">
+            📴 Offline. Save your check-in on this device now; the app will retry after reconnecting.
+            Keep this page available if it has not been installed for offline use.
+          </p>}
+          {pendingForObject.length > 0 && <p className="journey-login-notice" role="status">
+            {pendingForObject.length} local check-in{pendingForObject.length === 1 ? '' : 's'} waiting for sync.
+            Guest entries will need a fresh human-verification token when online.
+          </p>}
+          {!isAuthed && !guestMode && online && <p className="journey-login-notice">
+            Guest check-in is not enabled for this deployment. Sign in to add a location.
+            <button type="button" onClick={() => {
+              checkinDialogRef.current?.close();
+              setCheckinDialogOpen(false);
+              setLoginModal(true);
+            }}>Sign in to check in</button>
+          </p>}
+          {guestMode && <p className="journey-login-notice">
+            No account required. Your location is shared only after you grant GPS permission,
+            pass anti-spam verification, and consent to publishing an approximate point.
+          </p>}
+          <p>You choose whether to share a location. Only an approximate point (rounded to ~100 m),
+            a note, and a timestamp are saved on the existing AllTracks ICP canister.
+            {isAuthed ? ' Signed-in checkpoints are associated with your account Principal.' : ' Guest submissions will be attributed to the service gateway, not a user login.'}
+          </p>
+          <label htmlFor="journey-action">What happened?</label>
+          <select id="journey-action" value={action} onChange={(event) => setAction(event.target.value as Action)}>
+            {Object.entries(ACTIONS).map(([value, details]) => (
+              <option value={value} key={value}>{details.icon} {details.title}</option>
+            ))}
+          </select>
+          {commentsEnabled === false ? (
+            <p className="journey-login-notice" role="status">
+              The owner has paused new comments and photo links. You can still share an approximate location check-in.
+            </p>
+          ) : <>
+            <label htmlFor="journey-note">A note for the next explorer (optional)</label>
+            <textarea
+              id="journey-note" maxLength={280} rows={3}
+              placeholder="A rainy morning on the trail..."
+              value={note} onChange={(event) => setNote(event.target.value)}
+            />
+            <label htmlFor="journey-photo-url">Photo URL (optional)</label>
+            <input
+              id="journey-photo-url" type="url" inputMode="url" maxLength={220}
+              placeholder="https://example.com/photo.jpg"
+              value={photoUrl}
+              onChange={(event) => setPhotoUrl(event.target.value)}
+            />
+            <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
+              On guest check-ins, the note and link together must fit in 280 characters.</p>
+          </>}
+          <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || (online && Boolean(loadError)) || !canCheckin}>
+            {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
+          </button>
+          {location && (
+            <div className="journey-location-preview">
+              <strong>Location ready</strong>
+              <span>Approximate public point: {location.latitude.toFixed(3)}, {location.longitude.toFixed(3)}</span>
+              <small>Device-reported accuracy: ±{Math.round(location.accuracyMeters)} m. Exact coordinates are not stored.</small>
+            </div>
+          )}
+          <label className="journey-consent">
+            <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
+            <span>{commentsEnabled === false
+              ? 'I agree to publish this approximate location on the public journey map.'
+              : 'I agree to publish this approximate location, note and optional photo link on the public journey map.'}</span>
+          </label>
+          {guestMode && guestConfig.siteKey && <GuestTurnstile
+            siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
+          />}
+          <button className="journey-button" type="button" onClick={submit}
+            disabled={!location || !consented || !canCheckin || sending || (online && Boolean(loadError))}>
+            {sending ? 'Saving check-in…' : online ? 'Save and sync this stop' : 'Save check-in offline'}
+          </button>
+          {message && <p className="journey-message" role="status">{message}</p>}
+          {loadError && <p className="journey-error" role="alert">{loadError}</p>}
+          </div>
+        </dialog>
+      )}
 
       <section className="journey-panel journey-map-section" ref={mapSectionRef}>
         <div className="journey-section-title"><h2>Journey map</h2><span>02 / MAP</span></div>
