@@ -349,12 +349,21 @@ export function ObjectJourney() {
       setPhotoUrl('');
       setConsented(false);
       setMessage('Check-in saved on this device. It will sync when connectivity and authorization are available.');
+      // Local persistence has succeeded. Dismiss the form even if cloud
+      // synchronization is still pending; the page shows the save status.
+      // Guest verification resumes in the pending-check-in panel.
+      setGuestToken('');
+      setCheckinDialogOpen(false);
       if (!isOffline() && isAuthed && principal) {
-        await flushSignedInCheckins(backend, comments, principal.toText(), true);
-        const items = await listPendingCheckins();
-        if (!items.some(item => item.id === queued.id)) {
-          setMessage('Check-in synced to ICP.');
-          await refresh();
+        try {
+          await flushSignedInCheckins(backend, comments, principal.toText(), true);
+          const items = await listPendingCheckins();
+          if (!items.some(item => item.id === queued.id)) {
+            setMessage('Check-in synced to ICP.');
+            await refresh();
+          }
+        } catch {
+          setMessage('Check-in saved on this device. Cloud sync could not be confirmed; it will be retried.');
         }
       }
       // Guest queued items trigger automatic upload when Turnstile issues a
