@@ -322,6 +322,8 @@ export function ObjectJourney() {
         <p className="journey-hero-note">Scan the QR code to explore this object's journey. You can choose to share a one-time location check-in; this does not enable continuous tracking. <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
       </section>
 
+      {loadError && <p className="journey-error" role="alert">{loadError}</p>}
+
       {object?.photoUrl && (
         <section className="journey-object-cover" aria-label="Object photo">
           <ObjectPhoto url={object.photoUrl} name={object.name} />
@@ -373,7 +375,11 @@ export function ObjectJourney() {
           </p>}
           {!isAuthed && !guestMode && online && <p className="journey-login-notice">
             Guest check-in is not enabled for this deployment. Sign in to add a location.
-            <button type="button" onClick={() => setLoginModal(true)}>Sign in to check in</button>
+            <button type="button" onClick={() => {
+              checkinDialogRef.current?.close();
+              setCheckinDialogOpen(false);
+              setLoginModal(true);
+            }}>Sign in to check in</button>
           </p>}
           {guestMode && <p className="journey-login-notice">
             No account required. Your location is shared only after you grant GPS permission,
