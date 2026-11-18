@@ -9,6 +9,8 @@ import { formatDuration } from '../utils/activityMetrics';
 import '../styles/Tracks.css';
 
 type HistorySource = 'all' | 'local' | 'cloud';
+const HISTORY_PAGE_SIZE = 20;
+const CLOUD_BATCH_SIZE = 100;
 
 type HistoryItem = {
   key: string;
@@ -39,6 +41,7 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
   const { state: { isAuthed, principal } } = useGlobalContext();
   const [items, setItems] = React.useState<HistoryItem[]>([]);
   const [sourceFilter, setSourceFilter] = React.useState<HistorySource>('all');
+  const [page, setPage] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState('');
 
@@ -65,7 +68,12 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
       const targetUser = userId || currentPrincipal;
       if (isAuthed && targetUser) {
         try {
-          const tracks = await alltracks.getTracks({ user: Principal.fromText(targetUser) }, 0n, 100n);
+          const tracks: Awaited<ReturnType<typeof alltracks.getTracks>> = [];
+          for (let pageIndex = 0; ; pageIndex++) {
+            const batch = await alltracks.getTracks({ user: Principal.fromText(targetUser) }, BigInt(pageIndex), BigInt(CLOUD_BATCH_SIZE));
+            tracks.push(...batch);
+            if (batch.length < CLOUD_BATCH_SIZE) break;
+          }
           const parsed = parseTracks(tracks as any);
           merged.push(...parsed.map((track: any) => ({
             key: `cloud-${String(track.id)}`,
@@ -86,6 +94,7 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
 
       if (active) {
         setItems(merged.sort((a, b) => b.startTime - a.startTime));
+        setPage(0);
         setLoading(false);
       }
     };
@@ -97,6 +106,10 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
   }, [alltracks, isAuthed, principal, userId]);
 
   const visibleItems = items.filter((item) => sourceFilter === 'all' || item.source === sourceFilter);
+  const totalPages = Math.max(1, Math.ceil(visibleItems.length / HISTORY_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pageItems = visibleItems.slice(currentPage * HISTORY_PAGE_SIZE, (currentPage + 1) * HISTORY_PAGE_SIZE);
+  const changeSource = (source: HistorySource) => { setSourceFilter(source); setPage(0); };
   const localCount = items.filter((item) => item.source === 'local').length;
   const cloudCount = items.filter((item) => item.source === 'cloud').length;
   const isOwnHistory = !userId || Boolean(principal && userId === principal.toText());
@@ -118,15 +131,15 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
       </header>
 
       <div className="history-filters" role="group" aria-label="Filter activity history">
-        <button type="button" className={sourceFilter === 'all' ? 'active' : ''} onClick={() => setSourceFilter('all')}>
+        <button type="button" className={sourceFilter === 'all' ? 'active' : ''} onClick={() => changeSource('all')}>
           All <span>{items.length}</span>
         </button>
         {isOwnHistory && (
-          <button type="button" className={sourceFilter === 'local' ? 'active' : ''} onClick={() => setSourceFilter('local')}>
+          <button type="button" className={sourceFilter === 'local' ? 'active' : ''} onClick={() => changeSource('local')}>
             On device <span>{localCount}</span>
           </button>
         )}
-        <button type="button" className={sourceFilter === 'cloud' ? 'active' : ''} onClick={() => setSourceFilter('cloud')}>
+        <button type="button" className={sourceFilter === 'cloud' ? 'active' : ''} onClick={() => changeSource('cloud')}>
           Cloud <span>{cloudCount}</span>
         </button>
       </div>
@@ -147,7 +160,7 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
         </div>
       ) : visibleItems.length > 0 ? (
         <div className="tracks-grid">
-          {visibleItems.map((item) => (
+          {pageItems.map((item) => (
             <Link
               to={`/track/${encodeURIComponent(item.id)}?source=${item.source}`}
               key={item.key}
@@ -198,6 +211,13 @@ export const Tracks: React.FC<{ userId?: string }> = ({ userId }) => {
             : 'No shared cloud activities are available for this user.'}</p>
           {isOwnHistory && <Link to="/">Record an activity</Link>}
         </div>
+      )}
+      {visibleItems.length > HISTORY_PAGE_SIZE && (
+        <nav aria-label="Activity history pages" className="history-pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1.5rem' }}>
+          <button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage + 1} of {totalPages} · {visibleItems.length} activities</span>
+          <button type="button" disabled={currentPage === totalPages - 1} onClick={() => setPage(currentPage + 1)}>Next</button>
+        </nav>
       )}
     </section>
   );
