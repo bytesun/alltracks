@@ -172,3 +172,25 @@
 
 .journey-captcha { padding: 14px 0; display: flex; flex-direction: column; gap: 8px; }
 .journey-captcha small { font-size: .75rem; color: #6a796c; }
+
+/* Comment moderation actions are secondary to the map-selection target. */
+.journey-comment-settings { margin-top: 14px; }
+.journey-stop { flex-direction: column; gap: 6px; }
+.journey-stop-select { width: 100%; }
+.journey-delete-comment {
+  align-self: flex-start;
+  margin-left: 65px;
+  padding: 7px 11px;
+  border: 1px solid #dfc4bc;
+  border-radius: 9px;
+  background: #fff8f6;
+  color: #843b2f;
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.journey-delete-comment:focus-visible { outline: 2px solid #843b2f; outline-offset: 3px; }
+.journey-delete-comment:disabled { opacity: .55; cursor: wait; }
+@media (max-width: 560px) {
+  .journey-delete-comment { margin-left: 55px; }
+}
