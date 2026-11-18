@@ -677,6 +677,7 @@ export const TrackathonDetail: React.FC = () => {
             <div className="two-column-layout">
               <div className="left-column">
                 <h3>Active Participants</h3>
+                {pageControls(participants.length, participantPage, setParticipantPage, 'Active participants')}
                 <div className="participants-list">
                   {participants.slice(participantPage * listPageSize, (participantPage + 1) * listPageSize).map((participant) => {
                     if (participant.trackPoints.length === 0) {
@@ -831,6 +832,7 @@ export const TrackathonDetail: React.FC = () => {
             <div className="two-column-layout">
               <div className="left-column">
                 <h3>Leaderboard</h3>
+                {pageControls(participants.length, participantPage, setParticipantPage, 'Leaderboard')}
                 <div className="leaderboard">
                   {participants.slice(participantPage * listPageSize, (participantPage + 1) * listPageSize).map((participant, idx) => (
                     <div 
