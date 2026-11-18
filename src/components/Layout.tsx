@@ -27,6 +27,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const lastPrincipal = useRef<string | null>(null);
   const expiredRef = useRef(false);
   const clientRef = useRef<AuthClient | null>(null);
+  const sessionEpoch = useRef(0);
   const broadcastSession = (event: 'login' | 'logout') => {
     try { localStorage.setItem('alltracks:session-event', JSON.stringify({ event, at: Date.now() })); }
     catch { /* Storage may be unavailable; local session still works. */ }
@@ -35,6 +36,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const expireSession = useCallback(async (client: AuthClient, notifyOtherTabs = true) => {
     if (expiredRef.current) return;
     expiredRef.current = true;
+    sessionEpoch.current += 1;
     lastPrincipal.current = null;
     setSessionNotice('expired');
     await setAgentRef.current({ agent: null });
@@ -79,12 +81,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (!mounted) return;
       clientRef.current = client;
       setAuthClient(client);
+      const epoch = sessionEpoch.current;
       const authenticated = await client.isAuthenticated();
+      if (!mounted || epoch !== sessionEpoch.current) return;
       if (authenticated && await validateSession(client)) {
+        if (!mounted || epoch !== sessionEpoch.current) return;
         const identity = client.getIdentity();
         lastPrincipal.current = identity.getPrincipal().toText();
         await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
-      } else if (authenticated) {
+      } else if (authenticated && mounted && epoch === sessionEpoch.current) {
         setSessionNotice('expired');
       }
     }).catch(error => {
@@ -137,10 +142,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [expireSession]);
 
   const restoreSession = async (client: AuthClient) => {
+    const epoch = sessionEpoch.current;
     if (!(await validateSession(client))) {
+      if (epoch !== sessionEpoch.current) return;
       setAuthError('Sign-in did not establish a valid session. Please retry.');
       return;
     }
+    if (epoch !== sessionEpoch.current) return;
     const identity = client.getIdentity();
     lastPrincipal.current = identity.getPrincipal().toText();
     expiredRef.current = false;
@@ -188,12 +196,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
   const handleIILogout = async () => {
     if (!authClient) return;
-    await authClient.logout();
-    broadcastSession('logout');
+    sessionEpoch.current += 1;
     lastPrincipal.current = null;
     expiredRef.current = false;
-    setSessionNotice(null);
     await setAgentRef.current({ agent: null });
+    await authClient.logout();
+    broadcastSession('logout');
+    setSessionNotice(null);
   };
 
   const handleAuth = async () => {
