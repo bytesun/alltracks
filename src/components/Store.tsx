@@ -181,11 +181,10 @@ export const useComment = () => {
 //   return context.state.fidenza;
 // }
 
+let nextAuthRevision = 0
+
 export const useSetAgent = () => {
   const { dispatch, state } = useGlobalContext()
-  const revisionRef = React.useRef(state.authRevision)
-  revisionRef.current = Math.max(revisionRef.current, state.authRevision)
-
   return async ({
     agent,
     isAuthed,
@@ -195,7 +194,9 @@ export const useSetAgent = () => {
   }) => {
     if (isAuthed) {
       if (!agent) throw new Error('Authenticated agent is required');
-      const revision = ++revisionRef.current
+      const revision = ++nextAuthRevision > state.authRevision
+        ? nextAuthRevision
+        : (nextAuthRevision = state.authRevision + 1)
       dispatch({ type: "BEGIN_AUTH", revision })
       const principal = await agent.getPrincipal()
       dispatch({ type: "SET_AGENT", agent, isAuthed, principal, revision })
