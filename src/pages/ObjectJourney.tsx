@@ -13,6 +13,7 @@ import { ObjectPhoto } from '../components/ObjectPhoto';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
+import { ShortUserId } from '../components/ShortUserId';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -82,14 +83,23 @@ export function ObjectJourney() {
     enabled: false, siteKey: null, gatewayPrincipal: null,
   });
   const [guestToken, setGuestToken] = useState('');
+  const [guestReporter, setGuestReporter] = useState<{ objectId: string; principal: string } | null>(null);
   const [guestReset, setGuestReset] = useState(0);
   const [online, setOnline] = useState(() => !isOffline());
+  useEffect(() => {
+    let active = true;
+    void backend.getObjectGuestPolicy(objectId).then(policy => {
+      if (active) setGuestReporter(policy.length ? { objectId, principal: policy[0].gateway.toText() } : null);
+    }).catch(() => { if (active) setGuestReporter(null); });
+    return () => { active = false; };
+  }, [backend, objectId, online]);
   const [pendingForObject, setPendingForObject] = useState<PendingObjectCheckin[]>([]);
   const [retryClock, setRetryClock] = useState(() => Date.now());
   const guestSyncing = useRef(false);
   const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey) && Boolean(guestConfig.gatewayPrincipal);
   const canCheckin = isAuthed || guestMode || !online;
   const isOwner = Boolean(isAuthed && principal && object && principal.toText() === object.owner);
+  const isGuestReporter = (author: string) => guestReporter?.objectId === objectId && guestReporter.principal === author;
 
   useEffect(() => {
     const update = () => setOnline(!isOffline());
@@ -543,7 +553,7 @@ export function ObjectJourney() {
                 pathOptions={selectedCheckinId === entry.id
                   ? { color: '#a83f12', fillColor: '#ffdc50', fillOpacity: 1, weight: 5 }
                   : { color: '#234c37', fillColor: '#a2d4a3', fillOpacity: 1, weight: 2 }}>
-                <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p>{entry.note && <p>{entry.note}</p>}{entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Check-in photo" />}</Popup>
+                <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p><p>{isGuestReporter(entry.author) ? 'Guest (shared gateway)' : <>Reporter: <ShortUserId id={entry.author} /></>}</p>{entry.note && <p>{entry.note}</p>}{entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Check-in photo" />}</Popup>
               </CircleMarker>
             ))}
           </MapContainer>
@@ -562,6 +572,7 @@ export function ObjectJourney() {
                 <span className="journey-stop-content">
                   <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
                   <small>{formatDate(entry.createdAt)} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
+                  <small>{isGuestReporter(entry.author) ? 'Guest (shared gateway)' : <>Reporter: <ShortUserId id={entry.author} /></>}</small>
                   {entry.note && <span className="journey-stop-note">{entry.note}</span>}
                   <span className="journey-stop-hint">{selectedCheckinId === entry.id ? '● Highlighted on map' : '◎ View on map'}</span>
                 </span>
