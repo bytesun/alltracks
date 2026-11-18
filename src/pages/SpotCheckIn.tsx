@@ -1,3 +1,4 @@
+import { ShortUserId } from '../components/ShortUserId';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '../components/Store';
@@ -226,6 +227,7 @@ export default function SpotCheckIn() {
                         <strong>{message.name || 'Visitor'}</strong>
                         <time>{new Date(Number(entry.timestamp / 1_000_000n)).toLocaleString()}</time>
                       </div>
+                      <small>User ID: <ShortUserId id={entry.user} /></small>
                       {message.note && <p>{message.note}</p>}
                       {message.photoUrl && <CheckinPhoto url={message.photoUrl} label="Photo from this Spot check-in" />}
                     </li>
