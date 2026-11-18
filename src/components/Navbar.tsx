@@ -13,6 +13,9 @@ export const Navbar = () => {
     const AuthClient = (await import('@dfinity/auth-client')).AuthClient;
     const authClient = await AuthClient.create();
     await authClient.logout();
+    try {
+      localStorage.setItem('alltracks:session-event', JSON.stringify({ event: 'logout', at: Date.now() }));
+    } catch { /* Sign out must work even when storage is unavailable. */ }
     logout();
   };
 
