@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
 import type { CircleMarker as LeafletCircleMarker } from 'leaflet';
+import { Principal } from '@dfinity/principal';
 import 'leaflet/dist/leaflet.css';
 import './ObjectJourney.css';
 import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '../components/Store';
@@ -55,6 +56,10 @@ export function ObjectJourney() {
   const [, setLoginModal] = useSetLoginModal();
   const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
+  // Null means an older canister or an unavailable policy read: do not fake a setting.
+  const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
+  const [changingComments, setChangingComments] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const mapSectionRef = useRef<HTMLElement | null>(null);
   const mapMarkersRef = useRef(new Map<string, LeafletCircleMarker>());
@@ -81,6 +86,7 @@ export function ObjectJourney() {
   const guestSyncing = useRef(false);
   const guestMode = !isAuthed && guestConfig.enabled && Boolean(guestConfig.siteKey) && Boolean(guestConfig.gatewayPrincipal);
   const canCheckin = isAuthed || guestMode || !online;
+  const isOwner = Boolean(isAuthed && principal && object && principal.toText() === object.owner);
 
   useEffect(() => {
     const update = () => setOnline(!isOffline());
@@ -149,6 +155,14 @@ export function ObjectJourney() {
       const stops = await loadObjectCheckins(backend, objectId);
       setObject(item);
       setCheckins(stops);
+      // Feature detection keeps older deployed canisters usable for ordinary
+      // check-ins, without claiming comment controls are already active.
+      try {
+        const policy = await backend.getObjectCommentsEnabled(objectId);
+        setCommentsEnabled(policy.length ? policy[0] : null);
+      } catch {
+        setCommentsEnabled(null);
+      }
       setLoadError('');
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to load journey.');
@@ -251,6 +265,46 @@ export function ObjectJourney() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [online, nextGuest?.id, guestToken, guestMode]);
 
+  const toggleComments = async () => {
+    if (!isOwner || commentsEnabled === null || changingComments) return;
+    setChangingComments(true);
+    setMessage('');
+    try {
+      const desired = !commentsEnabled;
+      const result = await backend.setObjectCommentsEnabled(objectId, desired);
+      if ('err' in result) throw new Error(result.err);
+      setCommentsEnabled(result.ok);
+      if (!result.ok) {
+        setNote('');
+        setPhotoUrl('');
+      }
+      setMessage(result.ok ? 'New comments are enabled.' :
+        'New comments are closed. Location-only check-ins remain available.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to update comment settings.');
+    } finally {
+      setChangingComments(false);
+    }
+  };
+
+  const deleteComment = async (entry: Checkin) => {
+    if (!isAuthed || !principal || deletingCommentId) return;
+    if (!isOwner && entry.author !== principal.toText()) return;
+    if (!window.confirm('Remove this comment and photo link? The location check-in will stay on the map.')) return;
+    setDeletingCommentId(entry.id);
+    setMessage('');
+    try {
+      const result = await backend.deleteObjectComment(objectId, entry.timestamp, Principal.fromText(entry.author));
+      if ('err' in result) throw new Error(result.err);
+      await refresh();
+      setMessage('Comment removed. The location check-in remains on the map.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to remove comment.');
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
+
   const submit = async () => {
     if (!location || !consented || sending || !canCheckin ||
         (online && Boolean(loadError))) return;
@@ -271,8 +325,8 @@ export function ObjectJourney() {
         longitude: location.longitude,
         accuracyMeters: location.accuracyMeters,
         action,
-        note,
-        photoUrl,
+        note: commentsEnabled === false ? '' : note,
+        photoUrl: commentsEnabled === false ? '' : photoUrl,
       });
       setLocation(null);
       setNote('');
@@ -313,6 +367,20 @@ export function ObjectJourney() {
         </section>
       )}
 
+      {isOwner && <section className="journey-panel journey-comment-settings">
+        <div className="journey-section-title"><h2>Comment settings</h2><span>OWNER CONTROLS</span></div>
+        <p>Choose whether explorers can attach new notes or photo links.
+          Check-in locations and existing journey history remain available.</p>
+        {commentsEnabled === null ? (
+          <p className="journey-login-notice">Comment controls require an updated ICP backend. Existing check-ins still work; no setting has been changed.</p>
+        ) : (
+          <button type="button" className="journey-button journey-button-soft"
+            disabled={changingComments} onClick={() => void toggleComments()}>
+            {changingComments ? 'Updating…' : commentsEnabled ? 'Pause new comments' : 'Allow new comments'}
+          </button>
+        )}
+      </section>}
+
       <section className="journey-stats" aria-label="Journey statistics">
         <div><strong>{checkins.length}</strong><span>Check-ins</span></div>
         <div><strong>{straightLineKm.toFixed(1)} km</strong><span>Between reported stops*</span></div>
@@ -347,21 +415,27 @@ export function ObjectJourney() {
             <option value={value} key={value}>{details.icon} {details.title}</option>
           ))}
         </select>
-        <label htmlFor="journey-note">A note for the next explorer (optional)</label>
-        <textarea
-          id="journey-note" maxLength={280} rows={3}
-          placeholder="A rainy morning on the trail..."
-          value={note} onChange={(event) => setNote(event.target.value)}
-        />
-        <label htmlFor="journey-photo-url">Photo URL (optional)</label>
-        <input
-          id="journey-photo-url" type="url" inputMode="url" maxLength={220}
-          placeholder="https://example.com/photo.jpg"
-          value={photoUrl}
-          onChange={(event) => setPhotoUrl(event.target.value)}
-        />
-        <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
-          On guest check-ins, the note and link together must fit in 280 characters.</p>
+        {commentsEnabled === false ? (
+          <p className="journey-login-notice" role="status">
+            The owner has paused new comments and photo links. You can still share an approximate location check-in.
+          </p>
+        ) : <>
+          <label htmlFor="journey-note">A note for the next explorer (optional)</label>
+          <textarea
+            id="journey-note" maxLength={280} rows={3}
+            placeholder="A rainy morning on the trail..."
+            value={note} onChange={(event) => setNote(event.target.value)}
+          />
+          <label htmlFor="journey-photo-url">Photo URL (optional)</label>
+          <input
+            id="journey-photo-url" type="url" inputMode="url" maxLength={220}
+            placeholder="https://example.com/photo.jpg"
+            value={photoUrl}
+            onChange={(event) => setPhotoUrl(event.target.value)}
+          />
+          <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
+            On guest check-ins, the note and link together must fit in 280 characters.</p>
+        </>}
         <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || (online && Boolean(loadError)) || !canCheckin}>
           {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
         </button>
@@ -374,7 +448,9 @@ export function ObjectJourney() {
         )}
         <label className="journey-consent">
           <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
-          <span>I agree to publish this approximate location, note and optional photo link on the public journey map.</span>
+          <span>{commentsEnabled === false
+            ? 'I agree to publish this approximate location on the public journey map.'
+            : 'I agree to publish this approximate location, note and optional photo link on the public journey map.'}</span>
         </label>
         {guestMode && guestConfig.siteKey && <GuestTurnstile
           siteKey={guestConfig.siteKey} onToken={setGuestToken} resetSignal={guestReset}
@@ -431,6 +507,13 @@ export function ObjectJourney() {
                 </span>
               </button>
               {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
+              {(entry.note || entry.photoUrl) && isAuthed && principal &&
+                (isOwner || entry.author === principal.toText()) && (
+                  <button type="button" className="journey-delete-comment"
+                    disabled={deletingCommentId !== null} onClick={() => void deleteComment(entry)}>
+                    {deletingCommentId === entry.id ? 'Removing…' : 'Delete comment'}
+                  </button>
+                )}
             </article>
           ))}
         </div>
