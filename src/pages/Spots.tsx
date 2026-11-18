@@ -87,7 +87,7 @@ export default function Spots() {
     try {
       const serverSpots: any[] = [];
       for (let pageIndex = 0; ; pageIndex++) {
-        const batch = await alltracks.getSpots(pageIndex, API_PAGE_SIZE);
+        const batch = await alltracks.getSpots(BigInt(pageIndex), BigInt(API_PAGE_SIZE));
         serverSpots.push(...batch);
         if (batch.length < API_PAGE_SIZE) break;
       }
@@ -164,10 +164,10 @@ export default function Spots() {
   }, [mappableSpots, selectedSpotId]);
 
   useEffect(() => {
-    if (selectedSpotId && !visibleSpots.some((spot) => spot.id === selectedSpotId)) {
+    if (selectedSpotId && !filteredSpots.some((spot) => spot.id === selectedSpotId)) {
       setSelectedSpotId(null);
     }
-  }, [visibleSpots, selectedSpotId]);
+  }, [filteredSpots, selectedSpotId]);
 
   const addCurrentLocation = async () => {
     setAdding(true);
