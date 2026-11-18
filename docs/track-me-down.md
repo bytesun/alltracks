@@ -32,6 +32,34 @@ A fail-closed HTTP gateway and conditional guest UI are now included in the PR. 
 
 See docs/guest-checkin-security.md for the exact authorization rules, deployment variables, WAF/Turnstile setup, test plan and release gates. See docs/object-guest-checkin-contract.did for the proposed *additive* Candid shape. Do not put the guest service identity in client source or weaken ordinary createCheckpoint authorization.
 
+## Object comment moderation (backend-dependent)
+
+Object Check-in notes and photo links are embedded in public ICP Checkpoints, not
+a separate comment database. The owner sees **Pause new comments / Allow new
+comments** on their Object journey page. When comments are paused, visitors can
+still submit location-only check-ins; old notes and map points stay visible.
+
+A logged-in commenter may use **Delete comment** for their own Checkpoint; the
+Object owner can remove notes and photo URLs from any Checkpoint, including
+gateway-authored guest entries. Delete edits the existing Checkpoint in the
+canister to keep the action, location, author and timestamp while replacing
+the public note with a blank note and removing its photo pointer. Because
+guest entries share a gateway Principal, guests cannot prove which earlier
+entry is theirs and cannot self-delete; they should ask the Object owner.
+
+These controls require the **existing** ICP backend to implement
+`getObjectCommentsEnabled`, `setObjectCommentsEnabled`, and
+`deleteObjectComment`. The frontend displays an unavailable message when
+they are missing; it does not pretend a local/browser-only toggle works.
+The backend authorizes mutations and strips notes/photo pointers even if a
+visitor uses a stale client while comments are closed. Pending offline notes
+may be stripped upon later synchronization if closure happens meanwhile.
+
+Deletion removes the content from current canister state and its public
+Checkpoint query, not copies already seen in browsers, third-party indexes,
+screenshots, or any historical chain artifacts. Do not promise irreversible
+erasure from all possible copies.
+
 ## Privacy and safety
 
 - Location permission is only requested when the visitor taps **Get my GPS location**.
