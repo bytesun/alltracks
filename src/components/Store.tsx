@@ -53,6 +53,7 @@ type Action =
       type: "SET_AGENT"
       agent: HttpAgent | null
       isAuthed?: boolean
+      principal?: Principal | null
     }
   | {
       type: "SET_PRINCIPAL"
@@ -79,7 +80,7 @@ const reducer = (state: State, action: Action): State => {
         ...createActors(agent),
         agent,
         isAuthed: !!action.isAuthed,
-        principal: action.isAuthed ? state.principal : null,
+        principal: action.isAuthed ? (action.principal ?? null) : null,
       }
     
     case "SET_PRINCIPAL":
@@ -184,16 +185,11 @@ export const useSetAgent = () => {
     if (isAuthed) {
       if (!agent) throw new Error('Authenticated agent is required');
       const principal = await agent.getPrincipal()
-      dispatch({ type: "SET_AGENT", agent, isAuthed })
+      dispatch({ type: "SET_AGENT", agent, isAuthed, principal })
       console.log("authed", principal.toText())
 
-      dispatch({
-        type: "SET_PRINCIPAL",
-        principal,
-      })
     } else {
       dispatch({ type: "SET_AGENT", agent: null, isAuthed: false })
-      dispatch({ type: "SET_PRINCIPAL", principal: null })
       console.log("not authed")
     }
   }
