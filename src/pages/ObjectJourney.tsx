@@ -59,7 +59,7 @@ export function ObjectJourney() {
   // Null means an older canister or an unavailable policy read: do not fake a setting.
   const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
   const [changingComments, setChangingComments] = useState(false);
-  const [deletingCheckpointId, setDeletingCommentId] = useState<string | null>(null);
+  const [deletingCheckpointId, setDeletingCheckpointId] = useState<string | null>(null);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const mapSectionRef = useRef<HTMLElement | null>(null);
   const mapMarkersRef = useRef(new Map<string, LeafletCircleMarker>());
@@ -291,7 +291,7 @@ export function ObjectJourney() {
     if (!isAuthed || !principal || deletingCheckpointId) return;
     if (!isOwner && entry.author !== principal.toText()) return;
     if (!window.confirm('Delete this entire check-in? Its location, note and photo will disappear from the public journey.')) return;
-    setDeletingCommentId(entry.id);
+    setDeletingCheckpointId(entry.id);
     setMessage('');
     try {
       const result = await backend.deleteObjectCheckpoint(objectId, entry.timestamp, Principal.fromText(entry.author));
@@ -301,7 +301,7 @@ export function ObjectJourney() {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to delete check-in.');
     } finally {
-      setDeletingCommentId(null);
+      setDeletingCheckpointId(null);
     }
   };
 
