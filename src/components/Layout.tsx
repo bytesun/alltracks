@@ -15,6 +15,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     state: { isAuthed },
   } = useGlobalContext();
   const setAgent = useSetAgent();
+  const setAgentRef = useRef(setAgent);
+  setAgentRef.current = setAgent;
   const [loginModal, setLoginModal] = useSetLoginModal();
 
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
@@ -28,9 +30,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     if (expiredRef.current) return;
     expiredRef.current = true;
     setSessionNotice('expired');
-    await setAgent({ agent: null });
+    await setAgentRef.current({ agent: null });
     try { await client.logout(); } catch (error) { console.warn('Session logout failed', error); }
-  }, [setAgent]);
+  }, []);
 
   const validateSession = useCallback(async (client: AuthClient) => {
     try {
@@ -72,7 +74,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (await client.isAuthenticated() && await validateSession(client)) {
         const identity = client.getIdentity();
         lastPrincipal.current = identity.getPrincipal().toText();
-        await setAgent({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+        await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
       }
     }).catch(error => {
       console.error('Authentication initialization failed', error);
@@ -97,12 +99,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [authClient, isAuthed, validateSession]);
 
   const restoreSession = async (client: AuthClient) => {
+    if (!(await validateSession(client))) return;
     const identity = client.getIdentity();
     lastPrincipal.current = identity.getPrincipal().toText();
     expiredRef.current = false;
     setSessionNotice(null);
     setAuthError(null);
-    await setAgent({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+    await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
   };
 
   let windowFeatures = undefined
@@ -129,6 +132,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
 
   const handleII2Login = async () => {
+    if (!authClient) return;
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER_v2,
@@ -140,11 +144,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     });
   };
   const handleIILogout = async () => {
+    if (!authClient) return;
     await authClient.logout();
     lastPrincipal.current = null;
     expiredRef.current = false;
     setSessionNotice(null);
-    await setAgent({ agent: null });
+    await setAgentRef.current({ agent: null });
   };
 
   const handleAuth = async () => {
@@ -159,6 +164,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   const AUTH_PATH = "/authenticate/?applicationName=" + APPLICATION_NAME + "&applicationLogo=" + APPLICATION_LOGO_URL + "#authorize";
   const handleNFIDLogin = async () => {
+    if (!authClient) return;
     authClient.login({
       identityProvider: "https://nfid.one" + AUTH_PATH,
       maxTimeToLive: ONE_WEEK_NS,
