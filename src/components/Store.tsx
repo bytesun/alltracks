@@ -27,7 +27,8 @@ export type State = {
   principal: Principal | null
   showLoginModal: boolean
   loading: boolean
-  wallet: any | null;  
+  wallet: any | null;
+  authRevision: number;
 }
 
 const createActors = (agent: HttpAgent = defaultAgent) => ({
@@ -45,7 +46,8 @@ const initialState: State = {
   showLoginModal: false,
   
   loading: false,
-  wallet: null
+  wallet: null,
+  authRevision: 0
 }
 
 type Action =
@@ -54,7 +56,9 @@ type Action =
       agent: HttpAgent | null
       isAuthed?: boolean
       principal?: Principal | null
+      revision?: number
     }
+  | { type: "BEGIN_AUTH"; revision: number }
   | {
       type: "SET_PRINCIPAL"
       principal: Principal | null
@@ -73,7 +77,10 @@ type Action =
   | { type: "LOGOUT" }
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
+    case "BEGIN_AUTH":
+      return action.revision > state.authRevision ? { ...state, authRevision: action.revision } : state
     case "SET_AGENT":
+      if (action.revision !== undefined && action.revision !== state.authRevision) return state
       const agent = action.agent || defaultAgent
       return {
         ...state,
@@ -81,6 +88,7 @@ const reducer = (state: State, action: Action): State => {
         agent,
         isAuthed: !!action.isAuthed,
         principal: action.isAuthed ? (action.principal ?? null) : null,
+        authRevision: action.isAuthed ? state.authRevision : state.authRevision + 1,
       }
     
     case "SET_PRINCIPAL":
@@ -108,6 +116,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...initialState,
         ...createActors(defaultAgent),
+        authRevision: state.authRevision + 1,
       }
     default:
       return { ...state }
@@ -173,7 +182,9 @@ export const useComment = () => {
 // }
 
 export const useSetAgent = () => {
-  const { dispatch } = useGlobalContext()
+  const { dispatch, state } = useGlobalContext()
+  const revisionRef = React.useRef(state.authRevision)
+  revisionRef.current = Math.max(revisionRef.current, state.authRevision)
 
   return async ({
     agent,
@@ -184,8 +195,10 @@ export const useSetAgent = () => {
   }) => {
     if (isAuthed) {
       if (!agent) throw new Error('Authenticated agent is required');
+      const revision = ++revisionRef.current
+      dispatch({ type: "BEGIN_AUTH", revision })
       const principal = await agent.getPrincipal()
-      dispatch({ type: "SET_AGENT", agent, isAuthed, principal })
+      dispatch({ type: "SET_AGENT", agent, isAuthed, principal, revision })
       console.log("authed", principal.toText())
 
     } else {
