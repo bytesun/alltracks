@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from './Navbar';
+import { classifyRequestFailure } from "../lib/requestFailure";
 import { CheckinOutboxManager } from './CheckinOutboxManager';
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
@@ -22,6 +23,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [sessionNotice, setSessionNotice] = useState<'expired' | 'expiring' | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [networkError, setNetworkError] = useState(false);
   const lastPrincipal = useRef<string | null>(null);
   const expiredRef = useRef(false);
   const clientRef = useRef<AuthClient | null>(null);
@@ -115,6 +117,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, [expireSession, validateSession]);
+
+  useEffect(() => {
+    const onRejectedRequest = (event: PromiseRejectionEvent) => {
+      const category = classifyRequestFailure(event.reason);
+      if (category === 'authentication' && clientRef.current && lastPrincipal.current) {
+        void expireSession(clientRef.current);
+      } else if (category === 'network') {
+        setNetworkError(true);
+      }
+      // Do not swallow the rejection: callers still own their error handling.
+    };
+    window.addEventListener('unhandledrejection', onRejectedRequest);
+    return () => window.removeEventListener('unhandledrejection', onRejectedRequest);
+  }, [expireSession]);
 
   const restoreSession = async (client: AuthClient) => {
     if (!(await validateSession(client))) return;
@@ -213,15 +229,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <>
       <Navbar />
-      {(sessionNotice || authError) && (
+      {(sessionNotice || authError || networkError) && (
         <div role="alert" style={{ position: 'sticky', top: 0, zIndex: 1100, padding: '12px 20px', background: '#fff4d6', color: '#4c3600', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span>{authError || (sessionNotice === 'expired'
+          <span>{authError || (networkError && !sessionNotice ? 'Network request failed. Your session has not been signed out.' : null) || (sessionNotice === 'expired'
             ? 'Your session has expired. Sign in again to continue. Your current page will be preserved.'
             : 'Your session will expire soon. Sign in again to continue without interruption.')}</span>
-          <button type="button" onClick={() => { setAuthError(null); setLoginModal(true); }}>
+          <button type="button" onClick={() => { setAuthError(null); setNetworkError(false); setLoginModal(true); }}>
             Sign In Again
           </button>
-          {authError && <button type="button" onClick={() => { if (authClient) void validateSession(authClient); }}>Retry</button>}
+          {(authError || networkError) && <button type="button" onClick={() => { setNetworkError(false); setAuthError(null); if (authClient) void validateSession(authClient); }}>Retry</button>}
         </div>
       )}
       <CheckinOutboxManager />
