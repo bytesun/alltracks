@@ -83,3 +83,25 @@ test('signed-in request IDs suppress duplicate local rows only for the same auth
   assert.equal(buildJourneyTimeline([published('remote', 200, { requestId: 'uuid', author: 'bob' })], items, object.objectId, 'alice').length, 2);
   assert.equal(buildJourneyTimeline([published('remote', 200)], [], object.objectId, 'alice')[0].kind, 'published');
 });
+
+import { bindDeferredCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin } from '../src/lib/offlineCheckins.ts';
+
+test('explicit deferred-login stop binds once, preserving request ID and timestamp', () => {
+  const draft = pending('stable-id', 1234, { principal: null, claimOnLogin: true });
+  assert.equal(isDeferredLoginCheckin(draft), true);
+  assert.equal(isGuestGatewayCheckin(draft), false);
+  const bound = bindDeferredCheckin(draft, 'alice');
+  assert.equal(bound.principal, 'alice');
+  assert.equal(bound.id, draft.id);
+  assert.equal(bound.createdAt, draft.createdAt);
+  assert.equal(isDeferredLoginCheckin(bound), false);
+  assert.equal(bindDeferredCheckin(bound, 'bob'), bound);
+});
+test('legacy and explicit anonymous gateway stops are never claimed by login', () => {
+  for (const item of [pending('legacy', 1, { principal: null }), pending('guest', 1, { principal: null, claimOnLogin: false })]) {
+    assert.equal(isGuestGatewayCheckin(item), true);
+    assert.equal(bindDeferredCheckin(item, 'alice'), item);
+  }
+  const alreadyBound = pending('owned', 1, { principal: 'bob', claimOnLogin: true });
+  assert.equal(bindDeferredCheckin(alreadyBound, 'alice'), alreadyBound);
+});
