@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from './Navbar';
 import { CheckinOutboxManager } from './CheckinOutboxManager';
 import { HttpAgent } from "@dfinity/agent";
@@ -17,69 +17,93 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const setAgent = useSetAgent();
   const [loginModal, setLoginModal] = useSetLoginModal();
 
-  const [authClient, setAuthClient] = useState<AuthClient>(null);
+  const [authClient, setAuthClient] = useState<AuthClient | null>(null);
+  const [sessionNotice, setSessionNotice] = useState<'expired' | 'expiring' | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const lastPrincipal = useRef<string | null>(null);
+  const expiredRef = useRef(false);
+  const clientRef = useRef<AuthClient | null>(null);
 
-  // Auth on refresh
-  useEffect(() => {
-    (async () => {
-      const authClient = await AuthClient.create(
-        {
-          idleOptions: {
-            idleTimeout: 1000 * 60 * 60 * 24, // 24 hours idle timeout
-            disableDefaultIdleCallback: true,
-            onIdle: () => {
-              // Session expired due to inactivity
-              console.log('Session expired due to inactivity');
-              handleSessionExpired(authClient);
-            }
-          }
-        }
-      );
-      setAuthClient(authClient);
-      if (await authClient.isAuthenticated()) {
-        handleAuthenticated(authClient);
+  const expireSession = useCallback(async (client: AuthClient) => {
+    if (expiredRef.current) return;
+    expiredRef.current = true;
+    setSessionNotice('expired');
+    await setAgent({ agent: null });
+    try { await client.logout(); } catch (error) { console.warn('Session logout failed', error); }
+  }, [setAgent]);
+
+  const validateSession = useCallback(async (client: AuthClient) => {
+    try {
+      const authenticated = await client.isAuthenticated();
+      const identity = client.getIdentity();
+      const delegation = 'getDelegation' in identity
+        ? (identity as { getDelegation: () => { delegations: Array<{ delegation: { expiration: bigint } }> } }).getDelegation()
+        : null;
+      const expirations = delegation?.delegations.map(item => item.delegation.expiration) ?? [];
+      const expiresAt = expirations.length ? expirations.reduce((a, b) => a < b ? a : b) : null;
+      const now = BigInt(Date.now()) * 1_000_000n;
+      if (!authenticated || identity.getPrincipal().isAnonymous() || (expiresAt !== null && expiresAt <= now)) {
+        if (lastPrincipal.current) await expireSession(client);
+        return false;
       }
+      if (expiresAt !== null && expiresAt - now <= 300_000_000_000n) setSessionNotice('expiring');
+      else setSessionNotice(null);
+      return true;
+    } catch (error) {
+      // A transient storage or browser error must not be interpreted as an empty dataset.
+      console.error('Unable to validate session', error);
+      setAuthError('Unable to verify your session. Please check your connection and retry.');
+      return false;
+    }
+  }, [expireSession]);
 
-    })();
+  useEffect(() => {
+    let mounted = true;
+    AuthClient.create({
+      idleOptions: {
+        idleTimeout: 1000 * 60 * 60 * 24,
+        disableDefaultIdleCallback: true,
+        onIdle: () => { if (clientRef.current) void expireSession(clientRef.current); },
+      },
+    }).then(async client => {
+      if (!mounted) return;
+      clientRef.current = client;
+      setAuthClient(client);
+      if (await client.isAuthenticated() && await validateSession(client)) {
+        const identity = client.getIdentity();
+        lastPrincipal.current = identity.getPrincipal().toText();
+        await setAgent({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+      }
+    }).catch(error => {
+      console.error('Authentication initialization failed', error);
+      if (mounted) setAuthError('Unable to initialize sign-in. Please reload and retry.');
+    });
+    return () => { mounted = false; };
   }, []);
 
-  const handleAuthenticated = async (authClient) => {
-    // auth.signin(authClient,()=>{});
-    const identity = authClient.getIdentity();
-    setAgent({
-      agent: new HttpAgent({
-        identity,
-        host: HOST,
-      }),
-      isAuthed: true,
-
-    });
-
-  };
-
-  const handleSessionExpired = async (authClient: AuthClient) => {
-    await authClient.logout();
-    setAgent({ agent: null });
-    console.log('Session expired - signed out');
-  };
-
-  // Periodic session validation check
   useEffect(() => {
     if (!authClient || !isAuthed) return;
-
-    const checkSession = async () => {
-      const isAuthenticated = await authClient.isAuthenticated();
-      if (!isAuthenticated && isAuthed) {
-        // Session has expired
-        console.log('Session validation failed - signing out');
-        handleSessionExpired(authClient);
-      }
+    const check = () => { void validateSession(authClient); };
+    const interval = window.setInterval(check, 60_000);
+    window.addEventListener('focus', check);
+    const onVisibility = () => { if (document.visibilityState === 'visible') check(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    check();
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', check);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
+  }, [authClient, isAuthed, validateSession]);
 
-    // Check every 60 seconds
-    const interval = setInterval(checkSession, 60000);
-    return () => clearInterval(interval);
-  }, [authClient, isAuthed]);
+  const restoreSession = async (client: AuthClient) => {
+    const identity = client.getIdentity();
+    lastPrincipal.current = identity.getPrincipal().toText();
+    expiredRef.current = false;
+    setSessionNotice(null);
+    setAuthError(null);
+    await setAgent({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+  };
 
   let windowFeatures = undefined
   const isDesktop = window.innerWidth > 768
@@ -92,20 +116,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }
   const handleIILogin = async () => {
 
+    if (!authClient) return;
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
-        const identity = authClient.getIdentity();
-        setAgent({
-          agent: new HttpAgent({
-            identity,
-            host: HOST,
-          }),
-          isAuthed: true,
-        });
+        void restoreSession(authClient);
       },
     });
   };
@@ -117,20 +135,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
-        const identity = authClient.getIdentity();
-        setAgent({
-          agent: new HttpAgent({
-            identity,
-            host: HOST,
-          }),
-          isAuthed: true,
-        });
+        void restoreSession(authClient);
       },
     });
   };
   const handleIILogout = async () => {
     await authClient.logout();
-    setAgent({ agent: null });
+    lastPrincipal.current = null;
+    expiredRef.current = false;
+    setSessionNotice(null);
+    await setAgent({ agent: null });
   };
 
   const handleAuth = async () => {
@@ -154,14 +168,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         `top=${window.screen.height / 2 - 705},` +
         `toolbar=0,location=0,menubar=0,width=525,height=705`,
       onSuccess: () => {
-        const identity = authClient.getIdentity();
-        setAgent({
-          agent: new HttpAgent({
-            identity,
-            host: HOST,
-          }),
-          isAuthed: true,
-        });
+        void restoreSession(authClient);
       }
     });
   };
@@ -180,6 +187,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <>
       <Navbar />
+      {(sessionNotice || authError) && (
+        <div role="alert" style={{ position: 'sticky', top: 0, zIndex: 1100, padding: '12px 20px', background: '#fff4d6', color: '#4c3600', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span>{authError || (sessionNotice === 'expired'
+            ? 'Your session has expired. Sign in again to continue. Your current page will be preserved.'
+            : 'Your session will expire soon. Sign in again to continue without interruption.')}</span>
+          <button type="button" onClick={() => { setAuthError(null); setLoginModal(true); }}>
+            Sign In Again
+          </button>
+          {authError && <button type="button" onClick={() => { if (authClient) void validateSession(authClient); }}>Retry</button>}
+        </div>
+      )}
       <CheckinOutboxManager />
       {children}
       <Chat />
