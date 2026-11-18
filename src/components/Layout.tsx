@@ -25,12 +25,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const lastPrincipal = useRef<string | null>(null);
   const expiredRef = useRef(false);
   const clientRef = useRef<AuthClient | null>(null);
+  const broadcastSession = (event: 'login' | 'logout') => {
+    try { localStorage.setItem('alltracks:session-event', JSON.stringify({ event, at: Date.now() })); }
+    catch { /* Storage may be unavailable; local session still works. */ }
+  };
 
   const expireSession = useCallback(async (client: AuthClient) => {
     if (expiredRef.current) return;
     expiredRef.current = true;
     setSessionNotice('expired');
     await setAgentRef.current({ agent: null });
+    broadcastSession('logout');
     try { await client.logout(); } catch (error) { console.warn('Session logout failed', error); }
   }, []);
 
@@ -98,6 +103,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     };
   }, [authClient, isAuthed, validateSession]);
 
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== 'alltracks:session-event' || !event.newValue || !clientRef.current) return;
+      try {
+        const message = JSON.parse(event.newValue) as { event?: string };
+        if (message.event === 'logout') void expireSession(clientRef.current);
+        else if (message.event === 'login') void validateSession(clientRef.current);
+      } catch { /* Ignore malformed cross-tab messages. */ }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [expireSession, validateSession]);
+
   const restoreSession = async (client: AuthClient) => {
     if (!(await validateSession(client))) return;
     const identity = client.getIdentity();
@@ -106,6 +124,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     setSessionNotice(null);
     setAuthError(null);
     await setAgentRef.current({ agent: new HttpAgent({ identity, host: HOST }), isAuthed: true });
+    broadcastSession('login');
   };
 
   let windowFeatures = undefined
@@ -146,6 +165,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const handleIILogout = async () => {
     if (!authClient) return;
     await authClient.logout();
+    broadcastSession('logout');
     lastPrincipal.current = null;
     expiredRef.current = false;
     setSessionNotice(null);
