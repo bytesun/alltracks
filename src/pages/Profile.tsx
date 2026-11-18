@@ -1,3 +1,4 @@
+import { ShortUserId } from '../components/ShortUserId';
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -146,7 +147,10 @@ export const Profile: React.FC = () => {
                     <span className="material-icons">badge</span>
                     <p>{user?.key}</p>
                   </div> */}
-                  <TrackAchievements stats={userStats} userId={principal.toText()} />
+                  {principal && <>
+                    <p>User ID: <ShortUserId id={principal.toText()} copyable /></p>
+                    <TrackAchievements stats={userStats} userId={principal.toText()} />
+                  </>}
                 </div>
               </>
             )}
