@@ -34,7 +34,7 @@ export const Navbar = () => {
       <div className="nav-items">
         <div className="desktop-menu">
           <Link to="/explore" className="nav-link"><span className="material-icons">explore</span>Explore</Link>
-          <Link to="/spots" className="nav-link"><span className="material-icons">qr_code</span>Check In</Link>
+          <Link to="/spots" className="nav-link"><span className="material-icons">place</span>Check In</Link>
           <Link to="/trackathons" className="nav-link"><span className="material-icons">flag</span>Challenges</Link>
           <Link to="/objects" className="nav-link"><span className="material-icons">luggage</span>Wanderers</Link>
           <Link to="/history" className="nav-link"><span className="material-icons">history</span>History</Link>
