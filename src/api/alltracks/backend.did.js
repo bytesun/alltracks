@@ -460,7 +460,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getObjectCommentsEnabled': IDL.Func([IDL.Text], [IDL.Opt(IDL.Bool)], ['query']),
     'setObjectCommentsEnabled': IDL.Func([IDL.Text, IDL.Bool], [SetGuestPolicyResult], []),
-    'deleteObjectComment': IDL.Func([IDL.Text, Time, IDL.Principal], [SetGuestPolicyResult], []),
+    'deleteObjectCheckpoint': IDL.Func([IDL.Text, Time, IDL.Principal], [SetGuestPolicyResult], []),
     'getObjectGuestPolicy': IDL.Func([IDL.Text], [IDL.Opt(ObjectGuestPolicy)], ['query']),
     'setObjectGuestPolicy': IDL.Func([IDL.Text, IDL.Bool, IDL.Principal], [SetGuestPolicyResult], []),
     'submitGuestCheckin': IDL.Func([GuestCheckinInput], [GuestResult], []),
