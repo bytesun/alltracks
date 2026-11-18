@@ -21,11 +21,14 @@ function QRCode({ url, name }: { url: string; name: string }) {
   </div>;
 }
 
+const OBJECTS_PER_PAGE = 20;
+
 export function ObjectTracking() {
   const backend = useAlltracks();
   const { state: { isAuthed, principal } } = useGlobalContext();
   const [, setLoginModal] = useSetLoginModal();
   const [objects, setObjects] = useState<ObjectRecord[]>([]);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -99,6 +102,7 @@ export function ObjectTracking() {
     setLoading(true);
     try {
       setObjects(await getMyObjects(backend, principal));
+      setPage(0);
       setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to load your objects.');
@@ -117,6 +121,7 @@ export function ObjectTracking() {
     try {
       const object = await createObject(backend, name, description, emoji, photoUrl);
       setObjects(old => [object, ...old]);
+      setPage(0);
       setExpandedId(object.id);
       setName('');
       setDescription('');
@@ -127,6 +132,10 @@ export function ObjectTracking() {
       setSaving(false);
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(objects.length / OBJECTS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const visibleObjects = objects.slice(currentPage * OBJECTS_PER_PAGE, (currentPage + 1) * OBJECTS_PER_PAGE);
 
   return <main className="journey-page">
     <section className="journey-hero journey-hero--compact">
@@ -174,10 +183,17 @@ export function ObjectTracking() {
           after the existing ICP backend and anti-abuse gateway are deployed.
         </p>}
         <div className="journey-section-title"><h2>My objects</h2><span>02 / MY COLLECTION</span></div>
+        {objects.length > OBJECTS_PER_PAGE && (
+          <nav aria-label="Object pages" style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+            <button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
+            <span>Page {currentPage + 1} of {totalPages} · {objects.length} objects</span>
+            <button type="button" disabled={currentPage === totalPages - 1} onClick={() => setPage(currentPage + 1)}>Next</button>
+          </nav>
+        )}
         {loading && <p>Loading objects from ICP…</p>}
         {!loading && objects.length === 0 && <p>No objects yet. Create your first object above.</p>}
         <div className="journey-objects-grid">
-          {objects.map(object => <article className="journey-object-card" key={object.id}>
+          {visibleObjects.map(object => <article className="journey-object-card" key={object.id}>
             <div className="journey-object-icon">{object.emoji}</div>
             {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} compact />}
             <div className="journey-object-body">
