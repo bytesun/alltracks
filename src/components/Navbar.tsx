@@ -2,27 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Navbar.css';
 import { DropdownMenu } from './DropdownMenu';
-import { useGlobalContext, useSetLoginModal, useLogout } from './Store';
+import { useGlobalContext, useSetLoginModal } from './Store';
 
-export const Navbar = () => {
+export const Navbar = ({ onSignOut }: { onSignOut: () => Promise<void> }) => {
   const { state: { isAuthed } } = useGlobalContext();
-  const logout = useLogout();
   const [, setLoginModal] = useSetLoginModal();
-
-  const handleLogout = async () => {
-    // Revoke the UI session before any asynchronous AuthClient work.
-    logout();
-    const AuthClient = (await import('@dfinity/auth-client')).AuthClient;
-    const authClient = await AuthClient.create();
-    await authClient.logout();
-    try {
-      localStorage.setItem('alltracks:session-event', JSON.stringify({ event: 'logout', at: Date.now() }));
-    } catch { /* Sign out must work even when storage is unavailable. */ }
-  };
 
   const handleAuth = async () => {
     if (isAuthed) {
-      await handleLogout();
+      await onSignOut();
     } else {
       setLoginModal(true);
     }
