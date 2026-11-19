@@ -10,13 +10,14 @@ export const Navbar = () => {
   const [, setLoginModal] = useSetLoginModal();
 
   const handleLogout = async () => {
+    // Revoke the UI session before any asynchronous AuthClient work.
+    logout();
     const AuthClient = (await import('@dfinity/auth-client')).AuthClient;
     const authClient = await AuthClient.create();
     await authClient.logout();
     try {
       localStorage.setItem('alltracks:session-event', JSON.stringify({ event: 'logout', at: Date.now() }));
     } catch { /* Sign out must work even when storage is unavailable. */ }
-    logout();
   };
 
   const handleAuth = async () => {
