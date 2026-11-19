@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { classifyRequestFailure } from '../lib/requestFailure';
 import { Link } from 'react-router-dom';
 import { Principal } from '@dfinity/principal';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
@@ -105,7 +106,12 @@ export function ObjectTracking() {
       setPage(0);
       setError('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to load your objects.');
+      const category = classifyRequestFailure(e);
+      setError(category === 'authentication'
+        ? 'Your session may have expired. Sign in again to reload your objects.'
+        : category === 'network'
+          ? 'Network unavailable. Your previously loaded objects are preserved; retry when connected.'
+          : e instanceof Error ? e.message : 'Unable to load your objects.');
     } finally {
       setLoading(false);
     }

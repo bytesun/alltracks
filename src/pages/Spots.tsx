@@ -64,6 +64,7 @@ const LIST_PAGE_SIZE = 20;
 export default function Spots() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [page, setPage] = useState(0);
+  const [spotsLoadError, setSpotsLoadError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [tagsInput, setTagsInput] = useState('');
@@ -107,9 +108,11 @@ export default function Spots() {
 
       setSpots(mapped.sort((a, b) => b.timestamp - a.timestamp));
       setPage(0);
+      setSpotsLoadError(null);
     } catch (err) {
       console.error('Failed to load spots from backend', err);
-      setSpots([]);
+      setSpotsLoadError('Unable to load spots. Your saved data has not been cleared. Please retry.');
+      showNotification('Unable to load spots. Please retry.', 'error');
     }
   };
 
@@ -230,6 +233,7 @@ export default function Spots() {
 
   return (
     <div className="page-container spots-page">
+      {spotsLoadError && <div role="alert" style={{ padding: 12, marginBottom: 12, background: "#fff4d6" }}>{spotsLoadError} <button type="button" onClick={() => void load()}>Retry</button></div>}
       <div className="spots-header">
         <h2>Spots</h2>
         <p>Save and explore favorite places for fishing, camping, swimming, and more. Open any Spot to create and share its QR check-in link.</p>
