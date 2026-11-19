@@ -51,6 +51,10 @@ const distanceKm = (a: Checkin, b: Checkin) => {
 
 export function ObjectJourney() {
   const { objectId = '' } = useParams<'objectId'>();
+  return <ObjectJourneyPage key={objectId} objectId={objectId} />;
+}
+
+function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const backend = useAlltracks();
   const comments = useComment();
   const { state: { isAuthed, principal } } = useGlobalContext();
