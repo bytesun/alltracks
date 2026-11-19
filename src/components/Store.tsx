@@ -27,7 +27,8 @@ export type State = {
   principal: Principal | null
   showLoginModal: boolean
   loading: boolean
-  wallet: any | null;  
+  wallet: any | null;
+  authRevision: number;
 }
 
 const createActors = (agent: HttpAgent = defaultAgent) => ({
@@ -45,7 +46,8 @@ const initialState: State = {
   showLoginModal: false,
   
   loading: false,
-  wallet: null
+  wallet: null,
+  authRevision: 0
 }
 
 type Action =
@@ -53,10 +55,13 @@ type Action =
       type: "SET_AGENT"
       agent: HttpAgent | null
       isAuthed?: boolean
+      principal?: Principal | null
+      revision?: number
     }
+  | { type: "BEGIN_AUTH"; revision: number }
   | {
       type: "SET_PRINCIPAL"
-      principal: Principal
+      principal: Principal | null
     }
   
   | {
@@ -69,16 +74,21 @@ type Action =
       loading: boolean
     }
   | { type: "SET_WALLET"; wallet: any }
-  | { type: "LOGOUT" }
+  | { type: "LOGOUT"; revision: number }
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
+    case "BEGIN_AUTH":
+      return action.revision > state.authRevision ? { ...state, authRevision: action.revision } : state
     case "SET_AGENT":
+      if (action.revision === undefined || action.revision !== state.authRevision) return state
       const agent = action.agent || defaultAgent
       return {
         ...state,
         ...createActors(agent),
         agent,
         isAuthed: !!action.isAuthed,
+        principal: action.isAuthed ? (action.principal ?? null) : null,
+        authRevision: state.authRevision,
       }
     
     case "SET_PRINCIPAL":
@@ -106,6 +116,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...initialState,
         ...createActors(defaultAgent),
+        authRevision: action.revision > state.authRevision ? action.revision : state.authRevision,
       }
     default:
       return { ...state }
@@ -170,28 +181,30 @@ export const useComment = () => {
 //   return context.state.fidenza;
 // }
 
+let nextAuthRevision = 0
+const newAuthRevision = () => ++nextAuthRevision
+
 export const useSetAgent = () => {
   const { dispatch } = useGlobalContext()
-
   return async ({
     agent,
     isAuthed,
   }: {
-    agent: HttpAgent
+    agent: HttpAgent | null
     isAuthed?: boolean
   }) => {
-    dispatch({ type: "SET_AGENT", agent, isAuthed })
-
     if (isAuthed) {
+      if (!agent) throw new Error('Authenticated agent is required');
+      const revision = newAuthRevision()
+      dispatch({ type: "BEGIN_AUTH", revision })
       const principal = await agent.getPrincipal()
+      dispatch({ type: "SET_AGENT", agent, isAuthed, principal, revision })
       console.log("authed", principal.toText())
 
-      dispatch({
-        type: "SET_PRINCIPAL",
-        principal,
-      })
     } else {
-      dispatch({ type: "SET_PRINCIPAL", principal: null })
+      const revision = newAuthRevision()
+      dispatch({ type: "BEGIN_AUTH", revision })
+      dispatch({ type: "SET_AGENT", agent: null, isAuthed: false, revision })
       console.log("not authed")
     }
   }
@@ -216,7 +229,7 @@ export const useLoading = () => {
 
 export const useLogout = () => {
   const { dispatch } = useGlobalContext()
-  return () => dispatch({ type: "LOGOUT" })
+  return () => dispatch({ type: "LOGOUT", revision: newAuthRevision() })
 }
 
 export default Store

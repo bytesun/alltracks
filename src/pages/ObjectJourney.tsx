@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { classifyRequestFailure } from '../lib/requestFailure';
 import { Link, useParams } from 'react-router-dom';
 import { CircleMarker, MapContainer, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
 import type { CircleMarker as LeafletCircleMarker } from 'leaflet';
@@ -171,7 +172,12 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       }
       setLoadError('');
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : 'Unable to load journey.');
+      const category = classifyRequestFailure(error);
+      setLoadError(category === 'authentication'
+        ? 'Your session may have expired. Sign in again to refresh this journey.'
+        : category === 'network'
+          ? 'Connection unavailable. Previously loaded journey data is preserved; retry when online.'
+          : error instanceof Error ? error.message : 'Unable to load journey.');
     } finally {
       setLoading(false);
     }
