@@ -1,3 +1,4 @@
+import { ShortUserId } from '../components/ShortUserId';
 // --- Helper functions for pace and distance ---
 // Haversine formula for distance (km)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -403,10 +404,7 @@ export const TrackathonDetail: React.FC = () => {
     });
   };
 
-  const formatPrincipalId = (principalId: string) => {
-    if (principalId.length <= 10) return principalId;
-    return `${principalId.slice(0, 5)}...${principalId.slice(-5)}`;
-  };
+
 
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleString('en-US', {
@@ -609,7 +607,7 @@ export const TrackathonDetail: React.FC = () => {
               {trackathon.registrations.slice(registrationPage * listPageSize, (registrationPage + 1) * listPageSize).map((userId) => (
                 <div key={userId} className="user-item">
                   <span className="material-icons">person</span>
-                  <span>{formatPrincipalId(userId)}</span>
+                  <ShortUserId id={userId} />
                 </div>
               ))}
             </div>
