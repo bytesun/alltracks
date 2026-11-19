@@ -147,8 +147,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('unhandledrejection', onRejectedRequest);
   }, [expireSession]);
 
-  const restoreSession = async (client: AuthClient) => {
-    const epoch = sessionEpoch.current;
+  const restoreSession = async (client: AuthClient, epoch: number) => {
+    if (epoch !== sessionEpoch.current) return;
     if (!(await validateSession(client))) {
       if (epoch !== sessionEpoch.current) return;
       setAuthError('Sign-in did not establish a valid session. Please retry.');
@@ -181,26 +181,28 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const handleIILogin = async () => {
 
     if (!authClient) return;
+    const loginEpoch = ++sessionEpoch.current;
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
-        void restoreSession(authClient);
+        void restoreSession(authClient, loginEpoch);
       },
     });
   };
 
   const handleII2Login = async () => {
     if (!authClient) return;
+    const loginEpoch = ++sessionEpoch.current;
     authClient.login({
       derivationOrigin: DERIVATION_ORIGION,
       identityProvider: IDENTITY_PROVIDER_v2,
       maxTimeToLive: ONE_WEEK_NS,
       windowOpenerFeatures: windowFeatures,
       onSuccess: () => {
-        void restoreSession(authClient);
+        void restoreSession(authClient, loginEpoch);
       },
     });
   };
@@ -225,6 +227,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const AUTH_PATH = "/authenticate/?applicationName=" + APPLICATION_NAME + "&applicationLogo=" + APPLICATION_LOGO_URL + "#authorize";
   const handleNFIDLogin = async () => {
     if (!authClient) return;
+    const loginEpoch = ++sessionEpoch.current;
     authClient.login({
       identityProvider: "https://nfid.one" + AUTH_PATH,
       maxTimeToLive: ONE_WEEK_NS,
@@ -234,7 +237,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         `top=${window.screen.height / 2 - 705},` +
         `toolbar=0,location=0,menubar=0,width=525,height=705`,
       onSuccess: () => {
-        void restoreSession(authClient);
+        void restoreSession(authClient, loginEpoch);
       }
     });
   };
