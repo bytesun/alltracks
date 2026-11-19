@@ -210,18 +210,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     lastPrincipal.current = null;
     expiredRef.current = false;
     await setAgentRef.current({ agent: null });
-    await authClient.logout();
     broadcastSession('logout');
     setSessionNotice(null);
+    setAuthError(null);
+    setNetworkError(false);
+    try { await authClient.logout(); }
+    catch (error) { console.warn('Sign-out storage cleanup failed', error); }
   };
 
-  const handleAuth = async () => {
-    if (isAuthed) {
-      handleIILogout();
-    } else {
-      setLoginModal(true);
-    }
-  };
   const APPLICATION_NAME = "AllTracks";
   const APPLICATION_LOGO_URL = "/192x192.png";
 
@@ -254,7 +250,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <>
-      <Navbar />
+      <Navbar onSignOut={handleIILogout} />
       {(sessionNotice || authError || networkError) && (
         <div role="alert" style={{ position: 'sticky', top: 0, zIndex: 1100, padding: '12px 20px', background: '#fff4d6', color: '#4c3600', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span>{authError || (networkError && !sessionNotice ? 'Network request failed. Your session has not been signed out.' : null) || (sessionNotice === 'expired'
