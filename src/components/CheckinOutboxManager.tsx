@@ -9,6 +9,7 @@ import {
   isGuestGatewayCheckin,
   listPendingCheckins,
   type PendingCheckin,
+  type PendingObjectCheckin,
 } from '../lib/offlineCheckins';
 import { flushSignedInCheckins } from '../lib/checkinSync';
 import './CheckinOutboxManager.css';
@@ -43,6 +44,8 @@ export function CheckinOutboxManager() {
     setSyncing(true);
     try {
       await flushSignedInCheckins(backend, comments, principalText, force);
+    } catch {
+      // A temporary storage or identity error must not discard queued records.
     } finally {
       running.current = false;
       setSyncing(false);
@@ -83,12 +86,13 @@ export function CheckinOutboxManager() {
   }, [reload, sync]);
 
   if (!items.length) return null;
-  const guestItems = items.filter(isGuestGatewayCheckin);
+  const guestItems = items.filter((item): item is PendingObjectCheckin => item.kind === 'object' && isGuestGatewayCheckin(item));
   const deferredItems = items.filter(isDeferredLoginCheckin);
   const awaitingOtherLogin = items.some(item => item.principal && item.principal !== principalText);
   const firstGuest = guestItems[0];
 
   const discard = async (item: PendingCheckin) => {
+    if (item.principal && item.principal !== principalText) return;
     if (!window.confirm('Delete this locally saved check-in? This cannot be undone.')) return;
     await deletePendingCheckin(item.id);
     await reload();
@@ -124,7 +128,7 @@ export function CheckinOutboxManager() {
       {awaitingOtherLogin && <p>Some records belong to a different account. Sign in with their original account to sync.</p>}
       {expanded && (
         <ul>
-          {items.map(item => (
+          {items.filter(item => !item.principal || item.principal === principalText).map(item => (
             <li key={item.id}>
               <span>
                 {item.kind === 'object' ? 'Object ' + item.objectId : 'Spot ' + item.spotId}
