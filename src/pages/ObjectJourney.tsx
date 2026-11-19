@@ -211,6 +211,8 @@ export function ObjectJourney() {
 
   const selectCheckin = (id: string) => {
     setSelectedCheckinId(id);
+    const stopIndex = checkins.findIndex(entry => entry.id === id);
+    if (stopIndex >= 0) setStopPage(Math.floor(stopIndex / stopsPerPage));
     // The map is above the history list; navigate back to it on small screens.
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     mapSectionRef.current?.scrollIntoView({
