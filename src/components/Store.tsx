@@ -74,13 +74,13 @@ type Action =
       loading: boolean
     }
   | { type: "SET_WALLET"; wallet: any }
-  | { type: "LOGOUT" }
+  | { type: "LOGOUT"; revision: number }
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "BEGIN_AUTH":
       return action.revision > state.authRevision ? { ...state, authRevision: action.revision } : state
     case "SET_AGENT":
-      if (action.revision !== undefined && action.revision !== state.authRevision) return state
+      if (action.revision === undefined || action.revision !== state.authRevision) return state
       const agent = action.agent || defaultAgent
       return {
         ...state,
@@ -88,7 +88,7 @@ const reducer = (state: State, action: Action): State => {
         agent,
         isAuthed: !!action.isAuthed,
         principal: action.isAuthed ? (action.principal ?? null) : null,
-        authRevision: action.isAuthed ? state.authRevision : state.authRevision + 1,
+        authRevision: state.authRevision,
       }
     
     case "SET_PRINCIPAL":
@@ -116,7 +116,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...initialState,
         ...createActors(defaultAgent),
-        authRevision: state.authRevision + 1,
+        authRevision: action.revision > state.authRevision ? action.revision : state.authRevision,
       }
     default:
       return { ...state }
@@ -182,9 +182,10 @@ export const useComment = () => {
 // }
 
 let nextAuthRevision = 0
+const newAuthRevision = () => ++nextAuthRevision
 
 export const useSetAgent = () => {
-  const { dispatch, state } = useGlobalContext()
+  const { dispatch } = useGlobalContext()
   return async ({
     agent,
     isAuthed,
@@ -194,16 +195,16 @@ export const useSetAgent = () => {
   }) => {
     if (isAuthed) {
       if (!agent) throw new Error('Authenticated agent is required');
-      const revision = ++nextAuthRevision > state.authRevision
-        ? nextAuthRevision
-        : (nextAuthRevision = state.authRevision + 1)
+      const revision = newAuthRevision()
       dispatch({ type: "BEGIN_AUTH", revision })
       const principal = await agent.getPrincipal()
       dispatch({ type: "SET_AGENT", agent, isAuthed, principal, revision })
       console.log("authed", principal.toText())
 
     } else {
-      dispatch({ type: "SET_AGENT", agent: null, isAuthed: false })
+      const revision = newAuthRevision()
+      dispatch({ type: "BEGIN_AUTH", revision })
+      dispatch({ type: "SET_AGENT", agent: null, isAuthed: false, revision })
       console.log("not authed")
     }
   }
@@ -228,7 +229,7 @@ export const useLoading = () => {
 
 export const useLogout = () => {
   const { dispatch } = useGlobalContext()
-  return () => dispatch({ type: "LOGOUT" })
+  return () => dispatch({ type: "LOGOUT", revision: newAuthRevision() })
 }
 
 export default Store
