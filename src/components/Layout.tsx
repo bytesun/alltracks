@@ -120,8 +120,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       try {
         const message = JSON.parse(event.newValue) as { event?: string };
         if (message.event === 'logout') {
-          sessionEpoch.current += 1;
           if (!expiredRef.current) void expireSession(clientRef.current, false);
+          else sessionEpoch.current += 1;
         } else if (message.event === 'login') {
           // AuthClient instances cache their identity. A storage event alone
           // does not refresh the identity in this tab; never mark it signed in.
@@ -205,7 +205,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     });
   };
   const handleIILogout = async () => {
-    if (!authClient) return;
     sessionEpoch.current += 1;
     lastPrincipal.current = null;
     expiredRef.current = false;
@@ -214,8 +213,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     setSessionNotice(null);
     setAuthError(null);
     setNetworkError(false);
-    try { await authClient.logout(); }
-    catch (error) { console.warn('Sign-out storage cleanup failed', error); }
+    if (authClient) {
+      try { await authClient.logout(); }
+      catch (error) { console.warn('Sign-out storage cleanup failed', error); }
+    }
   };
 
   const APPLICATION_NAME = "AllTracks";
@@ -236,6 +237,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         void restoreSession(authClient);
       }
     });
+  };
+  const closeLoginModal = () => {
+    // Cancel any outstanding popup callback before closing the dialog.
+    sessionEpoch.current += 1;
+    setLoginModal(false);
   };
   const handleLogin = (method: string) => {
     if (method === 'ii') {
@@ -267,7 +273,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <Chat />
       <LoginModal
         isOpen={loginModal}
-        onClose={() => setLoginModal(false)}
+        onClose={closeLoginModal}
         onLogin={handleLogin}
       />
     </>
