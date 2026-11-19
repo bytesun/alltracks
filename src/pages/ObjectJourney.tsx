@@ -14,6 +14,7 @@ import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
 import { buildJourneyTimeline } from '../lib/journeyTimeline';
+import { ShortUserId } from '../components/ShortUserId';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -90,6 +91,18 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [guestToken, setGuestToken] = useState('');
   const [guestReset, setGuestReset] = useState(0);
   const [online, setOnline] = useState(() => !isOffline());
+  const [guestReporter, setGuestReporter] = useState<string | null>(null);
+  useEffect(() => {
+    if (!online) return;
+    let active = true;
+    void (async () => {
+      try {
+        const policy = await backend.getObjectGuestPolicy(objectId);
+        if (active) setGuestReporter(policy.length ? policy[0].gateway.toText() : null);
+      } catch { /* Keep previously known gateway identity during a transient failure. */ }
+    })();
+    return () => { active = false; };
+  }, [backend, objectId, online]);
   const [pendingForObject, setPendingForObject] = useState<PendingObjectCheckin[]>([]);
   const [retryClock, setRetryClock] = useState(() => Date.now());
   const guestSyncing = useRef(false);
@@ -97,6 +110,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const canCheckin = !isAuthed || Boolean(principal);
   const useGuestGateway = !isAuthed && guestMode && publishAsGuest;
   const isOwner = Boolean(isAuthed && principal && object && principal.toText() === object.owner);
+  const isGuestReporter = (author: string) => guestReporter !== null && guestReporter === author;
 
   useEffect(() => {
     const update = () => setOnline(!isOffline());
@@ -570,7 +584,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
                 pathOptions={selectedCheckinId === entry.id
                   ? { color: '#a83f12', fillColor: '#ffdc50', fillOpacity: 1, weight: 5 }
                   : { color: '#234c37', fillColor: '#a2d4a3', fillOpacity: 1, weight: 2 }}>
-                <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p>{entry.note && <p>{entry.note}</p>}{entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Check-in photo" />}</Popup>
+                <Popup><strong>{ACTIONS[entry.action]?.title || 'Cup spotted'}</strong><p>{formatDate(entry.createdAt)}</p><p>{isGuestReporter(entry.author) ? 'Guest (shared gateway)' : <>Reporter: <ShortUserId id={entry.author} /></>}</p>{entry.note && <p>{entry.note}</p>}{entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Check-in photo" />}</Popup>
               </CircleMarker>
             ))}
           </MapContainer>
@@ -599,7 +613,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
                     <span className="journey-local-badge">{status}</span>
                     <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
                     <small>{formatDate(new Date(entry.createdAt).toISOString())} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
-                    <small>{deferred ? 'Saved before sign-in' : entry.principal === null ? 'Guest' : 'Saved by you'} · Only on this device</small>
+                    <small>{deferred ? 'Saved before sign-in' : entry.principal === null ? 'Guest' : <>Saved by you · <ShortUserId id={entry.principal} /></>} · Only on this device</small>
                     {entry.note && <span className="journey-stop-note">{entry.note}</span>}
                     {entry.photoUrl && !online && <small>Photo link saved · Preview available online</small>}
                   </span>
@@ -619,6 +633,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
                 <span className="journey-stop-content">
                   <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
                   <small>{formatDate(entry.createdAt)} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
+                  <small>{isGuestReporter(entry.author) ? 'Guest (shared gateway)' : <>Reporter: <ShortUserId id={entry.author} /></>}</small>
                   {entry.note && <span className="journey-stop-note">{entry.note}</span>}
                   <span className="journey-stop-hint">{selectedCheckinId === entry.id ? '● Highlighted on map' : '◎ View on map'}</span>
                 </span>
