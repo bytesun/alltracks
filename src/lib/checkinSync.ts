@@ -1,4 +1,4 @@
-import type { ActorSubclass } from '@dfinity/agent';
+import { Actor, type ActorSubclass } from '@dfinity/agent';
 import type { _SERVICE as AlltracksService } from '../api/alltracks/backend.did';
 import type { _SERVICE as CommentService } from '../api/comment/comment.did';
 import { submitObjectCheckin } from '../api/object-journey/objects';
@@ -56,10 +56,22 @@ export async function flushSignedInCheckins(
   if (!principal || isOffline()) return 0;
   const run = async () => {
     let completed = 0;
+    // During account changes the actor and the rendered Principal can briefly
+    // disagree. Never claim or upload records until both actors match.
+    const matchesAccount = async () => {
+      try {
+        const [objectPrincipal, commentPrincipal] = await Promise.all([
+          Actor.agentOf(backend)?.getPrincipal(),
+          Actor.agentOf(comment)?.getPrincipal(),
+        ]);
+        return objectPrincipal?.toText() === principal && commentPrincipal?.toText() === principal;
+      } catch { return false; }
+    };
+    if (!(await matchesAccount())) return 0;
     await claimDeferredCheckins(principal);
     const items = await listPendingCheckins();
     for (const item of items) {
-      if (isOffline()) break;
+      if (isOffline() || !(await matchesAccount())) break;
       if (!item.principal || item.principal !== principal) continue;
       if (!retryNow && item.nextAttemptAt && item.nextAttemptAt > Date.now()) continue;
       try {
