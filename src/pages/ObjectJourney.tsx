@@ -234,9 +234,9 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
     [checkins, pendingForObject, objectId, principalText]);
   const localCount = timeline.filter(row => row.kind === 'local').length;
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
-  const totalStopPages = Math.max(1, Math.ceil(checkins.length / stopsPerPage));
+  const totalStopPages = Math.max(1, Math.ceil(timeline.length / stopsPerPage));
   const currentStopPage = Math.min(stopPage, totalStopPages - 1);
-  const visibleStops = checkins.slice(currentStopPage * stopsPerPage, (currentStopPage + 1) * stopsPerPage);
+  const visibleTimeline = timeline.slice(currentStopPage * stopsPerPage, (currentStopPage + 1) * stopsPerPage);
   const selectedCheckin = useMemo(
     () => checkins.find(entry => entry.id === selectedCheckinId) || null,
     [checkins, selectedCheckinId],
@@ -249,7 +249,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
 
   const selectCheckin = (id: string) => {
     setSelectedCheckinId(id);
-    const stopIndex = checkins.findIndex(entry => entry.id === id);
+    const stopIndex = timeline.findIndex(row => row.kind !== 'local' && row.item.id === id);
     if (stopIndex >= 0) setStopPage(Math.floor(stopIndex / stopsPerPage));
     // The map is above the history list; navigate back to it on small screens.
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
