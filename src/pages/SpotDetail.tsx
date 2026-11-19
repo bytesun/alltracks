@@ -22,12 +22,17 @@ export default function SpotDetail() {
   const navigate = useNavigate();
   const [spot, setSpot] = useState<Spot | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [commentPage, setCommentPage] = useState(0);
+  const commentsPerPage = 20;
   const [text, setText] = useState('');
   const [saving, setSaving] = useState(false);
 
   const alltracks = useAlltracks();
   const commentActor = useComment();
   const { state: { isAuthed } } = useGlobalContext();
+
+  const commentPages = Math.max(1, Math.ceil(comments.length / commentsPerPage));
+  const currentCommentPage = Math.min(commentPage, commentPages - 1);
 
   const load = async () => {
     if (!spotId) return;
@@ -179,13 +184,20 @@ export default function SpotDetail() {
       <h3>Comments</h3>
       {comments.length === 0 && <p>No comments yet.</p>}
       <ul>
-        {comments.map((c: Comment, i: number) => (
+        {comments.slice(currentCommentPage * commentsPerPage, (currentCommentPage + 1) * commentsPerPage).map((c: Comment, i: number) => (
           <li key={i} style={{ marginBottom: 8 }}>
             <div style={{ fontSize: 14 }}>{c.comment}</div>
             <div style={{ color: '#666', fontSize: 12 }}>{c.user} — {new Date(Number(c.timestamp) / 1e6).toLocaleString()}</div>
           </li>
         ))}
       </ul>
+      {comments.length > commentsPerPage && (
+        <nav aria-label="Spot comment pages" style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0' }}>
+          <button type="button" disabled={currentCommentPage === 0} onClick={() => setCommentPage(currentCommentPage - 1)}>Previous</button>
+          <span>Page {currentCommentPage + 1} of {commentPages}</span>
+          <button type="button" disabled={currentCommentPage === commentPages - 1} onClick={() => setCommentPage(currentCommentPage + 1)}>Next</button>
+        </nav>
+      )}
 
       {isAuthed && (
         <div className="comment-block">

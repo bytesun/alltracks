@@ -63,6 +63,8 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [, setLoginModal] = useSetLoginModal();
   const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
+  const [stopPage, setStopPage] = useState(0);
+  const stopsPerPage = 20;
   // Null means an older canister or an unavailable policy read: do not fake a setting.
   const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
   const [changingComments, setChangingComments] = useState(false);
@@ -238,6 +240,9 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
     [checkins, pendingForObject, objectId, principalText]);
   const localCount = timeline.filter(row => row.kind === 'local').length;
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
+  const totalStopPages = Math.max(1, Math.ceil(timeline.length / stopsPerPage));
+  const currentStopPage = Math.min(stopPage, totalStopPages - 1);
+  const visibleTimeline = timeline.slice(currentStopPage * stopsPerPage, (currentStopPage + 1) * stopsPerPage);
   const selectedCheckin = useMemo(
     () => checkins.find(entry => entry.id === selectedCheckinId) || null,
     [checkins, selectedCheckinId],
@@ -250,6 +255,8 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
 
   const selectCheckin = (id: string) => {
     setSelectedCheckinId(id);
+    const stopIndex = timeline.findIndex(row => row.kind !== 'local' && row.item.id === id);
+    if (stopIndex >= 0) setStopPage(Math.floor(stopIndex / stopsPerPage));
     // The map is above the history list; navigate back to it on small screens.
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     mapSectionRef.current?.scrollIntoView({
@@ -597,39 +604,143 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         </div>
         <p className="journey-map-note">Select a check-in below to highlight its location on the map. * Dashed connections join voluntary reports, not the actual route traveled. Anyone with the QR link can see this approximate public map.</p>
         {loading && <p>Loading the journey…</p>}
-        {!online && <p className="journey-map-note">Offline — public journey history may be incomplete. Local check-ins remain available below.</p>}
-        {online && !loading && timeline.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
-        {localCount > 0 && <p className="journey-map-note" role="status">
-          {localCount} local check-in{localCount === 1 ? '' : 's'} below. Only visible on this device until synced;
-          excluded from the public map and statistics.
-        </p>}
-        <div className="journey-timeline">
-          {timeline.map(row => {
-            if (row.kind === 'local') {
-              const entry = row.item;
-              const deferred = isDeferredLoginCheckin(entry);
-              const status = deferred ? (online ? 'Awaiting sign-in' : 'Offline · Awaiting sign-in')
-                : !online ? 'Offline · Pending sync' : entry.lastError
-                  ? 'Sync failed · Pending retry' : isGuestGatewayCheckin(entry)
-                    ? 'Pending guest verification' : 'Pending sync';
-              return <article className="journey-stop journey-stop--local" key={'local-' + entry.id}>
-                <div className="journey-stop-local-body">
-                  <span className="journey-stop-icon">{ACTIONS[entry.action]?.icon || '📍'}</span>
-                  <span className="journey-stop-content">
-                    <span className="journey-local-badge">{status}</span>
-                    <strong>{ACTIONS[entry.action]?.title || 'Object spotted'}</strong>
-                    <small>{formatDate(new Date(entry.createdAt).toISOString())} · {entry.latitude.toFixed(3)}, {entry.longitude.toFixed(3)}</small>
-                    <small>{deferred ? 'Saved before sign-in' : entry.principal === null ? 'Guest' : <>Saved by you · <ShortUserId id={entry.principal} /></>} · Only on this device</small>
-                    {entry.note && <span className="journey-stop-note">{entry.note}</span>}
-                    {entry.photoUrl && !online && <small>Photo link saved · Preview available online</small>}
-                  </span>
-                </div>
-                {entry.photoUrl && online && <CheckinPhoto url={entry.photoUrl} label="Locally saved check-in photo" />}
-                {deferred && !isAuthed && online && <button type="button" className="journey-button journey-button-soft" onClick={() => setLoginModal(true)}>Sign in to sync</button>}
-              </article>;
-            }
-            const entry = row.item;
-            return (
+      
+{!online && (
+  <p className="journey-map-note">
+    Offline — public journey history may be incomplete.
+    Local check-ins remain available below.
+  </p>
+)}
+
+{online && !loading && timeline.length === 0 && !loadError && (
+  <p>No stops yet. Be the first explorer to check in!</p>
+)}
+
+{localCount > 0 && (
+  <p className="journey-map-note" role="status">
+    {localCount} local check-in{localCount === 1 ? '' : 's'} below.
+    Only visible on this device until synced;
+    excluded from the public map and statistics.
+  </p>
+)}
+
+{timeline.length > stopsPerPage && (
+  <nav
+    aria-label="Journey stop pages"
+    style={{
+      display: 'flex',
+      gap: 12,
+      alignItems: 'center',
+      margin: '12px 0',
+    }}
+  >
+    <button
+      type="button"
+      disabled={currentStopPage === 0}
+      onClick={() => setStopPage(currentStopPage - 1)}
+    >
+      Previous
+    </button>
+
+    <span>
+      Page {currentStopPage + 1} of {totalStopPages}
+      {' · '}
+      {timeline.length} stops
+    </span>
+
+    <button
+      type="button"
+      disabled={currentStopPage === totalStopPages - 1}
+      onClick={() => setStopPage(currentStopPage + 1)}
+    >
+      Next
+    </button>
+  </nav>
+)}
+
+<div className="journey-timeline">
+  {visibleTimeline.map(row => {
+    if (row.kind === 'local') {
+      const entry = row.item;
+      const deferred = isDeferredLoginCheckin(entry);
+
+      const status = deferred
+        ? (online ? 'Awaiting sign-in' : 'Offline · Awaiting sign-in')
+        : !online
+          ? 'Offline · Pending sync'
+          : entry.lastError
+            ? 'Sync failed · Pending retry'
+            : isGuestGatewayCheckin(entry)
+              ? 'Pending guest verification'
+              : 'Pending sync';
+
+      return (
+        <article
+          className="journey-stop journey-stop--local"
+          key={'local-' + entry.id}
+        >
+          <div className="journey-stop-local-body">
+            <span className="journey-stop-icon">
+              {ACTIONS[entry.action]?.icon || '📍'}
+            </span>
+
+            <span className="journey-stop-content">
+              <span className="journey-local-badge">{status}</span>
+              <strong>
+                {ACTIONS[entry.action]?.title || 'Object spotted'}
+              </strong>
+
+              <small>
+                {formatDate(new Date(entry.createdAt).toISOString())}
+                {' · '}
+                {entry.latitude.toFixed(3)},
+                {' '}
+                {entry.longitude.toFixed(3)}
+              </small>
+
+              <small>
+                {deferred
+                  ? 'Saved before sign-in'
+                  : entry.principal === null
+                    ? 'Guest'
+                    : <>Saved by you · <ShortUserId id={entry.principal} /></>}
+                {' · Only on this device'}
+              </small>
+
+              {entry.note && (
+                <span className="journey-stop-note">{entry.note}</span>
+              )}
+
+              {entry.photoUrl && !online && (
+                <small>Photo link saved · Preview available online</small>
+              )}
+            </span>
+          </div>
+
+          {entry.photoUrl && online && (
+            <CheckinPhoto
+              url={entry.photoUrl}
+              label="Locally saved check-in photo"
+            />
+          )}
+
+          {deferred && !isAuthed && online && (
+            <button
+              type="button"
+              className="journey-button journey-button-soft"
+              onClick={() => setLoginModal(true)}
+            >
+              Sign in to sync
+            </button>
+          )}
+        </article>
+      );
+    }
+
+    const entry = row.item;
+    return (
+
+
             <article className={'journey-stop' + (selectedCheckinId === entry.id ? ' journey-stop--selected' : '')} key={entry.id}>
               <button type="button" className="journey-stop-select"
                 aria-pressed={selectedCheckinId === entry.id}

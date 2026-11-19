@@ -116,6 +116,20 @@ export const TrackathonDetail: React.FC = () => {
   const [showLiveInfoTooltip, setShowLiveInfoTooltip] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [trackathonComments, setTrackathonComments] = useState<Comment[]>([]);
+  const [registrationPage, setRegistrationPage] = useState(0);
+  const [participantPage, setParticipantPage] = useState(0);
+  const [commentPage, setCommentPage] = useState(0);
+  const listPageSize = 20;
+  const pageControls = (count: number, page: number, setPage: (value: number) => void, label: string) => {
+    if (count <= listPageSize) return null;
+    const pages = Math.ceil(count / listPageSize);
+    const current = Math.min(page, pages - 1);
+    return <nav aria-label={label + ' pages'} style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0' }}>
+      <button type="button" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous</button>
+      <span>Page {current + 1} of {pages}</span>
+      <button type="button" disabled={current === pages - 1} onClick={() => setPage(current + 1)}>Next</button>
+    </nav>;
+  };
   const [commentText, setCommentText] = useState('');
   const [savingComment, setSavingComment] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -165,7 +179,13 @@ export const TrackathonDetail: React.FC = () => {
       };
 
       // Get participants
-      const participantsResult = await alltracks.getTrackathonParticipants(trackathonId!, 0n, 100n);
+      const participantsResult: Awaited<ReturnType<typeof alltracks.getTrackathonParticipants>> = [];
+      const batchSize = 100;
+      for (let pageIndex = 0; ; pageIndex++) {
+        const batch = await alltracks.getTrackathonParticipants(trackathonId!, BigInt(pageIndex), BigInt(batchSize));
+        participantsResult.push(...batch);
+        if (batch.length < batchSize) break;
+      }
       
       const formattedParticipants: TrackathonParticipant[] = participantsResult.map(p => ({
         principal: p.principal.toText(),
@@ -584,13 +604,14 @@ export const TrackathonDetail: React.FC = () => {
           <div className="registered-users">
             <h3>Registered Participants ({trackathon.registrations.length})</h3>
             <div className="user-list">
-              {trackathon.registrations.map((userId,username) => (
+              {trackathon.registrations.slice(registrationPage * listPageSize, (registrationPage + 1) * listPageSize).map((userId) => (
                 <div key={userId} className="user-item">
                   <span className="material-icons">person</span>
                   <ShortUserId id={userId} />
                 </div>
               ))}
             </div>
+            {pageControls(trackathon.registrations.length, registrationPage, setRegistrationPage, 'Registrations')}
           </div>
         </div>
       )}
@@ -654,8 +675,9 @@ export const TrackathonDetail: React.FC = () => {
             <div className="two-column-layout">
               <div className="left-column">
                 <h3>Active Participants</h3>
+                {pageControls(participants.length, participantPage, setParticipantPage, 'Active participants')}
                 <div className="participants-list">
-                  {participants.map((participant) => {
+                  {participants.slice(participantPage * listPageSize, (participantPage + 1) * listPageSize).map((participant) => {
                     if (participant.trackPoints.length === 0) {
                       return null; // Skip participants with no track points
                       }
@@ -808,8 +830,9 @@ export const TrackathonDetail: React.FC = () => {
             <div className="two-column-layout">
               <div className="left-column">
                 <h3>Leaderboard</h3>
+                {pageControls(participants.length, participantPage, setParticipantPage, 'Leaderboard')}
                 <div className="leaderboard">
-                  {participants.map((participant, idx) => (
+                  {participants.slice(participantPage * listPageSize, (participantPage + 1) * listPageSize).map((participant, idx) => (
                     <div 
                       key={participant.principal} 
                       className={`leaderboard-item ${selectedParticipant?.principal === participant.principal ? 'selected' : ''}`}
@@ -818,10 +841,10 @@ export const TrackathonDetail: React.FC = () => {
                       )}
                     >
                       <div className="leaderboard-rank">
-                        {idx === 0 && <span className="material-icons gold">emoji_events</span>}
-                        {idx === 1 && <span className="material-icons silver">emoji_events</span>}
-                        {idx === 2 && <span className="material-icons bronze">emoji_events</span>}
-                        {idx > 2 && <span className="rank-number">#{idx + 1}</span>}
+                        {idx + participantPage * listPageSize === 0 && <span className="material-icons gold">emoji_events</span>}
+                        {idx + participantPage * listPageSize === 1 && <span className="material-icons silver">emoji_events</span>}
+                        {idx + participantPage * listPageSize === 2 && <span className="material-icons bronze">emoji_events</span>}
+                        {idx + participantPage * listPageSize > 2 && <span className="rank-number">#{idx + participantPage * listPageSize + 1}</span>}
                       </div>
                       <div className="leaderboard-content">
                         <div className="leaderboard-name">
@@ -913,7 +936,7 @@ export const TrackathonDetail: React.FC = () => {
           <p className="info-text">No comments yet. Be the first to comment!</p>
         )}
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {trackathonComments.map((c: Comment, i: number) => (
+          {trackathonComments.slice(commentPage * listPageSize, (commentPage + 1) * listPageSize).map((c: Comment, i: number) => (
             <li key={i} style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 8 }}>
               <div style={{ fontSize: 14 }}>{c.comment}</div>
               <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
@@ -922,6 +945,7 @@ export const TrackathonDetail: React.FC = () => {
             </li>
           ))}
         </ul>
+        {pageControls(trackathonComments.length, commentPage, setCommentPage, 'Comments')}
         {isAuthed && (
           <div style={{ marginTop: 12 }}>
             <textarea

@@ -7,6 +7,8 @@ import { CreateTrackathonModal } from '../components/CreateTrackathonModal';
 import '../styles/Trackathons.css';
 
 const UNKNOWN_ERROR_MESSAGE = 'Unknown error';
+const API_PAGE_SIZE = 100;
+const LIST_PAGE_SIZE = 20;
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -31,6 +33,7 @@ export const Trackathons: React.FC = () => {
   const { showNotification } = useNotification();
   
   const [trackathons, setTrackathons] = useState<Trackathon[]>([]);
+  const [page, setPage] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'past'>('active');
@@ -87,7 +90,13 @@ export const Trackathons: React.FC = () => {
   const loadTrackathons = async () => {
     setIsLoading(true);
     try {
-      const result = await alltracks.getAllTrackathons(0n, 100n);
+      // Load all backend pages so status filtering never silently excludes older records.
+      const result: Awaited<ReturnType<typeof alltracks.getAllTrackathons>> = [];
+      for (let offset = 0; ; offset += API_PAGE_SIZE) {
+        const batch = await alltracks.getAllTrackathons(BigInt(offset / API_PAGE_SIZE), BigInt(API_PAGE_SIZE));
+        result.push(...batch);
+        if (batch.length < API_PAGE_SIZE) break;
+      }
       
       // Convert backend Trackathon format to frontend format
       const formattedTrackathons: Trackathon[] = result.map(t => ({
@@ -105,6 +114,7 @@ export const Trackathons: React.FC = () => {
       }));
       
       setTrackathons(formattedTrackathons);
+      setPage(0);
     } catch (error) {
       showNotification('Failed to load trackathons', 'error');
       console.error('Error loading trackathons:', error);
@@ -164,6 +174,16 @@ export const Trackathons: React.FC = () => {
           return true;
       }
     });
+  };
+
+  const filteredTrackathons = getFilteredTrackathons();
+  const totalPages = Math.max(1, Math.ceil(filteredTrackathons.length / LIST_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const visibleTrackathons = filteredTrackathons.slice(currentPage * LIST_PAGE_SIZE, (currentPage + 1) * LIST_PAGE_SIZE);
+
+  const changeFilter = (next: typeof filter) => {
+    setFilter(next);
+    setPage(0);
   };
 
   const formatDate = (timestamp: number) => {
@@ -244,27 +264,27 @@ export const Trackathons: React.FC = () => {
       <div className="filter-tabs">
         <button 
           className={filter === 'all' ? 'active' : ''}
-          onClick={() => setFilter('all')}
+          onClick={() => changeFilter('all')}
         >
           All
         </button>
         <button 
           className={filter === 'active' ? 'active' : ''}
-          onClick={() => setFilter('active')}
+          onClick={() => changeFilter('active')}
         >
           <span className="material-icons">sensors</span>
           Live
         </button>
         <button 
           className={filter === 'upcoming' ? 'active' : ''}
-          onClick={() => setFilter('upcoming')}
+          onClick={() => changeFilter('upcoming')}
         >
           <span className="material-icons">schedule</span>
           Upcoming
         </button>
         <button 
           className={filter === 'past' ? 'active' : ''}
-          onClick={() => setFilter('past')}
+          onClick={() => changeFilter('past')}
         >
           <span className="material-icons">history</span>
           Past
@@ -276,7 +296,7 @@ export const Trackathons: React.FC = () => {
           <div className="spinner"></div>
           <p>Loading trackathons...</p>
         </div>
-      ) : getFilteredTrackathons().length === 0 ? (
+      ) : filteredTrackathons.length === 0 ? (
         <div className="empty-state">
           <span className="material-icons">flag</span>
           <h3>No trackathons found</h3>
@@ -292,7 +312,7 @@ export const Trackathons: React.FC = () => {
         </div>
       ) : (
         <div className="trackathons-grid">
-          {getFilteredTrackathons().map(trackathon => (
+          {visibleTrackathons.map(trackathon => (
             <div 
               key={trackathon.id} 
               className="trackathon-card"
@@ -331,6 +351,14 @@ export const Trackathons: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {!isLoading && filteredTrackathons.length > 0 && (
+        <nav className="pagination" aria-label="Trackathon pages">
+          <button disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage + 1} of {totalPages} · {filteredTrackathons.length} challenges</span>
+          <button disabled={currentPage >= totalPages - 1} onClick={() => setPage(currentPage + 1)}>Next</button>
+        </nav>
       )}
 
       {showCreateModal && (

@@ -58,8 +58,12 @@ const parseSpotDescription = (value: unknown): { latitude: number; longitude: nu
   }
 };
 
+const API_PAGE_SIZE = 100;
+const LIST_PAGE_SIZE = 20;
+
 export default function Spots() {
   const [spots, setSpots] = useState<Spot[]>([]);
+  const [page, setPage] = useState(0);
   const [spotsLoadError, setSpotsLoadError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
@@ -82,7 +86,12 @@ export default function Spots() {
 
   const load = async () => {
     try {
-      const serverSpots: any[] = await alltracks.getSpots(0, 100);
+      const serverSpots: any[] = [];
+      for (let pageIndex = 0; ; pageIndex++) {
+        const batch = await alltracks.getSpots(BigInt(pageIndex), BigInt(API_PAGE_SIZE));
+        serverSpots.push(...batch);
+        if (batch.length < API_PAGE_SIZE) break;
+      }
       const mapped = (serverSpots || []).map((s) => {
         const parsed = parseSpotDescription(s?.description);
         return {
@@ -98,6 +107,7 @@ export default function Spots() {
       });
 
       setSpots(mapped.sort((a, b) => b.timestamp - a.timestamp));
+      setPage(0);
       setSpotsLoadError(null);
     } catch (err) {
       console.error('Failed to load spots from backend', err);
@@ -137,27 +147,17 @@ export default function Spots() {
     });
   }, [spots, normalizedSearchTerm, activeTag, onlyMappable]);
 
-  const hasActiveFilters = useMemo(
-    () => !!normalizedSearchTerm || activeTag !== 'all' || onlyMappable,
-    [normalizedSearchTerm, activeTag, onlyMappable]
-  );
-
+  const totalPages = Math.max(1, Math.ceil(filteredSpots.length / LIST_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
   const visibleSpots = useMemo(
-    () => (hasActiveFilters ? filteredSpots : filteredSpots.slice(0, 10)),
-    [filteredSpots, hasActiveFilters]
+    () => filteredSpots.slice(currentPage * LIST_PAGE_SIZE, (currentPage + 1) * LIST_PAGE_SIZE),
+    [filteredSpots, currentPage]
   );
-
   const mappableSpots = useMemo(
-    () => visibleSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
-    [visibleSpots]
+    () => filteredSpots.filter((spot) => spot.latitude !== 0 && spot.longitude !== 0),
+    [filteredSpots]
   );
-
-  const spotsCountLabel = useMemo(() => {
-    if (!hasActiveFilters && filteredSpots.length > 10) {
-      return `${visibleSpots.length} / ${filteredSpots.length}`;
-    }
-    return String(visibleSpots.length);
-  }, [hasActiveFilters, filteredSpots.length, visibleSpots.length]);
+  const spotsCountLabel = `${visibleSpots.length} / ${filteredSpots.length}`;
 
   const mapCenter = useMemo<[number, number]>(() => {
     const selected = mappableSpots.find((spot) => spot.id === selectedSpotId);
@@ -167,10 +167,10 @@ export default function Spots() {
   }, [mappableSpots, selectedSpotId]);
 
   useEffect(() => {
-    if (selectedSpotId && !visibleSpots.some((spot) => spot.id === selectedSpotId)) {
+    if (selectedSpotId && !filteredSpots.some((spot) => spot.id === selectedSpotId)) {
       setSelectedSpotId(null);
     }
-  }, [visibleSpots, selectedSpotId]);
+  }, [filteredSpots, selectedSpotId]);
 
   const addCurrentLocation = async () => {
     setAdding(true);
@@ -288,13 +288,13 @@ export default function Spots() {
           className="spot-search-input"
           placeholder="Search by name, tag, or description"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
         />
         <select
           className="spot-filter-select"
           aria-label="Filter by tag"
           value={activeTag}
-          onChange={(e) => setActiveTag(e.target.value)}
+          onChange={(e) => { setActiveTag(e.target.value); setPage(0); }}
         >
           <option value="all">All tags</option>
           {allTags.map((tag) => (
@@ -307,7 +307,7 @@ export default function Spots() {
           <input
             type="checkbox"
             checked={onlyMappable}
-            onChange={(e) => setOnlyMappable(e.target.checked)}
+            onChange={(e) => { setOnlyMappable(e.target.checked); setPage(0); }}
           />
           Map-ready only
         </label>
@@ -318,6 +318,7 @@ export default function Spots() {
               setSearchTerm('');
               setActiveTag('all');
               setOnlyMappable(false);
+              setPage(0);
             }}
           >
             Clear filters
@@ -425,6 +426,13 @@ export default function Spots() {
           confirmText="Delete"
           cancelText="Cancel"
         />
+      )}
+      {filteredSpots.length > 0 && (
+        <nav className="pagination" aria-label="Spot pages" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', alignItems: 'center', margin: '1.5rem' }}>
+          <button disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
+          <span>Page {currentPage + 1} of {totalPages} · {filteredSpots.length} spots</span>
+          <button disabled={currentPage >= totalPages - 1} onClick={() => setPage(currentPage + 1)}>Next</button>
+        </nav>
       )}
     </div>
   );
