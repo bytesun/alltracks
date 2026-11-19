@@ -17,6 +17,7 @@ export type ObjectRecord = {
 export type JourneyCheckin = {
   id: string;
   author: string;
+  requestId?: string;
   timestamp: bigint;
   latitude: number;
   longitude: number;
@@ -113,6 +114,7 @@ const parseCheckpoint = (point: CheckPoint, index: number): JourneyCheckin | nul
     return {
       id: point.createdBy.toText() + '-' + point.timestamp.toString() + '-' + index,
       author: point.createdBy.toText(),
+      requestId: typeof data.requestId === 'string' ? data.requestId : undefined,
       timestamp: point.timestamp,
       latitude: point.latitude,
       longitude: point.longitude,

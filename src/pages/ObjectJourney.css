@@ -250,3 +250,8 @@
   .journey-dialog-header { padding: 14px 18px; }
   .journey-dialog-body { padding: 8px 18px 22px; }
 }
+
+/* Local-only entries are intentionally distinct from public map-linked stops. */
+.journey-stop--local { background: #fffbef; border: 1px dashed #d9a74c; margin: 8px 0; padding: 0; }
+.journey-stop .journey-stop-local-body { display: flex; flex-direction: row; align-items: flex-start; gap: 12px; padding: 14px 12px; }
+.journey-local-badge { display: inline-block; border-radius: 5px; padding: 3px 8px; background: #fce9b6; color: #754806; font-size: .75rem; font-weight: 700; }

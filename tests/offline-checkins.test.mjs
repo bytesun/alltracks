@@ -59,3 +59,49 @@ test('spot requires account and validates saved note/photo', () => {
   assert.throws(() => normalizeQueuedSpot({ ...spot, name: 'x'.repeat(41) }), Error);
   assert.throws(() => normalizeQueuedSpot({ ...spot, photoUrl: 'javascript:alert(1)' }), Error);
 });
+
+import { buildJourneyTimeline } from '../src/lib/journeyTimeline.ts';
+
+const published = (id, at, extra = {}) => ({
+  id, author: 'alice', createdAt: new Date(at).toISOString(), ...extra,
+});
+const pending = (id, at, extra = {}) => ({
+  ...object, id, createdAt: at, principal: 'alice', attempts: 0, lastError: '', ...extra,
+});
+test('journey timeline interleaves public and local records newest first', () => {
+  const rows = buildJourneyTimeline([published('a', 100), published('b', 300)], [pending('c', 200)], object.objectId, 'alice');
+  assert.deepEqual(rows.map(row => [row.kind, row.item.id]), [['published','b'], ['local','c'], ['published','a']]);
+});
+test('journey timeline hides another account or object but includes local guest entries', () => {
+  const items = [pending('other-account', 100, { principal: 'bob' }), pending('other-object', 200, { objectId: 'other' }), pending('guest', 300, { principal: null }), pending('mine', 400)];
+  assert.deepEqual(buildJourneyTimeline([], items, object.objectId, 'alice').map(row => row.item.id), ['mine','guest']);
+  assert.deepEqual(buildJourneyTimeline([], items, object.objectId, null).map(row => row.item.id), ['guest']);
+});
+test('signed-in request IDs suppress duplicate local rows only for the same author', () => {
+  const items = [pending('uuid', 100)];
+  assert.equal(buildJourneyTimeline([published('remote', 200, { requestId: 'uuid' })], items, object.objectId, 'alice').length, 1);
+  assert.equal(buildJourneyTimeline([published('remote', 200, { requestId: 'uuid', author: 'bob' })], items, object.objectId, 'alice').length, 2);
+  assert.equal(buildJourneyTimeline([published('remote', 200)], [], object.objectId, 'alice')[0].kind, 'published');
+});
+
+import { bindDeferredCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin } from '../src/lib/offlineCheckins.ts';
+
+test('explicit deferred-login stop binds once, preserving request ID and timestamp', () => {
+  const draft = pending('stable-id', 1234, { principal: null, claimOnLogin: true });
+  assert.equal(isDeferredLoginCheckin(draft), true);
+  assert.equal(isGuestGatewayCheckin(draft), false);
+  const bound = bindDeferredCheckin(draft, 'alice');
+  assert.equal(bound.principal, 'alice');
+  assert.equal(bound.id, draft.id);
+  assert.equal(bound.createdAt, draft.createdAt);
+  assert.equal(isDeferredLoginCheckin(bound), false);
+  assert.equal(bindDeferredCheckin(bound, 'bob'), bound);
+});
+test('legacy and explicit anonymous gateway stops are never claimed by login', () => {
+  for (const item of [pending('legacy', 1, { principal: null }), pending('guest', 1, { principal: null, claimOnLogin: false })]) {
+    assert.equal(isGuestGatewayCheckin(item), true);
+    assert.equal(bindDeferredCheckin(item, 'alice'), item);
+  }
+  const alreadyBound = pending('owned', 1, { principal: 'bob', claimOnLogin: true });
+  assert.equal(bindDeferredCheckin(alreadyBound, 'alice'), alreadyBound);
+});

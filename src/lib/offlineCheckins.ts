@@ -17,8 +17,10 @@ type BasePending = {
 export type PendingObjectCheckin = BasePending & {
   kind: 'object';
   objectId: string;
-  // Null means a guest submission (only the Turnstile gateway can sync it).
+  // Null is unbound. Explicit deferred-login records may be claimed once;
+  // legacy anonymous records remain restricted to the Turnstile gateway.
   principal: string | null;
+  claimOnLogin?: boolean;
   latitude: number;
   longitude: number;
   accuracyMeters: number;
@@ -128,6 +130,37 @@ export async function listPendingCheckins(): Promise<PendingCheckin[]> {
   const db = await openOutbox();
   const records = await db.getAll(STORE_NAME) as PendingCheckin[];
   return records.sort((a, b) => a.createdAt - b.createdAt);
+}
+
+export function isDeferredLoginCheckin(item: PendingCheckin): boolean {
+  return item.kind === 'object' && item.principal === null && item.claimOnLogin === true;
+}
+
+export function isGuestGatewayCheckin(item: PendingCheckin): boolean {
+  return item.kind === 'object' && item.principal === null && item.claimOnLogin !== true;
+}
+
+export function bindDeferredCheckin(item: PendingCheckin, principal: string): PendingCheckin {
+  if (!principal || item.kind !== 'object' || !isDeferredLoginCheckin(item)) return item;
+  return { ...item, principal, claimOnLogin: false };
+}
+
+/** Bind before sending, atomically across tabs. Never reassign an existing owner. */
+export async function claimDeferredCheckins(principal: string): Promise<void> {
+  if (!principal) return;
+  const db = await openOutbox();
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const items = await tx.store.getAll() as PendingCheckin[];
+  let changed = false;
+  for (const item of items) {
+    const bound = bindDeferredCheckin(item, principal);
+    if (bound !== item) {
+      await tx.store.put(bound);
+      changed = true;
+    }
+  }
+  await tx.done;
+  if (changed) announce();
 }
 
 export async function deletePendingCheckin(id: string): Promise<void> {
