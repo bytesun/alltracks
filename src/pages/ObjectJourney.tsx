@@ -56,6 +56,8 @@ export function ObjectJourney() {
   const [, setLoginModal] = useSetLoginModal();
   const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
+  const [stopPage, setStopPage] = useState(0);
+  const stopsPerPage = 20;
   // Null means an older canister or an unavailable policy read: do not fake a setting.
   const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
   const [changingComments, setChangingComments] = useState(false);
@@ -194,6 +196,9 @@ export function ObjectJourney() {
   }, [checkinDialogOpen]);
 
   const chronological = useMemo(() => [...checkins].reverse(), [checkins]);
+  const totalStopPages = Math.max(1, Math.ceil(checkins.length / stopsPerPage));
+  const currentStopPage = Math.min(stopPage, totalStopPages - 1);
+  const visibleStops = checkins.slice(currentStopPage * stopsPerPage, (currentStopPage + 1) * stopsPerPage);
   const selectedCheckin = useMemo(
     () => checkins.find(entry => entry.id === selectedCheckinId) || null,
     [checkins, selectedCheckinId],
@@ -542,8 +547,15 @@ export function ObjectJourney() {
         <p className="journey-map-note">Select a check-in below to highlight its location on the map. * Dashed connections join voluntary reports, not the actual route traveled. Anyone with the QR link can see this approximate public map.</p>
         {loading && <p>Loading the journey…</p>}
         {!loading && checkins.length === 0 && !loadError && <p>No stops yet. Be the first explorer to check in!</p>}
+        {checkins.length > stopsPerPage && (
+          <nav aria-label="Journey stop pages" style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0' }}>
+            <button type="button" disabled={currentStopPage === 0} onClick={() => setStopPage(currentStopPage - 1)}>Previous</button>
+            <span>Page {currentStopPage + 1} of {totalStopPages} · {checkins.length} stops</span>
+            <button type="button" disabled={currentStopPage === totalStopPages - 1} onClick={() => setStopPage(currentStopPage + 1)}>Next</button>
+          </nav>
+        )}
         <div className="journey-timeline">
-          {checkins.map((entry) => (
+          {visibleStops.map((entry) => (
             <article className={'journey-stop' + (selectedCheckinId === entry.id ? ' journey-stop--selected' : '')} key={entry.id}>
               <button type="button" className="journey-stop-select"
                 aria-pressed={selectedCheckinId === entry.id}
