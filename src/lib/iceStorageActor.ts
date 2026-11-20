@@ -1,6 +1,7 @@
 import { Actor, type ActorSubclass, type HttpAgent } from '@dfinity/agent';
 import { IDL } from '@dfinity/candid';
 import type { AuthorizedStorageActor } from './iceStorageActorTransport';
+import type { PublicPhotoReader } from './iceStoragePublicPhoto';
 
 export const ICESTORAGE_BACKEND_CANISTER_ID = '5pqgi-saaaa-aaaal-aaavq-cai';
 
@@ -34,6 +35,26 @@ const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
       size: IDL.Nat,
       status: Status,
     });
+    const ResourceKey = IDL.Record({
+      resourceId: IDL.Text,
+      storage: IDL.Record({
+        storageId: IDL.Text,
+        owner: IDL.Variant({
+          principal: IDL.Principal,
+          group: IDL.Record({ id: IDL.Text }),
+        }),
+      }),
+    });
+    const ObjectChunk = IDL.Record({
+      chunkCount: IDL.Nat,
+      chunkNum: IDL.Nat,
+      data: IDL.Vec(IDL.Nat8),
+      mimeType: IDL.Text,
+      objectId: IDL.Text,
+      objectSize: IDL.Nat,
+      sha256: IDL.Opt(IDL.Vec(IDL.Nat8)),
+    });
+    const ObjectChunkResult = IDL.Variant({ err: ResourceError, ok: ObjectChunk });
     const UploadRequest = IDL.Record({
       clientRequestId: IDL.Opt(IDL.Text),
       fileName: IDL.Opt(IDL.Text),
@@ -48,6 +69,7 @@ const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
       uploadObjectChunk: IDL.Func([IDL.Text, IDL.Nat, IDL.Vec(IDL.Nat8)], [UnitResult], []),
       finalizeObjectUpload: IDL.Func([IDL.Text], [SessionResult], []),
       abortObjectUpload: IDL.Func([IDL.Text], [UnitResult], []),
+      readPublicPhotoChunk: IDL.Func([ResourceKey, IDL.Text, IDL.Nat], [ObjectChunkResult], ['composite_query']),
     });
   };
 
@@ -55,9 +77,9 @@ const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
  * Pass the same authenticated HttpAgent used by the Alltracks Backend actor.
  * Do not construct an anonymous agent or expose a project secret here.
  */
-export function createIceStorageUploadActor(agent: HttpAgent): AuthorizedStorageActor {
+export function createIceStorageUploadActor(agent: HttpAgent): AuthorizedStorageActor & PublicPhotoReader {
   return Actor.createActor(idlFactory, {
     agent,
     canisterId: ICESTORAGE_BACKEND_CANISTER_ID,
-  }) as unknown as ActorSubclass<AuthorizedStorageActor>;
+  }) as unknown as ActorSubclass<AuthorizedStorageActor & PublicPhotoReader>;
 }
