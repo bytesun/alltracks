@@ -15,6 +15,8 @@ export interface AuthorizedPhotoSession {
   sessionId: string;
   /** Maximum accepted chunk size returned by the storage service. */
   chunkSize: number;
+  /** Optional authoritative number of chunks from ICEStorage. */
+  chunkCount?: number;
 }
 
 export interface UploadedPhoto {
@@ -56,8 +58,13 @@ export async function uploadWanderPhoto(
       session.chunkSize < 1 || session.chunkSize > 512 * 1024) {
     throw new Error('Storage returned an invalid upload session.');
   }
+  const expectedChunks = Math.ceil(file.size / session.chunkSize);
+  if (session.chunkCount !== undefined && session.chunkCount !== expectedChunks) {
+    throw new Error('Storage returned an inconsistent chunk count.');
+  }
   try {
-    for (let offset = 0, index = 0; offset < file.size; offset += session.chunkSize, index++) {
+    // ICEStorage uses one-based chunk numbers (1..chunkCount).
+    for (let offset = 0, index = 1; offset < file.size; offset += session.chunkSize, index++) {
       const bytes = new Uint8Array(await file.slice(offset, offset + session.chunkSize).arrayBuffer());
       await transport.uploadChunk(session.sessionId, index, bytes);
       onProgress?.(Math.min(offset + bytes.length, file.size), file.size);
