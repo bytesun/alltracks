@@ -33,8 +33,8 @@ export type GrantProvider = (
   resourceId: string,
 ) => Promise<{ grantId: string; clientRequestId: string }>;
 
-/** ICEStorage's ObjectUploadPolicy currently permits chunks of ~512 KiB. */
-const CHUNK_BYTES = 512 * 1024;
+/** ICEStorage's ObjectUploadPolicy currently permits chunks of 512,000 bytes. */
+const CHUNK_BYTES = 512_000;
 
 function unwrap<T>(result: Result<T>, operation: string): T {
   if ('err' in result) {
