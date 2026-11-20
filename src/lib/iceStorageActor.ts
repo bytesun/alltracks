@@ -41,7 +41,7 @@ const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
         storageId: IDL.Text,
         owner: IDL.Variant({
           principal: IDL.Principal,
-          group: IDL.Record({ id: IDL.Text }),
+          group: IDL.Record({ id: IDL.Text, namespace: IDL.Text }),
         }),
       }),
     });
