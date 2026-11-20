@@ -19,3 +19,34 @@ Wander Check-in continues to accept an optional external HTTPS image URL encoded
 
 ## Release gates
 Do not enable the UI or deploy the integration to mainnet until the real transport, authorization flow, and read/delete lifecycle are implemented and verified end to end.
+
+
+## Integrated owner-only pipeline (2026-11-20)
+
+`src/lib/uploadOwnedWanderPhoto.ts` composes the authenticated Alltracks
+backend grant request, the ICEStorage actor and chunked upload. Pass the
+**same signed-in HttpAgent** used to create the Alltracks backend actor.
+It returns an opaque `objectId` only. Do not write that value into
+`photoUrl`: the existing check-in photo field accepts public HTTPS URLs,
+and ICEStorage public-read URL, certification, reference binding and cleanup
+are not yet integrated. Consequently, the Check-in dialog intentionally
+continues to accept external HTTPS links; this is not a finished photo UI.
+
+The Backend grant endpoint in ICEvent/alltracks PR #4 is currently
+**owner-only**, not a guest check-in upload permission. Grant issuance
+must be reviewed for rate limiting, idempotency, and resource lifecycle
+before production enablement. ICEStorage photo upload must not be
+presented as published until the checkpoint and object reference are
+persisted and public reads have been verified.
+
+Validation commands (not yet executed by this PR):
+
+```sh
+# ICEvent/alltracks Backend checkout
+# after removing the unused legacy frontend build configuration
+dfx build --check
+dfx generate backend
+
+# bytesun/alltracks frontend checkout
+npm run build
+```
