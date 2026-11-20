@@ -50,12 +50,12 @@ export async function uploadWanderPhoto(
   onProgress?: (uploadedBytes: number, totalBytes: number) => void,
 ): Promise<UploadedPhoto> {
   validateWanderPhoto(file);
-  if (!resourceId || resourceId.length > 256 || !/^obj-[A-Za-z0-9-]+$/.test(resourceId)) {
+  if (!resourceId || resourceId.length > 256 || !/^obj-[a-z0-9-]{12,65}$/.test(resourceId)) {
     throw new Error('Invalid Wander object ID.');
   }
   const session = await transport.begin(file, resourceId);
   if (!session.sessionId || !Number.isSafeInteger(session.chunkSize) ||
-      session.chunkSize < 1 || session.chunkSize > 512 * 1024) {
+      session.chunkSize < 1 || session.chunkSize > 512_000) {
     throw new Error('Storage returned an invalid upload session.');
   }
   const expectedChunks = Math.ceil(file.size / session.chunkSize);
