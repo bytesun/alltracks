@@ -50,3 +50,31 @@ dfx generate backend
 # bytesun/alltracks frontend checkout
 npm run build
 ```
+
+## Publication and deletion contract (pending backend implementation)
+
+The browser now has a `PublishedWanderPhoto` model and defensive
+`validatePublishedWanderPhoto` helper. Neither is evidence that a photo
+has been published: only the backend can issue a trustworthy binding.
+
+Required server-side workflow:
+
+1. Authenticate the owner and validate the Wander Object before granting
+   upload. The same principal must begin the ICEStorage upload.
+2. On upload completion, verify the ICEStorage ObjectInfo status, owner,
+   size and MIME. Do not trust a client-supplied object ID alone.
+3. Create/update a public ICEStorage ResourceManifest with the uploaded
+   ObjectRef, using the actual ResourceKey and revision checks.
+4. Persist a canonical binding to the Object/checkpoint in Alltracks.
+   Only return it after the manifest and Alltracks state agree; support
+   idempotent retry/reconciliation if either operation times out.
+5. On checkpoint deletion, detach its ObjectRef, decrement reference
+   counts and delete underlying storage only when no references remain.
+   Retry failed cleanup from durable server-side work, not localStorage.
+6. The public viewer must read only backend-returned bindings, use
+   `readPublicPhotoChunk`, validate all chunks and revoke temporary
+   blob URLs. Do not assume composite queries provide certified bytes.
+
+Until these steps are implemented and tested, do not expose the new
+file-upload control in the Check-in dialog. The current external HTTPS
+photo-link path is unchanged.
