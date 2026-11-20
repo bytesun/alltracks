@@ -8,8 +8,7 @@ export const ICESTORAGE_BACKEND_CANISTER_ID = '5pqgi-saaaa-aaaal-aaavq-cai';
  * Only the four upload methods are declared. Their Candid signatures must
  * stay in sync with ICEvent/icestorage/src/declarations/backend/backend.did.
  */
-const idlFactory: ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => IDL.ServiceClass =
-  ({ IDL }) => {
+const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
     const ResourceError = IDL.Variant({
       alreadyExists: IDL.Null,
       conflict: IDL.Record({ currentRevision: IDL.Nat64 }),
