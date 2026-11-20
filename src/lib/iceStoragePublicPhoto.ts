@@ -56,7 +56,6 @@ export async function readPublishedWanderPhoto(
   let expectedSize = 0;
   let mimeType = '';
   let received = 0;
-  let expectedHash: string | null = null;
   for (let i = 1; i <= (expectedCount || 1); i++) {
     const result = await reader.readPublicPhotoChunk(key, objectId, BigInt(i));
     if ('err' in result) {
