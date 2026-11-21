@@ -25,7 +25,7 @@ export async function loadPublishedWanderObjectPhotos(
   storage: PublicPhotoReader,
   wanderObjectId: string,
 ): Promise<Array<{ storageObjectId: string; blob: Blob }>> {
-  if (!/^obj-[a-z0-9-]{12,65}$/.test(wanderObjectId)) {
+  if (!wanderObjectId.startsWith('obj-') || wanderObjectId.length > 256 || wanderObjectId.length <= 4) {
     throw new Error('Invalid Wander object ID.');
   }
   const bindings = await backend.listPublishedWanderObjectPhotos(wanderObjectId);
