@@ -62,6 +62,7 @@ export async function uploadWanderPhoto(
   if (session.chunkCount !== undefined && session.chunkCount !== expectedChunks) {
     throw new Error('Storage returned an inconsistent chunk count.');
   }
+  let finalizationStarted = false;
   try {
     // ICEStorage uses one-based chunk numbers (1..chunkCount).
     for (let offset = 0, index = 1; offset < file.size; offset += session.chunkSize, index++) {
@@ -69,6 +70,9 @@ export async function uploadWanderPhoto(
       await transport.uploadChunk(session.sessionId, index, bytes);
       onProgress?.(Math.min(offset + bytes.length, file.size), file.size);
     }
+    // After finalize is sent, a timeout can mean success with a lost reply.
+    // Never abort in that ambiguous state; recovery must reconcile the session.
+    finalizationStarted = true;
     const result = await transport.finish(session.sessionId);
     if (!result.objectId || result.objectId.length > 256) {
       throw new Error('Storage did not return a valid object reference.');
@@ -76,7 +80,7 @@ export async function uploadWanderPhoto(
     return result;
   } catch (error) {
     // Never treat a failed cancellation as proof that the remote object is gone.
-    if (transport.cancel) {
+    if (transport.cancel && !finalizationStarted) {
       try { await transport.cancel(session.sessionId); } catch { /* backend reconciles */ }
     }
     throw error;
