@@ -39,8 +39,9 @@ export async function publishOwnedWanderPhoto(
   backend: WanderPhotoLifecycleBackend,
   checkpoint?: WanderCheckpointIdentity,
   onProgress?: (uploadedBytes: number, totalBytes: number) => void,
+  storageCanisterId?: string,
 ): Promise<{ storageObjectId: string }> {
-  const uploaded = await uploadOwnedWanderPhoto(file, objectId, agent, backend, onProgress);
+  const uploaded = await uploadOwnedWanderPhoto(file, objectId, agent, backend, onProgress, storageCanisterId);
   try {
     unwrap(await backend.prepareOwnedWanderPhotoPublication(objectId, uploaded.objectId), 'Prepare photo');
     if (unwrap(await backend.publishOwnedWanderPhoto(objectId, uploaded.objectId), 'Publish photo') !== true) {
@@ -66,8 +67,9 @@ export async function loadWanderPhotos(
   objectId: string,
   agent: HttpAgent,
   backend: WanderPhotoLifecycleBackend,
+  storageCanisterId?: string,
 ): Promise<Array<{ storageObjectId: string; blob: Blob }>> {
-  return loadPublishedWanderObjectPhotos(backend, createIceStorageUploadActor(agent), objectId);
+  return loadPublishedWanderObjectPhotos(backend, createIceStorageUploadActor(agent, storageCanisterId), objectId);
 }
 
 export async function deleteWanderPhoto(
