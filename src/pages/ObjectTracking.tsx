@@ -6,7 +6,6 @@ import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { ObjectPhoto } from '../components/ObjectPhoto';
-import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
 import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { queueWanderPhoto } from '../lib/offlineWanderPhotos';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
@@ -228,9 +227,6 @@ export function ObjectTracking() {
           {visibleObjects.map(object => <article className="journey-object-card" key={object.id}>
             <div className="journey-object-icon">{object.emoji}</div>
             {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} compact />}
-            <WanderObjectPhotos objectId={object.id} agent={agent}
-              backend={backend as unknown as WanderPhotoLifecycleBackend}
-              storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} compact />
             <WanderPhotoOutbox objectId={object.id} agent={agent}
               backend={backend as unknown as WanderPhotoLifecycleBackend}
               owner={isAuthed} principalId={principal?.toText() ?? null}
