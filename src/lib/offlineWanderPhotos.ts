@@ -13,6 +13,7 @@ export type PendingWanderPhoto = {
   principal: string | null;
   createdAt: number;
   checkpoint?: { timestamp: string; author: string };
+  checkinRequestId?: string;
   attempts: number;
   lastError: string;
   nextAttemptAt: number;
@@ -30,6 +31,7 @@ export async function listPendingWanderPhotos(objectId?: string): Promise<Pendin
 export async function queueWanderPhoto(input: {
   objectId: string; file: File; principal: string | null;
   checkpoint?: { timestamp: bigint; author: string };
+  checkinRequestId?: string;
 }): Promise<string> {
   validateWanderPhoto(input.file);
   if (!/^obj-[a-z0-9-]{5,256}$/i.test(input.objectId)) throw new Error('Invalid Wander Object ID.');
@@ -42,6 +44,7 @@ export async function queueWanderPhoto(input: {
   await db.put(STORE, {
     id, objectId: input.objectId, file: input.file, principal: input.principal,
     createdAt: Date.now(), attempts: 0, lastError: '', nextAttemptAt: 0,
+    checkinRequestId: input.checkinRequestId,
     checkpoint: input.checkpoint ? { timestamp: String(input.checkpoint.timestamp), author: input.checkpoint.author } : undefined,
   } satisfies PendingWanderPhoto);
   announce();
