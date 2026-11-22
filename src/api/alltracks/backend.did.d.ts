@@ -338,7 +338,26 @@ export type GuestCheckinResult = { ok: bigint } | { err: GuestCheckinError };
 export interface ObjectGuestPolicy { enabled: boolean; gateway: Principal; }
 export type SetGuestPolicyResult = { ok: boolean } | { err: string };
 
+export interface WanderPhotoIntent { objectId: string; storageObjectId: string;
+  requestedBy: Principal; requestedAt: bigint;
+  state: { pending: null } | { publishing: null } | { published: null } |
+    { revoking: null } | { deleted: null } | { cancelled: null }; }
+export interface WanderPhotoBinding { objectId: string; storageObjectId: string;
+  storageOwner: Principal; storageId: string; resourceId: string; }
+export type WanderBoolResult = { ok: boolean } | { err: string };
+export type WanderGrantResult = { ok: string } | { err: string };
+export type WanderIntentResult = { ok: WanderPhotoIntent } | { err: string };
 export interface _SERVICE {
+  'requestWanderPhotoUploadGrant': ActorMethod<[string, string, bigint], WanderGrantResult>,
+  'prepareOwnedWanderPhotoPublication': ActorMethod<[string, string], WanderIntentResult>,
+  'publishOwnedWanderPhoto': ActorMethod<[string, string], WanderBoolResult>,
+  'bindOwnedWanderPhotoToCheckpoint': ActorMethod<[string, bigint, Principal, string], WanderBoolResult>,
+  'deleteOwnedWanderPhoto': ActorMethod<[string, string], WanderBoolResult>,
+  'listPublishedWanderObjectPhotos': ActorMethod<[string], Array<WanderPhotoBinding>>,
+  'listWanderCheckpointPhotos': ActorMethod<[string, bigint, Principal], Array<WanderPhotoBinding>>,
+  'listPendingWanderPhotoCleanup': ActorMethod<[string], Array<string>>,
+  'retryWanderPhotoCleanup': ActorMethod<[string, string], WanderBoolResult>,
+
   'getObjectCommentsEnabled': ActorMethod<[string], [] | [boolean]>,
   'setObjectCommentsEnabled': ActorMethod<[string, boolean], SetGuestPolicyResult>,
   'deleteObjectCheckpoint': ActorMethod<[string, Time, Principal], SetGuestPolicyResult>,

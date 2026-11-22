@@ -6,6 +6,8 @@ import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { ObjectPhoto } from '../components/ObjectPhoto';
+import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
+import { validateWanderPhoto } from '../lib/iceStorageUpload';
 import './ObjectJourney.css';
 
 function QRCode({ url, name }: { url: string; name: string }) {
@@ -26,7 +28,7 @@ const OBJECTS_PER_PAGE = 20;
 
 export function ObjectTracking() {
   const backend = useAlltracks();
-  const { state: { isAuthed, principal } } = useGlobalContext();
+  const { state: { isAuthed, principal, agent } } = useGlobalContext();
   const [, setLoginModal] = useSetLoginModal();
   const [objects, setObjects] = useState<ObjectRecord[]>([]);
   const [page, setPage] = useState(0);
@@ -36,6 +38,8 @@ export function ObjectTracking() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoProgress, setPhotoProgress] = useState(0);
   const [emoji, setEmoji] = useState('📦');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [printingObject, setPrintingObject] = useState<ObjectRecord | null>(null);
@@ -125,13 +129,27 @@ export function ObjectTracking() {
     setSaving(true);
     setError('');
     try {
+      if (photoFile) validateWanderPhoto(photoFile);
       const object = await createObject(backend, name, description, emoji, photoUrl);
       setObjects(old => [object, ...old]);
+      if (photoFile) {
+        try {
+          await publishOwnedWanderPhoto(
+            photoFile, object.id, agent, backend as unknown as WanderPhotoLifecycleBackend,
+            undefined, (done, total) => setPhotoProgress(Math.round(done * 100 / total)),
+            import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined,
+          );
+        } catch (uploadError) {
+          setError(`Object created successfully, but its ICEStorage photo needs attention: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
+        }
+      }
       setPage(0);
       setExpandedId(object.id);
       setName('');
       setDescription('');
       setPhotoUrl('');
+      setPhotoFile(null);
+      setPhotoProgress(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create object.');
     } finally {
@@ -173,6 +191,10 @@ export function ObjectTracking() {
           <input id="object-photo-url" type="url" inputMode="url" maxLength={220}
             placeholder="https://example.com/my-cup.jpg"
             value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} />
+          <label htmlFor="object-photo-file">Or upload a photo to ICEStorage (JPEG, PNG, WebP; max 10 MiB)</label>
+          <input id="object-photo-file" type="file" accept="image/jpeg,image/png,image/webp"
+            disabled={saving} onChange={event => setPhotoFile(event.target.files?.[0] ?? null)} />
+          {saving && photoProgress > 0 && <p role="status">Photo upload: {photoProgress}%</p>}
           <p className="journey-photo-hint">Use a public HTTPS image link. It will appear on
             the object's public journey page and in your collection. The image is hosted externally.</p>
           {photoUrl.trim() && <ObjectPhoto key={photoUrl} url={photoUrl} name={name || 'your object'} compact />}
