@@ -11,6 +11,7 @@ import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord }
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { ObjectPhoto } from '../components/ObjectPhoto';
+import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
@@ -496,6 +497,12 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           {isOwner && isAuthed ? ' Upload will resume when online.' :
             ' Current storage permissions only allow the Object owner to publish photos.'}</p>
         {pendingPhotos.map(item => <PendingPhotoPreview key={item.id} item={item} />)}
+      </section>}
+
+      {object && online && <section className="journey-object-cover" aria-label="Object photos">
+        <WanderObjectPhotos objectId={objectId} agent={agent}
+          backend={backend as unknown as WanderPhotoLifecycleBackend}
+          storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
       </section>}
 
       {isOwner && <section className="journey-panel journey-comment-settings">
