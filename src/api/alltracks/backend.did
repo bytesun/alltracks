@@ -429,7 +429,24 @@ type GuestError = variant {
 type GuestResult = variant { ok : nat; err : GuestError };
 type SetGuestPolicyResult = variant { ok : bool; err : text };
 
+type WanderPhotoIntent = record { objectId: text; storageObjectId: text; requestedBy: principal; requestedAt: int;
+  state: variant { pending; publishing; published; revoking; deleted; cancelled } };
+type WanderPhotoBinding = record { objectId: text; storageObjectId: text; storageOwner: principal;
+  storageId: text; resourceId: text };
+type WanderBoolResult = variant { ok: bool; err: text };
+type WanderGrantResult = variant { ok: text; err: text };
+type WanderIntentResult = variant { ok: WanderPhotoIntent; err: text };
 service : {
+  requestWanderPhotoUploadGrant: (text, text, nat) -> (WanderGrantResult);
+  prepareOwnedWanderPhotoPublication: (text, text) -> (WanderIntentResult);
+  publishOwnedWanderPhoto: (text, text) -> (WanderBoolResult);
+  bindOwnedWanderPhotoToCheckpoint: (text, int, principal, text) -> (WanderBoolResult);
+  deleteOwnedWanderPhoto: (text, text) -> (WanderBoolResult);
+  listPublishedWanderObjectPhotos: (text) -> (vec WanderPhotoBinding) query;
+  listWanderCheckpointPhotos: (text, int, principal) -> (vec WanderPhotoBinding) query;
+  listPendingWanderPhotoCleanup: (text) -> (vec text) query;
+  retryWanderPhotoCleanup: (text, text) -> (WanderBoolResult);
+
   getObjectCommentsEnabled: (text) -> (opt bool) query;
   setObjectCommentsEnabled: (text, bool) -> (SetGuestPolicyResult);
   deleteObjectCheckpoint: (text, Time, principal) -> (SetGuestPolicyResult);
