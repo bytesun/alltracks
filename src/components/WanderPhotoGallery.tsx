@@ -65,12 +65,20 @@ export function WanderPhotoGallery({
           const checkpoint = item.checkpoint ? {
             timestamp: BigInt(item.checkpoint.timestamp), author: Principal.fromText(item.checkpoint.author),
           } : undefined;
-          await publishOwnedWanderPhoto(item.file, objectId, agent, backend, checkpoint,
-            undefined, storageCanisterId);
+          if (item.uploadedStorageObjectId) {
+            await resumeOwnedWanderPhotoPublication(objectId, item.uploadedStorageObjectId, backend, checkpoint);
+          } else {
+            await publishOwnedWanderPhoto(item.file, objectId, agent, backend, checkpoint,
+              undefined, storageCanisterId);
+          }
           await removePendingWanderPhoto(item.id);
           if (active) setReload(value => value + 1);
         } catch (error) {
-          await updatePendingWanderPhoto({ ...item, attempts: item.attempts + 1,
+          const reason = error instanceof Error ? error.message : String(error);
+          const storageId = reason.match(/Uploaded storage object:\s*([a-zA-Z0-9-]{5,256})/i)?.[1];
+          await updatePendingWanderPhoto({ ...item,
+            uploadedStorageObjectId: item.uploadedStorageObjectId ?? storageId,
+            attempts: item.attempts + 1,
             lastError: error instanceof Error ? error.message : String(error),
             nextAttemptAt: Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)) });
           // Avoid repeatedly sending failed grants or uploads in one pass.
@@ -79,7 +87,8 @@ export function WanderPhotoGallery({
       }
     };
     void flush().catch(error => { if (active) setError(error instanceof Error ? error.message : String(error)); });
-    return () => { active = false; };
+    const timer = window.setInterval(() => { if (active && navigator.onLine) void flush(); }, 30_000);
+    return () => { active = false; window.clearInterval(timer); };
   }, [objectId, online, owner, signedIn, principalId, agent, backend, storageCanisterId]);
 
   useEffect(() => {
