@@ -77,9 +77,15 @@ const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
  * Pass the same authenticated HttpAgent used by the Alltracks Backend actor.
  * Do not construct an anonymous agent or expose a project secret here.
  */
-export function createIceStorageUploadActor(agent: HttpAgent): AuthorizedStorageActor & PublicPhotoReader {
+export function createIceStorageUploadActor(
+  agent: HttpAgent,
+  canisterId: string = ICESTORAGE_BACKEND_CANISTER_ID,
+): AuthorizedStorageActor & PublicPhotoReader {
+  if (!/^[a-z0-9-]{5,64}$/.test(canisterId)) {
+    throw new Error('Invalid ICEStorage canister ID.');
+  }
   return Actor.createActor(idlFactory, {
     agent,
-    canisterId: ICESTORAGE_BACKEND_CANISTER_ID,
+    canisterId,
   }) as unknown as ActorSubclass<AuthorizedStorageActor & PublicPhotoReader>;
 }
