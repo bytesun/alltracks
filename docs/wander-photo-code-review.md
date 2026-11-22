@@ -25,3 +25,11 @@ Review scope: ICEvent/alltracks PR #4 and bytesun/alltracks PR #59 (feature bran
 - Verify checkpoint guest deletion, duplicate/replayed requests, lost responses, upgrades and concurrent retries.
 - Complete UI integration and recovery before removing draft status.
 - Do not merge or deploy to mainnet until blockers are addressed.
+
+## 2026-11-21 follow-up implementation review
+- `ObjectJourney.tsx` now mounts `WanderPhotoGallery`; owner can upload/publish, bind to a Checkpoint, delete and resume; `WanderCheckpointPhotos` renders checkpoint-specific published images.
+- Frontend actor declarations (`backend.did`, `backend.did.js`, `backend.did.d.ts`) include the lifecycle methods; previously the runtime actor would have rejected them before calling the canister.
+- `VITE_ICESTORAGE_CANISTER_ID` is propagated to the ICEStorage actor for local development; the Motoko backend still uses a fixed ICEStorage principal and requires an equivalent local canister identity or configurable backend actor to test end-to-end.
+- ICEStorage finalize is idempotent for completed sessions; the frontend retries transient failures and retains the storage object ID in a final error.
+- Backend Checkpoint deletion now performs immediate best-effort revoke/delete after persisting tombstones. Remote failures remain retryable, but **unattended automatic cleanup is not implemented**. Owner-page reconciliation is opportunistic, not a server worker.
+- **Not verified**: local build, local E2E, local upgrade, physical bytes reclaimed, guest photo upload, and unattended cleanup. These are blockers; this review is not an approval to merge.
