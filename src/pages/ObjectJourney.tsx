@@ -16,6 +16,8 @@ import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
 import { buildJourneyTimeline } from '../lib/journeyTimeline';
 import { ShortUserId } from '../components/ShortUserId';
+import { WanderPhotoGallery } from '../components/WanderPhotoGallery';
+import type { WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 
 type Action = 'found' | 'carried' | 'left';
 type Checkin = JourneyCheckin;
@@ -59,7 +61,7 @@ export function ObjectJourney() {
 function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const backend = useAlltracks();
   const comments = useComment();
-  const { state: { isAuthed, principal } } = useGlobalContext();
+  const { state: { isAuthed, principal, agent } } = useGlobalContext();
   const [, setLoginModal] = useSetLoginModal();
   const [object, setObject] = useState<ObjectRecord | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -448,6 +450,18 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           <ObjectPhoto url={object.photoUrl} name={object.name} />
         </section>
       )}
+
+      {object && online && <WanderPhotoGallery
+        objectId={objectId}
+        agent={agent}
+        backend={backend as unknown as WanderPhotoLifecycleBackend}
+        owner={isOwner}
+        checkpoints={checkins.map(entry => ({
+          timestamp: entry.timestamp,
+          author: Principal.fromText(entry.author),
+          label: `${new Date(entry.createdAt).toLocaleString()} · ${entry.author.slice(0, 8)}`,
+        }))}
+      />}
 
       {isOwner && <section className="journey-panel journey-comment-settings">
         <div className="journey-section-title"><h2>Comment settings</h2><span>OWNER CONTROLS</span></div>
