@@ -456,6 +456,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         agent={agent}
         backend={backend as unknown as WanderPhotoLifecycleBackend}
         owner={isOwner}
+        storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined}
         checkpoints={checkins.map(entry => ({
           timestamp: entry.timestamp,
           author: Principal.fromText(entry.author),
