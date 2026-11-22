@@ -9,6 +9,14 @@ export function WanderObjectPhotos({ objectId, agent, backend, storageCanisterId
 }) {
   const [urls, setUrls] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    const listener = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === objectId) setReload(value => value + 1);
+    };
+    window.addEventListener('alltracks:wander-photo-published', listener);
+    return () => window.removeEventListener('alltracks:wander-photo-published', listener);
+  }, [objectId]);
   useEffect(() => {
     let active = true;
     const created: string[] = [];
@@ -22,7 +30,7 @@ export function WanderObjectPhotos({ objectId, agent, backend, storageCanisterId
       else next.forEach(url => URL.revokeObjectURL(url));
     }).catch(cause => { if (active) setError(cause instanceof Error ? cause.message : String(cause)); });
     return () => { active = false; created.forEach(url => URL.revokeObjectURL(url)); };
-  }, [objectId, agent, backend, storageCanisterId]);
+  }, [objectId, agent, backend, storageCanisterId, reload]);
   return <div className={compact ? 'wander-object-photos wander-object-photos--compact' : 'wander-object-photos'}>
     {urls.map((url, index) => <img key={url} src={url} alt={`Object photo ${index + 1}`}
       style={{ maxWidth: compact ? 120 : 420, width: '100%', borderRadius: 12, objectFit: 'cover' }} />)}
