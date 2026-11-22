@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { publishOwnedWanderPhoto, resumeOwnedWanderPhotoPublication, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { listPendingWanderPhotos, removePendingWanderPhoto, updatePendingWanderPhoto, WANDER_PHOTO_OUTBOX_EVENT, type PendingWanderPhoto } from '../lib/offlineWanderPhotos';
 
@@ -12,6 +13,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
 }) {
   const [items, setItems] = useState<PendingWanderPhoto[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [discardId, setDiscardId] = useState<string | null>(null);
   const [online, setOnline] = useState(navigator.onLine);
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const busyRef = useRef(false);
@@ -117,7 +119,11 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         item.lastError ? `Photo not published: ${item.lastError}` : 'Photo saved locally — awaiting upload'}</p>
       {owner && principalId && online && <button type="button" disabled={uploading}
         onClick={() => void sync(true)}>Retry upload</button>}
-      <button type="button" disabled={uploading} onClick={() => void removePendingWanderPhoto(item.id)}>Discard local photo</button>
+      <button type="button" disabled={uploading} onClick={() => setDiscardId(item.id)}>Discard local photo</button>
     </div>)}
+    <DeleteConfirmModal open={discardId !== null} title="Discard this local photo?"
+      description="This photo has not been published. Discarding it will permanently remove the saved copy from this device."
+      onCancel={() => setDiscardId(null)}
+      onConfirm={() => { if (discardId) { void removePendingWanderPhoto(discardId).then(() => { setDiscardId(null); void refresh(); }); } }} />
   </div>;
 }
