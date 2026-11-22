@@ -7,6 +7,7 @@ import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../ap
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { ObjectPhoto } from '../components/ObjectPhoto';
 import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
+import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { queueWanderPhoto } from '../lib/offlineWanderPhotos';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { validateWanderPhoto } from '../lib/iceStorageUpload';
@@ -142,6 +143,7 @@ export function ObjectTracking() {
             undefined, (done, total) => setPhotoProgress(Math.round(done * 100 / total)),
             import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined,
           );
+          window.dispatchEvent(new CustomEvent('alltracks:wander-photo-published', { detail: object.id }));
         } catch (uploadError) {
           try {
             await queueWanderPhoto({ objectId: object.id, file: photoFile,
@@ -229,6 +231,10 @@ export function ObjectTracking() {
             <WanderObjectPhotos objectId={object.id} agent={agent}
               backend={backend as unknown as WanderPhotoLifecycleBackend}
               storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} compact />
+            <WanderPhotoOutbox objectId={object.id} agent={agent}
+              backend={backend as unknown as WanderPhotoLifecycleBackend}
+              owner={isAuthed} principalId={principal?.toText() ?? null}
+              storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
             <div className="journey-object-body">
               <h3>{object.name}</h3>
               <p>{object.description || 'Start a journey and see where it travels.'}</p>
