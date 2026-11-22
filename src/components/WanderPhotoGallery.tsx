@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
 import type { Principal } from '@dfinity/principal';
+import { createIceStorageUploadActor } from '../lib/iceStorageActor';
+import { readPublishedWanderPhoto } from '../lib/iceStoragePublicPhoto';
 import {
   publishOwnedWanderPhoto, resumeOwnedWanderPhotoPublication,
   loadWanderPhotos, deleteWanderPhoto, reconcileWanderPhotoCleanup,
@@ -153,4 +155,40 @@ export function WanderPhotoGallery({
       </>}
     </section>
   );
+}
+
+/** Render only photos explicitly attached to this Checkpoint. */
+export function WanderCheckpointPhotos({ objectId, timestamp, author, agent, backend, storageCanisterId }: {
+  objectId: string; timestamp: bigint; author: Principal; agent: HttpAgent;
+  backend: WanderPhotoLifecycleBackend; storageCanisterId?: string;
+}) {
+  const [urls, setUrls] = useState<string[]>([]);
+  useEffect(() => {
+    let active = true;
+    const created: string[] = [];
+    void (async () => {
+      const bindings = await backend.listWanderCheckpointPhotos(objectId, timestamp, author);
+      const storage = createIceStorageUploadActor(agent, storageCanisterId);
+      for (const binding of bindings) {
+        if (binding.objectId !== objectId || binding.storageId !== 'project-wander-photo' ||
+            binding.resourceId !== binding.storageObjectId) continue;
+        try {
+          const blob = await readPublishedWanderPhoto(storage, {
+            resourceId: binding.resourceId,
+            storage: { storageId: binding.storageId, owner: { principal: binding.storageOwner } },
+          }, binding.storageObjectId);
+          const url = URL.createObjectURL(blob);
+          created.push(url);
+        } catch { /* A revoked photo is intentionally not shown. */ }
+      }
+      if (active) setUrls([...created]);
+      else created.forEach(url => URL.revokeObjectURL(url));
+    })().catch(() => { if (active) setUrls([]); });
+    return () => { active = false; created.forEach(url => URL.revokeObjectURL(url)); };
+  }, [objectId, timestamp, author, agent, backend, storageCanisterId]);
+  if (urls.length === 0) return null;
+  return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+    {urls.map(url => <img key={url} src={url} alt="Photo attached to this check-in"
+      style={{ width: 180, maxWidth: '100%', borderRadius: 8 }} />)}
+  </div>;
 }
