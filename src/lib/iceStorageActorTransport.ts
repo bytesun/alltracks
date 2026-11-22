@@ -82,7 +82,18 @@ export function createAuthorizedStorageTransport(
       unwrap(await actor.uploadObjectChunk(sessionId, BigInt(index), bytes), 'chunk');
     },
     async finish(sessionId): Promise<UploadedPhoto> {
-      const session = unwrap(await actor.finalizeObjectUpload(sessionId), 'finalize');
+      // ICEStorage finalize is idempotent for completed sessions. Retry a
+      // transport failure with the SAME session ID, never a fresh upload.
+      let session: StorageSession | undefined;
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 3 && !session; attempt++) {
+        try {
+          session = unwrap(await actor.finalizeObjectUpload(sessionId), 'finalize');
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      if (!session) throw lastError ?? new Error('Finalize could not be confirmed.');
       if (!('complete' in session.status)) {
         throw new Error('ICEStorage upload is not complete.');
       }
