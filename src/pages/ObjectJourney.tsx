@@ -10,6 +10,7 @@ import { useAlltracks, useComment, useGlobalContext, useSetLoginModal } from '..
 import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord } from '../api/object-journey/objects';
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
+import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
 import { ObjectPhoto } from '../components/ObjectPhoto';
 import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
@@ -89,6 +90,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
   const [changingComments, setChangingComments] = useState(false);
   const [deletingCheckpointId, setDeletingCheckpointId] = useState<string | null>(null);
+  const [checkpointToDelete, setCheckpointToDelete] = useState<Checkin | null>(null);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const mapSectionRef = useRef<HTMLElement | null>(null);
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
@@ -379,13 +381,13 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const deleteCheckpoint = async (entry: Checkin) => {
     if (!isAuthed || !principal || deletingCheckpointId) return;
     if (!isOwner && entry.author !== principal.toText()) return;
-    if (!window.confirm('Delete this entire check-in? Its location, note and photo will disappear from the public journey.')) return;
     setDeletingCheckpointId(entry.id);
     setMessage('');
     try {
       const result = await backend.deleteObjectCheckpoint(objectId, entry.timestamp, Principal.fromText(entry.author));
       if ('err' in result) throw new Error(result.err);
       await refresh();
+      setCheckpointToDelete(null);
       setMessage('Check-in deleted. Linked storage photos are queued for revocation and cleanup.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to delete check-in.');
@@ -813,7 +815,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
               {commentsEnabled !== null && isAuthed && principal &&
                 (isOwner || entry.author === principal.toText()) && (
                   <button type="button" className="journey-delete-comment"
-                    disabled={deletingCheckpointId !== null} onClick={() => void deleteCheckpoint(entry)}>
+                    disabled={deletingCheckpointId !== null} onClick={() => setCheckpointToDelete(entry)}>
                     {deletingCheckpointId === entry.id ? 'Deleting…' : 'Delete check-in'}
                   </button>
                 )}
@@ -822,6 +824,13 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           })}
         </div>
       </section>
+
+      <DeleteConfirmModal open={checkpointToDelete !== null}
+        title="Delete this check-in?"
+        description="Its location, note and attached photos will disappear from the public journey. This cannot be undone."
+        busy={deletingCheckpointId !== null}
+        onCancel={() => setCheckpointToDelete(null)}
+        onConfirm={() => { if (checkpointToDelete) void deleteCheckpoint(checkpointToDelete); }} />
 
       <footer className="journey-footer">Keep trails clean and respect park rules. Never take another person's property.
         QR codes are links, not live trackers. Signed-in checkpoint authors may be identifiable
