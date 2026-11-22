@@ -24,5 +24,5 @@
 
 ## Current constraints
 - Guest uploads are not enabled; only Object owners can upload or bind ICEStorage photos.
-- Automatic cleanup is best-effort on Checkpoint deletion and periodically while an owner has the Journey page open; there is no independent unattended backend scheduler.
+- Backend heartbeat now retries one durable #revoking photo per minute independently of the owner browser, with a persisted round-robin cursor. Immediate cleanup on Checkpoint deletion and owner-page retries remain available.
 - Local E2E verification has not been run by the assistant. Keep both PRs draft until the user validates.
