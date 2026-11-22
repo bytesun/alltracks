@@ -54,7 +54,11 @@ export function WanderPhotoGallery({
   useEffect(() => {
     if (!online || !owner || !signedIn || !principalId) return;
     let active = true;
+    let flushing = false;
     const flush = async () => {
+      if (flushing || !active) return;
+      flushing = true;
+      try {
       const items = await listPendingWanderPhotos(objectId);
       for (const item of items) {
         if (!active || !navigator.onLine) return;
@@ -85,6 +89,7 @@ export function WanderPhotoGallery({
           return;
         }
       }
+      } finally { flushing = false; }
     };
     void flush().catch(error => { if (active) setError(error instanceof Error ? error.message : String(error)); });
     const timer = window.setInterval(() => { if (active && navigator.onLine) void flush(); }, 30_000);
