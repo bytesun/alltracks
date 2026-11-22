@@ -57,6 +57,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
             await publishOwnedWanderPhoto(item.file, objectId, agent, backend, checkpoint, undefined, storageCanisterId);
           }
           await removePendingWanderPhoto(item.id);
+          window.dispatchEvent(new CustomEvent('alltracks:wander-photo-published', { detail: objectId }));
           onPublished?.();
         } catch (cause) {
           const message = cause instanceof Error ? cause.message : String(cause);
