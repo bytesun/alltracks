@@ -51,6 +51,8 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         if (!force && item.nextAttemptAt > Date.now()) continue;
         let resolvedCheckpoint = item.checkpoint;
         try {
+          // Clear the persisted error only when this item actually starts a retry.
+          if (item.lastError) await updatePendingWanderPhoto({ ...item, lastError: '' });
           // A photo captured with a check-in must wait for that exact on-chain
           // checkpoint. Never publish it as an unbound Object gallery photo.
           if (!resolvedCheckpoint && item.checkinRequestId) {
