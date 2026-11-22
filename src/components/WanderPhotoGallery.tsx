@@ -92,8 +92,11 @@ export function WanderPhotoGallery({
       } finally { flushing = false; }
     };
     void flush().catch(error => { if (active) setError(error instanceof Error ? error.message : String(error)); });
+    const onQueue = () => { if (active && navigator.onLine) void flush(); };
+    window.addEventListener(WANDER_PHOTO_OUTBOX_EVENT, onQueue);
     const timer = window.setInterval(() => { if (active && navigator.onLine) void flush(); }, 30_000);
-    return () => { active = false; window.clearInterval(timer); };
+    return () => { active = false; window.clearInterval(timer);
+      window.removeEventListener(WANDER_PHOTO_OUTBOX_EVENT, onQueue); };
   }, [objectId, online, owner, signedIn, principalId, agent, backend, storageCanisterId]);
 
   useEffect(() => {
