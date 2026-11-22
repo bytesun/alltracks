@@ -50,7 +50,7 @@ export async function uploadWanderPhoto(
   onProgress?: (uploadedBytes: number, totalBytes: number) => void,
 ): Promise<UploadedPhoto> {
   validateWanderPhoto(file);
-  if (!resourceId || resourceId.length > 256 || !/^obj-[a-z0-9-]{12,65}$/.test(resourceId)) {
+  if (!resourceId || resourceId.length > 256 || !resourceId.startsWith('obj-') || resourceId.length <= 4) {
     throw new Error('Invalid Wander object ID.');
   }
   const session = await transport.begin(file, resourceId);
