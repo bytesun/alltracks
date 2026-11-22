@@ -1,4 +1,3 @@
-import { Actor } from '@dfinity/agent';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
