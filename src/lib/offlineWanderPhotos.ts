@@ -16,6 +16,7 @@ export type PendingWanderPhoto = {
   attempts: number;
   lastError: string;
   nextAttemptAt: number;
+  uploadedStorageObjectId?: string;
 };
 const database = () => openDB(DB, 1, { upgrade(db) {
   if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
