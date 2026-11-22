@@ -16,7 +16,9 @@ import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
 import { buildJourneyTimeline } from '../lib/journeyTimeline';
 import { ShortUserId } from '../components/ShortUserId';
-import { WanderPhotoGallery, WanderCheckpointPhotos } from '../components/WanderPhotoGallery';
+import { WanderCheckpointPhotos } from '../components/WanderPhotoGallery';
+import { WanderCameraPicker } from '../components/WanderCameraPicker';
+import { queueWanderPhoto } from '../lib/offlineWanderPhotos';
 import type { WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 
 type Action = 'found' | 'carried' | 'left';
@@ -84,6 +86,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [action, setAction] = useState<Action>('carried');
   const [note, setNote] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [checkinPhoto, setCheckinPhoto] = useState<File | null>(null);
   const [consented, setConsented] = useState(false);
   const [publishAsGuest, setPublishAsGuest] = useState(false);
   const [sending, setSending] = useState(false);
@@ -398,6 +401,11 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         note: commentsEnabled === false ? '' : note,
         photoUrl: commentsEnabled === false ? '' : photoUrl,
       });
+      if (checkinPhoto) {
+        await queueWanderPhoto({ objectId, file: checkinPhoto,
+          principal: isAuthed ? principal!.toText() : null });
+        setCheckinPhoto(null);
+      }
       setLocation(null);
       setNote('');
       setPhotoUrl('');
@@ -450,21 +458,6 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           <ObjectPhoto url={object.photoUrl} name={object.name} />
         </section>
       )}
-
-      {object && <WanderPhotoGallery
-        objectId={objectId}
-        agent={agent}
-        backend={backend as unknown as WanderPhotoLifecycleBackend}
-        owner={isOwner}
-        signedIn={isAuthed}
-        principalId={principal?.toText() ?? null}
-        storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined}
-        checkpoints={checkins.map(entry => ({
-          timestamp: entry.timestamp,
-          author: Principal.fromText(entry.author),
-          label: `${new Date(entry.createdAt).toLocaleString()} · ${entry.author.slice(0, 8)}`,
-        }))}
-      />}
 
       {isOwner && <section className="journey-panel journey-comment-settings">
         <div className="journey-section-title"><h2>Comment settings</h2><span>OWNER CONTROLS</span></div>
@@ -556,15 +549,9 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
               placeholder="A rainy morning on the trail..."
               value={note} onChange={(event) => setNote(event.target.value)}
             />
-            <label htmlFor="journey-photo-url">Photo URL (optional)</label>
-            <input
-              id="journey-photo-url" type="url" inputMode="url" maxLength={220}
-              placeholder="https://example.com/photo.jpg"
-              value={photoUrl}
-              onChange={(event) => setPhotoUrl(event.target.value)}
-            />
-            <p className="journey-photo-hint">Use a public HTTPS image link. It will be visible to everyone.
-              On guest check-ins, the note and link together must fit in 280 characters.</p>
+            <label>Check-in photo (optional)</label>
+            <WanderCameraPicker value={checkinPhoto} onChange={setCheckinPhoto} disabled={sending} />
+            <p className="journey-photo-hint">Captured photos are saved on this device. Publishing requires an authorized upload.</p>
           </>}
           <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || (online && Boolean(loadError)) || !canCheckin}>
             {locating ? 'Finding your GPS location…' : location ? '↻ Refresh my location' : '◎ Get my GPS location'}
