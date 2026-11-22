@@ -12,6 +12,7 @@ import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { ObjectPhoto } from '../components/ObjectPhoto';
 import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
+import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
@@ -502,6 +503,10 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       {object && online && <section className="journey-object-cover" aria-label="Object photos">
         <WanderObjectPhotos objectId={objectId} agent={agent}
           backend={backend as unknown as WanderPhotoLifecycleBackend}
+          storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
+        <WanderPhotoOutbox objectId={objectId} agent={agent}
+          backend={backend as unknown as WanderPhotoLifecycleBackend}
+          owner={isOwner} principalId={isAuthed ? principal?.toText() ?? null : null}
           storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
       </section>}
 
