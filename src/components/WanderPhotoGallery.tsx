@@ -51,6 +51,26 @@ export function WanderPhotoGallery({
     };
   }, [objectId, agent, backend, storageCanisterId, reload]);
 
+  // Opportunistic cleanup while an authenticated owner views the journey.
+  // Backend durable tombstones keep failures retryable across page reloads.
+  useEffect(() => {
+    if (!owner) return;
+    let active = true;
+    let running = false;
+    const reconcile = async () => {
+      if (!active || running || !navigator.onLine) return;
+      running = true;
+      try {
+        const result = await reconcileWanderPhotoCleanup(objectId, backend);
+        if (active && result.cleaned > 0) setReload(value => value + 1);
+      } catch { /* Backend retains the cleanup queue for the next attempt. */ }
+      finally { running = false; }
+    };
+    void reconcile();
+    const timer = window.setInterval(() => void reconcile(), 30_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [owner, objectId, backend]);
+
   const checkpoint = Number(checkpointIndex) >= 0 ? checkpoints[Number(checkpointIndex)] : undefined;
   const selectedCheckpoint = checkpoint
     ? { timestamp: checkpoint.timestamp, author: checkpoint.author }
