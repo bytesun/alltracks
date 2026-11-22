@@ -18,8 +18,9 @@ export async function uploadOwnedWanderPhoto(
   authenticatedAgent: HttpAgent,
   alltracksBackend: WanderGrantBackend,
   onProgress?: (uploadedBytes: number, totalBytes: number) => void,
+  storageCanisterId?: string,
 ): Promise<UploadedPhoto> {
-  const storage = createIceStorageUploadActor(authenticatedAgent);
+  const storage = createIceStorageUploadActor(authenticatedAgent, storageCanisterId);
   const grant = createWanderGrantProvider(alltracksBackend);
   return uploadWanderPhoto(
     file,
