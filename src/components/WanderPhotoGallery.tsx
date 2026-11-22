@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { createIceStorageUploadActor } from '../lib/iceStorageActor';
+import { validateWanderPhoto } from '../lib/iceStorageUpload';
 import { readPublishedWanderPhoto } from '../lib/iceStoragePublicPhoto';
 import {
   publishOwnedWanderPhoto, resumeOwnedWanderPhotoPublication,
@@ -131,6 +132,7 @@ export function WanderPhotoGallery({
         <button type="button" disabled={busy || !file} onClick={() => {
           if (!file) return;
           void execute(async () => {
+            validateWanderPhoto(file);
             const uploaded = await publishOwnedWanderPhoto(
               file, objectId, agent, backend, selectedCheckpoint,
               (done, total) => setProgress(Math.round(done * 100 / total)), storageCanisterId,
