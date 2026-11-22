@@ -5,6 +5,7 @@ import { Principal } from '@dfinity/principal';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
+import { ObjectPhoto } from '../components/ObjectPhoto';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { validateWanderPhoto } from '../lib/iceStorageUpload';
 import { WanderCameraPicker } from '../components/WanderCameraPicker';
