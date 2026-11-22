@@ -15,6 +15,8 @@ export interface WanderPhotoLifecycleBackend extends WanderGrantBackend, WanderP
     objectId: string, timestamp: bigint, author: Principal, storageObjectId: string,
   ): Promise<Result<boolean>>;
   deleteOwnedWanderPhoto(objectId: string, storageObjectId: string): Promise<Result<boolean>>;
+  listPendingWanderPhotoCleanup(objectId: string): Promise<string[]>;
+  retryWanderPhotoCleanup(objectId: string, storageObjectId: string): Promise<Result<boolean>>;
   listWanderCheckpointPhotos(
     objectId: string, timestamp: bigint, author: Principal,
   ): Promise<PublishedWanderPhotoBinding[]>;
@@ -98,4 +100,29 @@ export async function deleteWanderPhoto(
   if (unwrap(await backend.deleteOwnedWanderPhoto(objectId, storageObjectId), 'Delete photo') !== true) {
     throw new Error('Photo deletion was not confirmed.');
   }
+}
+
+/**
+ * Advance a bounded batch of tombstoned photos. This is an explicit recovery
+ * operation, not a replacement for an eventual backend cleanup worker.
+ */
+export async function reconcileWanderPhotoCleanup(
+  objectId: string,
+  backend: WanderPhotoLifecycleBackend,
+): Promise<{ cleaned: number; pending: number; errors: string[] }> {
+  const ids = await backend.listPendingWanderPhotoCleanup(objectId);
+  let cleaned = 0;
+  const errors: string[] = [];
+  for (const id of ids.slice(0, 20)) {
+    try {
+      if (unwrap(await backend.retryWanderPhotoCleanup(objectId, id), 'Revoke photo') === true) {
+        cleaned++;
+      }
+    } catch (error) {
+      errors.push(`${id}: ${error instanceof Error ? error.message : String(error)}`);
+      // Backend applies a global cooldown. Do not hammer it with more requests.
+      break;
+    }
+  }
+  return { cleaned, pending: ids.length - cleaned, errors };
 }
