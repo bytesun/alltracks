@@ -354,7 +354,26 @@ export const idlFactory = ({ IDL }) => {
   });
   const GuestResult = IDL.Variant({ 'ok': IDL.Nat, 'err': GuestError });
   const SetGuestPolicyResult = IDL.Variant({ 'ok': IDL.Bool, 'err': IDL.Text });
+  const WanderIntent = IDL.Record({ objectId: IDL.Text, storageObjectId: IDL.Text,
+    requestedBy: IDL.Principal, requestedAt: IDL.Int,
+    state: IDL.Variant({ pending: IDL.Null, publishing: IDL.Null, published: IDL.Null,
+      revoking: IDL.Null, deleted: IDL.Null, cancelled: IDL.Null }) });
+  const WanderBinding = IDL.Record({ objectId: IDL.Text, storageObjectId: IDL.Text,
+    storageOwner: IDL.Principal, storageId: IDL.Text, resourceId: IDL.Text });
+  const WanderBoolResult = IDL.Variant({ ok: IDL.Bool, err: IDL.Text });
+  const WanderIntentResult = IDL.Variant({ ok: WanderIntent, err: IDL.Text });
+  const WanderGrantResult = IDL.Variant({ ok: IDL.Text, err: IDL.Text });
   return IDL.Service({
+    'requestWanderPhotoUploadGrant': IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [WanderGrantResult], []),
+    'prepareOwnedWanderPhotoPublication': IDL.Func([IDL.Text, IDL.Text], [WanderIntentResult], []),
+    'publishOwnedWanderPhoto': IDL.Func([IDL.Text, IDL.Text], [WanderBoolResult], []),
+    'bindOwnedWanderPhotoToCheckpoint': IDL.Func([IDL.Text, Time, IDL.Principal, IDL.Text], [WanderBoolResult], []),
+    'deleteOwnedWanderPhoto': IDL.Func([IDL.Text, IDL.Text], [WanderBoolResult], []),
+    'listPublishedWanderObjectPhotos': IDL.Func([IDL.Text], [IDL.Vec(WanderBinding)], ['query']),
+    'listWanderCheckpointPhotos': IDL.Func([IDL.Text, Time, IDL.Principal], [IDL.Vec(WanderBinding)], ['query']),
+    'listPendingWanderPhotoCleanup': IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
+    'retryWanderPhotoCleanup': IDL.Func([IDL.Text, IDL.Text], [WanderBoolResult], []),
+
     'addCheckpointComment' : IDL.Func(
         [
           Time,
