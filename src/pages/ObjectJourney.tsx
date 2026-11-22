@@ -18,7 +18,7 @@ import { buildJourneyTimeline } from '../lib/journeyTimeline';
 import { ShortUserId } from '../components/ShortUserId';
 import { WanderCheckpointPhotos } from '../components/WanderPhotoGallery';
 import { WanderCameraPicker } from '../components/WanderCameraPicker';
-import { queueWanderPhoto } from '../lib/offlineWanderPhotos';
+import { queueWanderPhoto, listPendingWanderPhotos, WANDER_PHOTO_OUTBOX_EVENT, type PendingWanderPhoto } from '../lib/offlineWanderPhotos';
 import type { WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 
 type Action = 'found' | 'carried' | 'left';
@@ -55,6 +55,21 @@ const distanceKm = (a: Checkin, b: Checkin) => {
   return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 };
 
+
+function PendingPhotoPreview({ item }: { item: PendingWanderPhoto }) {
+  const [url, setUrl] = useState('');
+  useEffect(() => {
+    const next = URL.createObjectURL(item.file);
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [item.file]);
+  return <figure style={{ margin: '12px 0' }}>
+    {url && <img src={url} alt="Photo waiting for upload"
+      style={{ width: 180, maxWidth: '100%', borderRadius: 10 }} />}
+    <figcaption>{item.lastError || 'Saved locally — not published yet'}</figcaption>
+  </figure>;
+}
+
 export function ObjectJourney() {
   const { objectId = '' } = useParams<'objectId'>();
   return <ObjectJourneyPage key={objectId} objectId={objectId} />;
@@ -87,6 +102,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [note, setNote] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [checkinPhoto, setCheckinPhoto] = useState<File | null>(null);
+  const [pendingPhotos, setPendingPhotos] = useState<PendingWanderPhoto[]>([]);
   const [consented, setConsented] = useState(false);
   const [publishAsGuest, setPublishAsGuest] = useState(false);
   const [sending, setSending] = useState(false);
@@ -377,6 +393,21 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
     }
   };
 
+  useEffect(() => {
+    let active = true;
+    const refreshPhotos = () => {
+      void listPendingWanderPhotos(objectId).then(items => {
+        if (active) setPendingPhotos(items);
+      }).catch(() => {});
+    };
+    refreshPhotos();
+    window.addEventListener(WANDER_PHOTO_OUTBOX_EVENT, refreshPhotos);
+    return () => {
+      active = false;
+      window.removeEventListener(WANDER_PHOTO_OUTBOX_EVENT, refreshPhotos);
+    };
+  }, [objectId]);
+
   const submit = async () => {
     if (!location || !consented || sending || !canCheckin ||
         (online && Boolean(loadError))) return;
@@ -458,6 +489,14 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           <ObjectPhoto url={object.photoUrl} name={object.name} />
         </section>
       )}
+
+      {pendingPhotos.length > 0 && <section className="journey-panel" aria-label="Photos waiting for upload">
+        <h2>Photos saved on this device</h2>
+        <p role="status">{pendingPhotos.length} photo(s) are saved locally, not yet published to the journey.
+          {isOwner && isAuthed ? ' Upload will resume when online.' :
+            ' Current storage permissions only allow the Object owner to publish photos.'}</p>
+        {pendingPhotos.map(item => <PendingPhotoPreview key={item.id} item={item} />)}
+      </section>}
 
       {isOwner && <section className="journey-panel journey-comment-settings">
         <div className="journey-section-title"><h2>Comment settings</h2><span>OWNER CONTROLS</span></div>
