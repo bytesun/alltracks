@@ -49,10 +49,10 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         if (!navigator.onLine) break;
         if (item.principal && item.principal !== principalId) continue;
         if (!force && item.nextAttemptAt > Date.now()) continue;
+        let resolvedCheckpoint = item.checkpoint;
         try {
           // A photo captured with a check-in must wait for that exact on-chain
           // checkpoint. Never publish it as an unbound Object gallery photo.
-          let resolvedCheckpoint = item.checkpoint;
           if (!resolvedCheckpoint && item.checkinRequestId) {
             const actor = backend as WanderPhotoLifecycleBackend & {
               getCheckPointsByTrackId(id: string): Promise<Array<{
@@ -72,7 +72,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
               throw new Error('Multiple checkpoints matched this photo; manual review required.');
             }
             resolvedCheckpoint = { timestamp: String(found[0].timestamp), author: found[0].createdBy.toText() };
-            await updatePendingWanderPhoto({ ...item, checkpoint: resolvedCheckpoint });
+            await updatePendingWanderPhoto({ ...item, checkpoint: resolvedCheckpoint, lastError: '' });
           }
           const checkpoint = resolvedCheckpoint ? {
             timestamp: BigInt(resolvedCheckpoint.timestamp), author: Principal.fromText(resolvedCheckpoint.author),
@@ -89,6 +89,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
           const message = cause instanceof Error ? cause.message : String(cause);
           const uploadedId = message.match(/Uploaded storage object:\s*([a-zA-Z0-9-]{5,256})/i)?.[1];
           await updatePendingWanderPhoto({ ...item,
+            checkpoint: resolvedCheckpoint,
             uploadedStorageObjectId: item.uploadedStorageObjectId ?? uploadedId,
             attempts: item.attempts + 1,
             lastError: message,
