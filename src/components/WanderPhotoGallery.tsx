@@ -86,7 +86,12 @@ export function WanderPhotoGallery({
       await task();
       setReload(value => value + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      // Upload can finish before publication fails. Preserve the server-issued
+      // ID in the recovery input instead of asking the user to copy a log.
+      const recoveredId = message.match(/(?:Uploaded storage object|Storage Object ID):\\s*(obj-[a-zA-Z0-9-]+)/i);
+      if (recoveredId) setRecoverId(recoveredId[1]);
+      setError(message);
     } finally {
       setBusy(false);
     }
