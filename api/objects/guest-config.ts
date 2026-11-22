@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
-import { isGuestGatewayConfigured } from './_lib/guest-security';
+import { isGuestGatewayConfigured } from './_lib/guest-security.js';
 
 // Relay Principal is public; the private key MUST remain in the server-only
 // GUEST_CHECKIN_IDENTITY_JSON environment variable.
