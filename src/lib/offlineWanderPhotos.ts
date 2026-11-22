@@ -47,7 +47,8 @@ export async function queueWanderPhoto(input: {
   return id;
 }
 export async function removePendingWanderPhoto(id: string): Promise<void> {
-  (await database()).delete(STORE, id).then(announce);
+  await (await database()).delete(STORE, id);
+  announce();
 }
 export async function updatePendingWanderPhoto(item: PendingWanderPhoto): Promise<void> {
   await (await database()).put(STORE, item);
