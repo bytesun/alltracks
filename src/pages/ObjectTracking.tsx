@@ -6,6 +6,8 @@ import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { ObjectPhoto } from '../components/ObjectPhoto';
+import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
+import { queueWanderPhoto } from '../lib/offlineWanderPhotos';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { validateWanderPhoto } from '../lib/iceStorageUpload';
 import { WanderCameraPicker } from '../components/WanderCameraPicker';
@@ -141,7 +143,14 @@ export function ObjectTracking() {
             import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined,
           );
         } catch (uploadError) {
-          setError(`Object created successfully, but its ICEStorage photo needs attention: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
+          try {
+            await queueWanderPhoto({ objectId: object.id, file: photoFile,
+              principal: principal?.toText() ?? null });
+            setError(`Object created. Photo saved on this device, NOT published: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}. It can be retried after storage is available.`);
+          } catch (queueError) {
+            setError(`Object created but photo upload FAILED and local backup FAILED: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}; ${queueError instanceof Error ? queueError.message : String(queueError)}`);
+            return;
+          }
         }
       }
       setPage(0);
@@ -217,6 +226,9 @@ export function ObjectTracking() {
           {visibleObjects.map(object => <article className="journey-object-card" key={object.id}>
             <div className="journey-object-icon">{object.emoji}</div>
             {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} compact />}
+            <WanderObjectPhotos objectId={object.id} agent={agent}
+              backend={backend as unknown as WanderPhotoLifecycleBackend}
+              storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} compact />
             <div className="journey-object-body">
               <h3>{object.name}</h3>
               <p>{object.description || 'Start a journey and see where it travels.'}</p>
