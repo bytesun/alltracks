@@ -1,6 +1,6 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
-import type { GuestInput } from './guest-security';
+import type { GuestInput } from './guest-security.js';
 
 // IMPORTANT: this interface is a PROPOSED extension of the EXISTING AllTracks
 // Motoko canister, not a claim that its currently-deployed version supports it.
