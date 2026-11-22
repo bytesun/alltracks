@@ -27,6 +27,13 @@ export function WanderCameraPicker({ value, onChange, disabled = false }: {
     return () => URL.revokeObjectURL(url);
   }, [value]);
   useEffect(() => { if (disabled) stop(); }, [disabled]);
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!cameraOpen || !video || !stream) return;
+    video.srcObject = stream;
+    void video.play().catch(() => setError('Camera preview could not start.'));
+  }, [cameraOpen]);
 
   const open = async () => {
     setError('');
@@ -40,13 +47,6 @@ export function WanderCameraPicker({ value, onChange, disabled = false }: {
       });
       streamRef.current = stream;
       setCameraOpen(true);
-      // React mounts the video after the state update.
-      requestAnimationFrame(() => {
-        if (videoRef.current && streamRef.current === stream) {
-          videoRef.current.srcObject = stream;
-          void videoRef.current.play().catch(() => setError('Tap the camera preview to start video.'));
-        }
-      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Camera permission denied.');
     }
