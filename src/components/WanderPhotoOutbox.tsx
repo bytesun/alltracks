@@ -66,14 +66,14 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
             });
             if (found.length !== 1) {
               // A check-in may still be syncing. Keep the photo queued.
-              if (found.length === 0) break;
+              if (found.length === 0) continue;
               throw new Error('Multiple checkpoints matched this photo; manual review required.');
             }
             resolvedCheckpoint = { timestamp: String(found[0].timestamp), author: found[0].createdBy.toText() };
             await updatePendingWanderPhoto({ ...item, checkpoint: resolvedCheckpoint });
           }
           const checkpoint = resolvedCheckpoint ? {
-            timestamp: BigInt(item.checkpoint.timestamp), author: Principal.fromText(item.checkpoint.author),
+            timestamp: BigInt(resolvedCheckpoint.timestamp), author: Principal.fromText(resolvedCheckpoint.author),
           } : undefined;
           if (item.uploadedStorageObjectId) {
             await resumeOwnedWanderPhotoPublication(objectId, item.uploadedStorageObjectId, backend, checkpoint);
