@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { queueWanderPhoto, listPendingWanderPhotos, removePendingWanderPhoto, updatePendingWanderPhoto, WANDER_PHOTO_OUTBOX_EVENT, type PendingWanderPhoto } from '../lib/offlineWanderPhotos';
 import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { createIceStorageUploadActor } from '../lib/iceStorageActor';
@@ -15,16 +16,20 @@ type Photo = { storageObjectId: string; url: string };
 type Checkpoint = { timestamp: bigint; author: Principal; label: string };
 
 export function WanderPhotoGallery({
-  objectId, agent, backend, owner, checkpoints = [], storageCanisterId,
+  objectId, agent, backend, owner, signedIn, principalId, checkpoints = [], storageCanisterId,
 }: {
   objectId: string;
   agent: HttpAgent;
   backend: WanderPhotoLifecycleBackend;
   owner: boolean;
+  signedIn: boolean;
+  principalId: string | null;
   checkpoints?: Checkpoint[];
   storageCanisterId?: string;
 }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [pending, setPending] = useState<PendingWanderPhoto[]>([]);
+  const [online, setOnline] = useState(navigator.onLine);
   const [file, setFile] = useState<File | null>(null);
   const [checkpointIndex, setCheckpointIndex] = useState('-1');
   const [recoverId, setRecoverId] = useState('');
@@ -33,6 +38,49 @@ export function WanderPhotoGallery({
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [reload, setReload] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => { void listPendingWanderPhotos(objectId).then(items => { if (active) setPending(items); }); };
+    const connectivity = () => { setOnline(navigator.onLine); refresh(); };
+    refresh();
+    window.addEventListener(WANDER_PHOTO_OUTBOX_EVENT, refresh);
+    window.addEventListener('online', connectivity);
+    window.addEventListener('offline', connectivity);
+    return () => { active = false; window.removeEventListener(WANDER_PHOTO_OUTBOX_EVENT, refresh);
+      window.removeEventListener('online', connectivity); window.removeEventListener('offline', connectivity); };
+  }, [objectId]);
+
+  useEffect(() => {
+    if (!online || !owner || !signedIn || !principalId) return;
+    let active = true;
+    const flush = async () => {
+      const items = await listPendingWanderPhotos(objectId);
+      for (const item of items) {
+        if (!active || !navigator.onLine) return;
+        // A photo captured under a different identity cannot be reassigned.
+        if (item.principal && item.principal !== principalId) continue;
+        if (item.nextAttemptAt > Date.now()) continue;
+        try {
+          const checkpoint = item.checkpoint ? {
+            timestamp: BigInt(item.checkpoint.timestamp), author: Principal.fromText(item.checkpoint.author),
+          } : undefined;
+          await publishOwnedWanderPhoto(item.file, objectId, agent, backend, checkpoint,
+            undefined, storageCanisterId);
+          await removePendingWanderPhoto(item.id);
+          if (active) setReload(value => value + 1);
+        } catch (error) {
+          await updatePendingWanderPhoto({ ...item, attempts: item.attempts + 1,
+            lastError: error instanceof Error ? error.message : String(error),
+            nextAttemptAt: Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)) });
+          // Avoid repeatedly sending failed grants or uploads in one pass.
+          return;
+        }
+      }
+    };
+    void flush().catch(error => { if (active) setError(error instanceof Error ? error.message : String(error)); });
+    return () => { active = false; };
+  }, [objectId, online, owner, signedIn, principalId, agent, backend, storageCanisterId]);
 
   useEffect(() => {
     let alive = true;
@@ -119,16 +167,37 @@ export function WanderPhotoGallery({
           </figure>
         ))}
       </div>
-      {owner && <>
-        <p>Take a photo directly or choose an existing photo.</p>
+      {pending.length > 0 && <div role="status">
+        <p>{pending.length} photo(s) saved on this device. {online ? 'Waiting for authorized upload.' : 'Will retry when online.'}</p>
+        {pending.map(item => <div key={item.id}>
+          <span>{item.file.name} {item.lastError && `— ${item.lastError}`}</span>
+          <button type="button" onClick={() => void removePendingWanderPhoto(item.id)}>Discard local photo</button>
+        </div>)}
+      </div>}
+      {!owner && <p>Photos taken without signing in stay on this device. To upload them, sign in as this Object's owner.</p>}
+      {<>
+        <p>Take a photo; if offline or not signed in as owner, save it locally for later.</p>
         <WanderCameraPicker value={file} onChange={setFile} disabled={busy} />
+        <button type="button" disabled={busy || !file} onClick={() => {
+          if (!file) return;
+          void execute(async () => {
+            await queueWanderPhoto({ objectId, file, principal: signedIn ? principalId : null,
+              checkpoint: selectedCheckpoint ? { timestamp: selectedCheckpoint.timestamp,
+                author: selectedCheckpoint.author.toText() } : undefined });
+            setFile(null);
+            setNotice('Photo saved locally. Upload resumes when online and signed in as Object owner.');
+          });
+        }}>Save photo on this device</button>
+      </>}
+      {owner && <>
+        <p>Upload selected photo immediately when online, or save it locally above.</p>
         <label>Attach to Checkpoint (optional)
           <select value={checkpointIndex} disabled={busy} onChange={event => setCheckpointIndex(event.target.value)}>
             <option value="-1">Object photo (no Checkpoint)</option>
             {checkpoints.map((cp, index) => <option key={index} value={String(index)}>{cp.label}</option>)}
           </select>
         </label>
-        <button type="button" disabled={busy || !file} onClick={() => {
+        <button type="button" disabled={busy || !file || !online} onClick={() => {
           if (!file) return;
           void execute(async () => {
             validateWanderPhoto(file);
