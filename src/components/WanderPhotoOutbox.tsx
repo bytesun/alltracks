@@ -1,3 +1,4 @@
+import { Actor } from '@dfinity/agent';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
@@ -48,7 +49,31 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         if (item.principal && item.principal !== principalId) continue;
         if (!force && item.nextAttemptAt > Date.now()) continue;
         try {
-          const checkpoint = item.checkpoint ? {
+          // A photo captured with a check-in must wait for that exact on-chain
+          // checkpoint. Never publish it as an unbound Object gallery photo.
+          let resolvedCheckpoint = item.checkpoint;
+          if (!resolvedCheckpoint && item.checkinRequestId) {
+            const actor = backend as WanderPhotoLifecycleBackend & {
+              getCheckPointsByTrackId(id: string): Promise<Array<{
+                note: string; timestamp: bigint; createdBy: Principal; isPublic: boolean;
+              }>>;
+            };
+            const points = await actor.getCheckPointsByTrackId(objectId);
+            const found = points.filter(point => {
+              if (!point.isPublic || !point.note.startsWith('alltracks:object-checkin:v1:')) return false;
+              try {
+                return JSON.parse(point.note.slice('alltracks:object-checkin:v1:'.length)).requestId === item.checkinRequestId;
+              } catch { return false; }
+            });
+            if (found.length !== 1) {
+              // A check-in may still be syncing. Keep the photo queued.
+              if (found.length === 0) break;
+              throw new Error('Multiple checkpoints matched this photo; manual review required.');
+            }
+            resolvedCheckpoint = { timestamp: String(found[0].timestamp), author: found[0].createdBy.toText() };
+            await updatePendingWanderPhoto({ ...item, checkpoint: resolvedCheckpoint });
+          }
+          const checkpoint = resolvedCheckpoint ? {
             timestamp: BigInt(item.checkpoint.timestamp), author: Principal.fromText(item.checkpoint.author),
           } : undefined;
           if (item.uploadedStorageObjectId) {
