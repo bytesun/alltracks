@@ -16,7 +16,7 @@ import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
 import { flushSignedInCheckins, syncOneGuestCheckin } from '../lib/checkinSync';
 import { buildJourneyTimeline } from '../lib/journeyTimeline';
 import { ShortUserId } from '../components/ShortUserId';
-import { WanderPhotoGallery } from '../components/WanderPhotoGallery';
+import { WanderPhotoGallery, WanderCheckpointPhotos } from '../components/WanderPhotoGallery';
 import type { WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 
 type Action = 'found' | 'carried' | 'left';
@@ -771,6 +771,10 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
                 </span>
               </button>
               {entry.photoUrl && <CheckinPhoto url={entry.photoUrl} label="Photo from this check-in" />}
+              {online && <WanderCheckpointPhotos objectId={objectId}
+                timestamp={entry.timestamp} author={Principal.fromText(entry.author)}
+                agent={agent} backend={backend as unknown as WanderPhotoLifecycleBackend}
+                storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />}
               {commentsEnabled !== null && isAuthed && principal &&
                 (isOwner || entry.author === principal.toText()) && (
                   <button type="button" className="journey-delete-comment"
