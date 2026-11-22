@@ -62,6 +62,24 @@ export async function publishOwnedWanderPhoto(
   return { storageObjectId: uploaded.objectId };
 }
 
+/** Resume publication after a lost response without uploading the same bytes again. */
+export async function resumeOwnedWanderPhotoPublication(
+  objectId: string,
+  storageObjectId: string,
+  backend: WanderPhotoLifecycleBackend,
+  checkpoint?: WanderCheckpointIdentity,
+): Promise<void> {
+  unwrap(await backend.prepareOwnedWanderPhotoPublication(objectId, storageObjectId), 'Prepare photo');
+  if (unwrap(await backend.publishOwnedWanderPhoto(objectId, storageObjectId), 'Publish photo') !== true) {
+    throw new Error('Publication not confirmed; retry reconciliation.');
+  }
+  if (checkpoint && unwrap(await backend.bindOwnedWanderPhotoToCheckpoint(
+    objectId, checkpoint.timestamp, checkpoint.author, storageObjectId,
+  ), 'Bind photo to Checkpoint') !== true) {
+    throw new Error('Checkpoint binding not confirmed; retry reconciliation.');
+  }
+}
+
 /** Read public photos through trusted Alltracks bindings, never raw object IDs. */
 export async function loadWanderPhotos(
   objectId: string,
