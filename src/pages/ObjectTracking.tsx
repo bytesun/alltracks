@@ -8,6 +8,7 @@ import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { ObjectPhoto } from '../components/ObjectPhoto';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { validateWanderPhoto } from '../lib/iceStorageUpload';
+import { WanderCameraPicker } from '../components/WanderCameraPicker';
 import './ObjectJourney.css';
 
 function QRCode({ url, name }: { url: string; name: string }) {
@@ -191,9 +192,8 @@ export function ObjectTracking() {
           <input id="object-photo-url" type="url" inputMode="url" maxLength={220}
             placeholder="https://example.com/my-cup.jpg"
             value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} />
-          <label htmlFor="object-photo-file">Or upload a photo to ICEStorage (JPEG, PNG, WebP; max 10 MiB)</label>
-          <input id="object-photo-file" type="file" accept="image/jpeg,image/png,image/webp"
-            disabled={saving} onChange={event => setPhotoFile(event.target.files?.[0] ?? null)} />
+          <p>Take a photo now or choose an existing photo (max 10 MiB).</p>
+          <WanderCameraPicker value={photoFile} onChange={setPhotoFile} disabled={saving} />
           {saving && photoProgress > 0 && <p role="status">Photo upload: {photoProgress}%</p>}
           <p className="journey-photo-hint">Use a public HTTPS image link. It will appear on
             the object's public journey page and in your collection. The image is hosted externally.</p>
