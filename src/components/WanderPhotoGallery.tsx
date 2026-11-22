@@ -45,13 +45,13 @@ export function WanderPhotoGallery({
       if (alive) setPhotos(next);
       else urls.forEach(url => URL.revokeObjectURL(url));
     }).catch(err => {
-      if (alive) setError(err instanceof Error ? err.message : String(err));
+      if (alive && owner) setError(err instanceof Error ? err.message : String(err));
     });
     return () => {
       alive = false;
       urls.forEach(url => URL.revokeObjectURL(url));
     };
-  }, [objectId, agent, backend, storageCanisterId, reload]);
+  }, [objectId, agent, backend, owner, storageCanisterId, reload]);
 
   // Opportunistic cleanup while an authenticated owner views the journey.
   // Backend durable tombstones keep failures retryable across page reloads.
