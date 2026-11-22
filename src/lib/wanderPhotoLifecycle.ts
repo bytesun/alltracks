@@ -61,6 +61,12 @@ export async function publishOwnedWanderPhoto(
     const reason = cause instanceof Error ? cause.message : String(cause);
     throw new Error(`${reason}. Uploaded storage object: ${uploaded.objectId}. Reconcile before retrying.`);
   }
+  if (checkpoint) {
+    const bindings = await backend.listWanderCheckpointPhotos(objectId, checkpoint.timestamp, checkpoint.author);
+    if (!bindings.some(binding => binding.storageObjectId === uploaded.objectId && binding.objectId === objectId)) {
+      throw new Error(`Checkpoint attachment was not confirmed. Uploaded storage object: ${uploaded.objectId}. Reconcile before retrying.`);
+    }
+  }
   return { storageObjectId: uploaded.objectId };
 }
 
@@ -79,6 +85,12 @@ export async function resumeOwnedWanderPhotoPublication(
     objectId, checkpoint.timestamp, checkpoint.author, storageObjectId,
   ), 'Bind photo to Checkpoint') !== true) {
     throw new Error('Checkpoint binding not confirmed; retry reconciliation.');
+  }
+  if (checkpoint) {
+    const bindings = await backend.listWanderCheckpointPhotos(objectId, checkpoint.timestamp, checkpoint.author);
+    if (!bindings.some(binding => binding.storageObjectId === storageObjectId && binding.objectId === objectId)) {
+      throw new Error('Checkpoint attachment was not confirmed; retry reconciliation.');
+    }
   }
 }
 
