@@ -90,7 +90,7 @@ export function WanderPhotoGallery({
       const message = err instanceof Error ? err.message : String(err);
       // Upload can finish before publication fails. Preserve the server-issued
       // ID in the recovery input instead of asking the user to copy a log.
-      const recoveredId = message.match(/(?:Uploaded storage object|Storage Object ID):\\s*(obj-[a-zA-Z0-9-]+)/i);
+      const recoveredId = message.match(/(?:Uploaded storage object|Storage Object ID):\s*([a-zA-Z0-9-]{5,256})/i);
       if (recoveredId) setRecoverId(recoveredId[1]);
       setError(message);
     } finally {
