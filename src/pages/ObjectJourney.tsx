@@ -435,7 +435,8 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       });
       if (checkinPhoto) {
         await queueWanderPhoto({ objectId, file: checkinPhoto,
-          principal: isAuthed ? principal!.toText() : null });
+          principal: isAuthed ? principal!.toText() : null,
+          checkinRequestId: queued.id });
         setCheckinPhoto(null);
       }
       setLocation(null);
