@@ -7,6 +7,7 @@ import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../ap
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
 import { ObjectPhoto } from '../components/ObjectPhoto';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
+import { validateWanderPhoto } from '../lib/iceStorageUpload';
 import './ObjectJourney.css';
 
 function QRCode({ url, name }: { url: string; name: string }) {
@@ -128,6 +129,7 @@ export function ObjectTracking() {
     setSaving(true);
     setError('');
     try {
+      if (photoFile) validateWanderPhoto(photoFile);
       const object = await createObject(backend, name, description, emoji, photoUrl);
       setObjects(old => [object, ...old]);
       if (photoFile) {
