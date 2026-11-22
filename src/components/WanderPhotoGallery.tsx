@@ -3,6 +3,7 @@ import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { createIceStorageUploadActor } from '../lib/iceStorageActor';
 import { validateWanderPhoto } from '../lib/iceStorageUpload';
+import { WanderCameraPicker } from './WanderCameraPicker';
 import { readPublishedWanderPhoto } from '../lib/iceStoragePublicPhoto';
 import {
   publishOwnedWanderPhoto, resumeOwnedWanderPhotoPublication,
@@ -119,10 +120,8 @@ export function WanderPhotoGallery({
         ))}
       </div>
       {owner && <>
-        <label>Upload a photo
-          <input type="file" accept="image/jpeg,image/png,image/webp"
-            disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} />
-        </label>
+        <p>Take a photo directly or choose an existing photo.</p>
+        <WanderCameraPicker value={file} onChange={setFile} disabled={busy} />
         <label>Attach to Checkpoint (optional)
           <select value={checkpointIndex} disabled={busy} onChange={event => setCheckpointIndex(event.target.value)}>
             <option value="-1">Object photo (no Checkpoint)</option>
