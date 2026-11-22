@@ -5,8 +5,8 @@ import {
   originAllowed,
   parseGuestRequest,
   verifyGuestTurnstile,
-} from '../_lib/guest-security';
-import { writeGuestCheckinToExistingCanister } from '../_lib/guest-icp';
+} from '../_lib/guest-security.js';
+import { writeGuestCheckinToExistingCanister } from '../_lib/guest-icp.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'no-store');
