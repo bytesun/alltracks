@@ -364,7 +364,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       const result = await backend.deleteObjectCheckpoint(objectId, entry.timestamp, Principal.fromText(entry.author));
       if ('err' in result) throw new Error(result.err);
       await refresh();
-      setMessage('Check-in deleted from the Object journey.');
+      setMessage('Check-in deleted. Linked storage photos are queued for revocation and cleanup.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to delete check-in.');
     } finally {
