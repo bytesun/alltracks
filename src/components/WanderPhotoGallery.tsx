@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
-import type { Principal } from '@dfinity/principal';
+import { Principal } from '@dfinity/principal';
 import { createIceStorageUploadActor } from '../lib/iceStorageActor';
 import { readPublishedWanderPhoto } from '../lib/iceStoragePublicPhoto';
 import {
@@ -163,11 +163,12 @@ export function WanderCheckpointPhotos({ objectId, timestamp, author, agent, bac
   backend: WanderPhotoLifecycleBackend; storageCanisterId?: string;
 }) {
   const [urls, setUrls] = useState<string[]>([]);
+  const authorId = author.toText();
   useEffect(() => {
     let active = true;
     const created: string[] = [];
     void (async () => {
-      const bindings = await backend.listWanderCheckpointPhotos(objectId, timestamp, author);
+      const bindings = await backend.listWanderCheckpointPhotos(objectId, timestamp, Principal.fromText(authorId));
       const storage = createIceStorageUploadActor(agent, storageCanisterId);
       for (const binding of bindings) {
         if (binding.objectId !== objectId || binding.storageId !== 'project-wander-photo' ||
@@ -185,7 +186,7 @@ export function WanderCheckpointPhotos({ objectId, timestamp, author, agent, bac
       else created.forEach(url => URL.revokeObjectURL(url));
     })().catch(() => { if (active) setUrls([]); });
     return () => { active = false; created.forEach(url => URL.revokeObjectURL(url)); };
-  }, [objectId, timestamp, author, agent, backend, storageCanisterId]);
+  }, [objectId, timestamp, authorId, agent, backend, storageCanisterId]);
   if (urls.length === 0) return null;
   return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
     {urls.map(url => <img key={url} src={url} alt="Photo attached to this check-in"
