@@ -5,7 +5,6 @@ import { Principal } from '@dfinity/principal';
 import { useAlltracks, useGlobalContext, useSetLoginModal } from '../components/Store';
 import { createObject, getMyObjects, objectLink, type ObjectRecord } from '../api/object-journey/objects';
 import { PrintableQrLabel } from '../components/PrintableQrLabel';
-import { ObjectPhoto } from '../components/ObjectPhoto';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { validateWanderPhoto } from '../lib/iceStorageUpload';
 import { WanderCameraPicker } from '../components/WanderCameraPicker';
@@ -188,16 +187,9 @@ export function ObjectTracking() {
           </select>
           <label htmlFor="object-description">Story or instructions</label>
           <textarea id="object-description" rows={3} maxLength={500} placeholder="Help me see the world! Share where you found me…" value={description} onChange={e => setDescription(e.target.value)} />
-          <label htmlFor="object-photo-url">Photo URL (optional)</label>
-          <input id="object-photo-url" type="url" inputMode="url" maxLength={220}
-            placeholder="https://example.com/my-cup.jpg"
-            value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} />
           <p>Take a photo now or choose an existing photo (max 10 MiB).</p>
           <WanderCameraPicker value={photoFile} onChange={setPhotoFile} disabled={saving} />
           {saving && photoProgress > 0 && <p role="status">Photo upload: {photoProgress}%</p>}
-          <p className="journey-photo-hint">Use a public HTTPS image link. It will appear on
-            the object's public journey page and in your collection. The image is hosted externally.</p>
-          {photoUrl.trim() && <ObjectPhoto key={photoUrl} url={photoUrl} name={name || 'your object'} compact />}
           <p>Object details, photos and check-ins are public. Please don't include personal contact information.</p>
           <button type="submit" className="journey-button" disabled={saving || !name.trim()}>{saving ? 'Creating on ICP…' : 'Create object & QR code'}</button>
         </form>
