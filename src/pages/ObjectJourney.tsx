@@ -451,11 +451,13 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         </section>
       )}
 
-      {object && online && <WanderPhotoGallery
+      {object && <WanderPhotoGallery
         objectId={objectId}
         agent={agent}
         backend={backend as unknown as WanderPhotoLifecycleBackend}
         owner={isOwner}
+        signedIn={isAuthed}
+        principalId={principal?.toText() ?? null}
         storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined}
         checkpoints={checkins.map(entry => ({
           timestamp: entry.timestamp,
