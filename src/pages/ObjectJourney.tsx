@@ -11,7 +11,6 @@ import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord }
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { ObjectPhoto } from '../components/ObjectPhoto';
-import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
 import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
@@ -500,15 +499,10 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         {pendingPhotos.map(item => <PendingPhotoPreview key={item.id} item={item} />)}
       </section>}
 
-      {object && online && <section className="journey-object-cover" aria-label="Object photos">
-        <WanderObjectPhotos objectId={objectId} agent={agent}
-          backend={backend as unknown as WanderPhotoLifecycleBackend}
-          storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
-        <WanderPhotoOutbox objectId={objectId} agent={agent}
+      {object && online && <WanderPhotoOutbox objectId={objectId} agent={agent}
           backend={backend as unknown as WanderPhotoLifecycleBackend}
           owner={isOwner} principalId={isAuthed ? principal?.toText() ?? null : null}
-          storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
-      </section>}
+          storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />}
 
       {isOwner && <section className="journey-panel journey-comment-settings">
         <div className="journey-section-title"><h2>Comment settings</h2><span>OWNER CONTROLS</span></div>
