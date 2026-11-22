@@ -255,16 +255,30 @@ export function WanderCheckpointPhotos({ objectId, timestamp, author, agent, bac
   backend: WanderPhotoLifecycleBackend; storageCanisterId?: string;
 }) {
   const [urls, setUrls] = useState<string[]>([]);
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
   const authorId = author.toText();
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === objectId) setRevision(value => value + 1);
+    };
+    window.addEventListener('alltracks:wander-photo-published', refresh);
+    return () => window.removeEventListener('alltracks:wander-photo-published', refresh);
+  }, [objectId]);
   useEffect(() => {
     let active = true;
     const created: string[] = [];
+    setError('');
     void (async () => {
       const bindings = await backend.listWanderCheckpointPhotos(objectId, timestamp, Principal.fromText(authorId));
       const storage = createIceStorageUploadActor(agent, storageCanisterId);
+      const failures: string[] = [];
       for (const binding of bindings) {
         if (binding.objectId !== objectId || binding.storageId !== 'project-wander-photo' ||
-            binding.resourceId !== binding.storageObjectId) continue;
+            binding.resourceId !== binding.storageObjectId) {
+          failures.push('Invalid checkpoint attachment reference.');
+          continue;
+        }
         try {
           const blob = await readPublishedWanderPhoto(storage, {
             resourceId: binding.resourceId,
@@ -272,16 +286,31 @@ export function WanderCheckpointPhotos({ objectId, timestamp, author, agent, bac
           }, binding.storageObjectId);
           const url = URL.createObjectURL(blob);
           created.push(url);
-        } catch { /* A revoked photo is intentionally not shown. */ }
+        } catch (cause) {
+          failures.push(cause instanceof Error ? cause.message : String(cause));
+        }
       }
-      if (active) setUrls([...created]);
-      else created.forEach(url => URL.revokeObjectURL(url));
-    })().catch(() => { if (active) setUrls([]); });
+      if (active) {
+        setUrls([...created]);
+        setError(failures.length ? `${failures.length} checkpoint photo(s) could not be loaded: ${failures[0]}` : '');
+      } else created.forEach(url => URL.revokeObjectURL(url));
+    })().catch(cause => {
+      if (active) {
+        setUrls([]);
+        setError(cause instanceof Error ? cause.message : String(cause));
+      }
+    });
     return () => { active = false; created.forEach(url => URL.revokeObjectURL(url)); };
-  }, [objectId, timestamp, authorId, agent, backend, storageCanisterId]);
-  if (urls.length === 0) return null;
-  return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-    {urls.map(url => <img key={url} src={url} alt="Photo attached to this check-in"
-      style={{ width: 180, maxWidth: '100%', borderRadius: 8 }} />)}
+  }, [objectId, timestamp, authorId, agent, backend, storageCanisterId, revision]);
+  if (urls.length === 0 && !error) return null;
+  return <div>
+    {error && <div role="alert">
+      <p>Checkpoint attachments unavailable: {error}</p>
+      <button type="button" onClick={() => setRevision(value => value + 1)}>Retry photos</button>
+    </div>}
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {urls.map(url => <img key={url} src={url} alt="Photo attached to this check-in"
+        style={{ width: 180, maxWidth: '100%', borderRadius: 8 }} />)}
+    </div>
   </div>;
 }
