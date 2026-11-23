@@ -27,6 +27,7 @@ export interface AuthorizedStorageActor {
   uploadObjectChunk(sessionId: string, chunkNum: bigint, data: Uint8Array): Promise<Result<null>>;
   finalizeObjectUpload(sessionId: string): Promise<Result<StorageSession>>;
   abortObjectUpload(sessionId: string): Promise<Result<null>>;
+  getObjectUpload(sessionId: string): Promise<Result<StorageSession>>;
 }
 
 export type GrantProvider = (
@@ -138,4 +139,23 @@ export function createAuthorizedStorageTransport(
     // Explicit cancellation can be exposed separately once retry semantics
     // are implemented and tested.
   };
+}
+
+/**
+ * Read the original upload session using the signed-in owner's actor.
+ * Only a confirmed completed session with a matching object may be published.
+ * Uploading/aborted/missing sessions remain quarantined for manual recovery.
+ */
+export async function reconcileAuthorizedPhotoSession(
+  actor: AuthorizedStorageActor,
+  sessionId: string,
+  expectedObjectId?: string,
+): Promise<{ status: 'complete' | 'uploading' | 'aborted'; objectId: string }> {
+  const session = unwrap(await actor.getObjectUpload(sessionId), 'inspect session');
+  if (expectedObjectId && session.objectId !== expectedObjectId) {
+    throw new Error('ICEStorage session object mismatch; manual review required.');
+  }
+  const status = 'complete' in session.status ? 'complete' :
+    'uploading' in session.status ? 'uploading' : 'aborted';
+  return { status, objectId: session.objectId };
 }
