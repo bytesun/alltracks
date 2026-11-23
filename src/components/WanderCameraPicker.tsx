@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { validateWanderPhoto } from '../lib/iceStorageUpload';
+import { snapshotWanderPhoto, validateWanderPhoto } from '../lib/iceStorageUpload';
 
 /** Camera-first photo picker. Captured images follow the same ICEStorage flow as files. */
-export function WanderCameraPicker({ value, onChange, disabled = false }: {
+export function WanderCameraPicker({ value, onChange, disabled = false, onPreparingChange }: {
   value: File | null;
   onChange: (file: File | null) => void;
   disabled?: boolean;
+  onPreparingChange?: (preparing: boolean) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -14,6 +15,7 @@ export function WanderCameraPicker({ value, onChange, disabled = false }: {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
 
   const stop = () => {
     streamRef.current?.getTracks().forEach(track => track.stop());
@@ -72,10 +74,24 @@ export function WanderCameraPicker({ value, onChange, disabled = false }: {
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Invalid photo.'); }
   };
 
-  const choose = (file: File | null) => {
+  const choose = async (file: File | null) => {
     if (!file) return;
-    try { validateWanderPhoto(file); onChange(file); setError(''); stop(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Invalid photo.'); }
+    setPreparing(true);
+    onPreparingChange?.(true);
+    setError('');
+    onChange(null);
+    try {
+      // Read while the native file input is still populated. Clearing it too
+      // early can invalidate mobile content-provider backed photo handles.
+      const snapshot = await snapshotWanderPhoto(file);
+      onChange(snapshot);
+      stop();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to read selected photo.');
+    } finally {
+      setPreparing(false);
+      onPreparingChange?.(false);
+    }
   };
 
   const primaryStyle = { border: 'none', borderRadius: 12, padding: '11px 18px',
@@ -87,20 +103,25 @@ export function WanderCameraPicker({ value, onChange, disabled = false }: {
 
   return <div className="wander-camera-picker">
     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-      <button type="button" style={primaryStyle} disabled={disabled || cameraOpen}
+      <button type="button" style={primaryStyle} disabled={disabled || cameraOpen || preparing}
         onClick={() => void open()}><span aria-hidden="true">📷</span> Take photo</button>
-      <button type="button" style={secondaryStyle} disabled={disabled}
+      <button type="button" style={secondaryStyle} disabled={disabled || preparing}
         onClick={() => galleryInputRef.current?.click()}>Choose from gallery</button>
       <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/webp"
         capture="environment" aria-label="Take photo using device camera" tabIndex={-1}
         style={{ display: 'none' }} disabled={disabled}
-        onChange={event => { choose(event.target.files?.[0] ?? null); event.target.value = ''; }} />
+        onChange={event => {
+          const input = event.currentTarget;
+          void choose(input.files?.[0] ?? null).finally(() => { input.value = ''; });
+        }} />
       <input ref={galleryInputRef} type="file" accept="image/jpeg,image/png,image/webp"
         aria-label="Choose photo from device" tabIndex={-1} style={{ display: 'none' }}
         disabled={disabled} onChange={event => {
-          choose(event.target.files?.[0] ?? null); event.target.value = '';
+          const input = event.currentTarget;
+          void choose(input.files?.[0] ?? null).finally(() => { input.value = ''; });
         }} />
     </div>
+    {preparing && <p role="status">Reading photo from your device…</p>}
     {cameraOpen && <div style={{ marginTop: 12 }}>
       <video ref={videoRef} autoPlay playsInline muted
         style={{ width: '100%', maxWidth: 420, borderRadius: 12 }} />
