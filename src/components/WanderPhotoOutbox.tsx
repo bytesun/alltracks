@@ -7,10 +7,10 @@ import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { publishOwnedWanderPhoto, resumeOwnedWanderPhotoPublication, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { listPendingWanderPhotos, removePendingWanderPhoto, updatePendingWanderPhoto, WANDER_PHOTO_OUTBOX_EVENT, type PendingWanderPhoto } from '../lib/offlineWanderPhotos';
 
-/** Durable owner upload worker, mounted wherever Object photos are displayed. */
-export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId, storageCanisterId, onPublished }: {
+/** Durable authenticated upload worker; backend enforces checkpoint ownership. */
+export function WanderPhotoOutbox({ objectId, agent, backend, principalId, storageCanisterId, onPublished }: {
   objectId: string; agent: HttpAgent; backend: WanderPhotoLifecycleBackend;
-  owner: boolean; principalId: string | null; storageCanisterId?: string;
+  principalId: string | null; storageCanisterId?: string;
   onPublished?: () => void;
 }) {
   const [items, setItems] = useState<PendingWanderPhoto[]>([]);
@@ -42,7 +42,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
     return () => Object.values(next).forEach(url => URL.revokeObjectURL(url));
   }, [items]);
   const sync = useCallback(async (force = false) => {
-    if (!owner || !principalId || !navigator.onLine || busyRef.current) return;
+    if (!principalId || !navigator.onLine || busyRef.current) return;
     busyRef.current = true;
     setUploading(true);
     try {
@@ -128,22 +128,23 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
       setUploading(false);
       await refresh();
     }
-  }, [objectId, agent, backend, owner, principalId, storageCanisterId, onPublished, refresh]);
+  }, [objectId, agent, backend, principalId, storageCanisterId, onPublished, refresh]);
   useEffect(() => {
-    if (!online || !owner || !principalId) return;
+    if (!online || !principalId) return;
     void sync().catch(() => {});
     const timer = window.setInterval(() => { void sync().catch(() => {}); }, 30_000);
     return () => window.clearInterval(timer);
-  }, [online, owner, principalId, sync]);
+  }, [online, principalId, sync]);
   if (items.length === 0) return null;
   return <div className="wander-photo-outbox" role="status">
     {items.map(item => <div key={item.id} style={{ padding: '8px 0' }}>
       {previewUrls[item.id] && <img src={previewUrls[item.id]} alt="Photo saved on this device"
         style={{ width: 120, maxWidth: '100%', borderRadius: 10 }} />}
       <p>{uploading ? 'Uploading photo…' : !online ? 'Photo saved offline' :
-        !owner ? 'Saved locally — Object owner authorization required' :
+        !principalId ? 'Sign in to publish this photo' :
+        item.principal && item.principal !== principalId ? 'Photo belongs to another signed-in account' :
         item.lastError ? `Photo not published: ${item.lastError}` : 'Photo saved locally — awaiting upload'}</p>
-      {owner && principalId && online && (item.nextAttemptAt !== Number.MAX_SAFE_INTEGER || item.storageSessionId) && <button type="button" disabled={uploading}
+      {principalId && (!item.principal || item.principal === principalId) && online && (item.nextAttemptAt !== Number.MAX_SAFE_INTEGER || item.storageSessionId) && <button type="button" disabled={uploading}
         onClick={() => void sync(true)}>Retry upload</button>}
       <button type="button" disabled={uploading} onClick={() => setDiscardId(item.id)}>Discard local photo</button>
     </div>)}
