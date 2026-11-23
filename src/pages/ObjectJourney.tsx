@@ -467,10 +467,17 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         </section>
       )}
 
+      {pendingPhotos.length > 0 && <section className="journey-panel" aria-label="Photos waiting for upload">
+        <h2>Photos saved on this device</h2>
+        <p role="status">{pendingPhotos.length} photo(s) are saved locally, not yet published to the journey.
+          {isAuthed ? ' Upload will resume when online for your own checkpoints.' :
+            ' Sign in to publish photos for your own checkpoints.'}</p>
+        {pendingPhotos.map(item => <PendingPhotoPreview key={item.id} item={item} />)}
+      </section>}
 
       {object && online && <WanderPhotoOutbox objectId={objectId} agent={agent}
           backend={backend as unknown as WanderPhotoLifecycleBackend}
-          owner={isOwner} principalId={isAuthed ? principal?.toText() ?? null : null}
+          principalId={isAuthed ? principal?.toText() ?? null : null}
           storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />}
 
       {isOwner && <section className="journey-panel journey-comment-settings">

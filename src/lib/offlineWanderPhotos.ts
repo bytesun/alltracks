@@ -17,6 +17,8 @@ export type PendingWanderPhoto = {
   attempts: number;
   lastError: string;
   nextAttemptAt: number;
+  /** ICEStorage session to reconcile after an uncertain finalize. */
+  storageSessionId?: string;
   uploadedStorageObjectId?: string;
 };
 const database = () => openDB(DB, 1, { upgrade(db) {
