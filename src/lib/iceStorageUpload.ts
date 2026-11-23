@@ -43,6 +43,26 @@ export function validateWanderPhoto(file: File): WanderPhotoType {
   return file.type as WanderPhotoType;
 }
 
+
+/**
+ * Detach selected media from temporary Android/iOS gallery content providers.
+ * The returned File owns an in-memory copy, so closing/resetting the picker
+ * cannot revoke its bytes during an ICP upload or local outbox save.
+ */
+export async function snapshotWanderPhoto(file: File): Promise<File> {
+  validateWanderPhoto(file);
+  try {
+    const bytes = await file.arrayBuffer();
+    if (bytes.byteLength !== file.size) throw new Error('Incomplete photo read.');
+    return new File([bytes], file.name || 'wander-photo.jpg', {
+      type: file.type,
+      lastModified: file.lastModified,
+    });
+  } catch {
+    throw new Error('The browser could not read this photo. Please choose it again or take a new photo.');
+  }
+}
+
 export async function uploadWanderPhoto(
   file: File,
   resourceId: string,
