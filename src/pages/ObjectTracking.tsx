@@ -9,7 +9,7 @@ import { ObjectPhoto } from '../components/ObjectPhoto';
 import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { queueWanderPhoto } from '../lib/offlineWanderPhotos';
 import { publishOwnedWanderPhoto, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
-import { validateWanderPhoto } from '../lib/iceStorageUpload';
+import { snapshotWanderPhoto } from '../lib/iceStorageUpload';
 import { WanderCameraPicker } from '../components/WanderCameraPicker';
 import './ObjectJourney.css';
 
@@ -42,6 +42,8 @@ export function ObjectTracking() {
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreparing, setPhotoPreparing] = useState(false);
+  const [photoRecoveryObjectId, setPhotoRecoveryObjectId] = useState<string | null>(null);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [emoji, setEmoji] = useState('📦');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -129,28 +131,32 @@ export function ObjectTracking() {
   const create = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!isAuthed) { setLoginModal(true); return; }
+    if (photoPreparing) return;
     setSaving(true);
     setError('');
+    setPhotoRecoveryObjectId(null);
     try {
-      if (photoFile) validateWanderPhoto(photoFile);
+      // Fail before creating the ICP object if its selected photo has become
+      // unreadable. Avoid leaving a newly created object without its picture.
+      const stablePhoto = photoFile ? await snapshotWanderPhoto(photoFile) : null;
       const object = await createObject(backend, name, description, emoji, photoUrl);
       setObjects(old => [object, ...old]);
-      if (photoFile) {
+      if (stablePhoto) {
         try {
           await publishOwnedWanderPhoto(
-            photoFile, object.id, agent, backend as unknown as WanderPhotoLifecycleBackend,
+            stablePhoto, object.id, agent, backend as unknown as WanderPhotoLifecycleBackend,
             undefined, (done, total) => setPhotoProgress(Math.round(done * 100 / total)),
             import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined,
           );
           window.dispatchEvent(new CustomEvent('alltracks:wander-photo-published', { detail: object.id }));
         } catch (uploadError) {
           try {
-            await queueWanderPhoto({ objectId: object.id, file: photoFile,
+            await queueWanderPhoto({ objectId: object.id, file: stablePhoto,
               principal: principal?.toText() ?? null });
             setError(`Object created. Photo saved on this device, NOT published: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}. It can be retried after storage is available.`);
           } catch (queueError) {
-            setError(`Object created but photo upload FAILED and local backup FAILED: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}; ${queueError instanceof Error ? queueError.message : String(queueError)}`);
-            return;
+            setPhotoRecoveryObjectId(object.id);
+            setError(`Object created, but its photo was neither uploaded nor saved on this device: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}; ${queueError instanceof Error ? queueError.message : String(queueError)}. Open the object below and add the photo again. Do not create a duplicate object.`);
           }
         }
       }
@@ -199,12 +205,15 @@ export function ObjectTracking() {
           <label htmlFor="object-description">Story or instructions</label>
           <textarea id="object-description" rows={3} maxLength={500} placeholder="Help me see the world! Share where you found me…" value={description} onChange={e => setDescription(e.target.value)} />
           <p>Take a photo now or choose an existing photo (max 10 MiB).</p>
-          <WanderCameraPicker value={photoFile} onChange={setPhotoFile} disabled={saving} />
+          <WanderCameraPicker value={photoFile} onChange={setPhotoFile}
+            disabled={saving} onPreparingChange={setPhotoPreparing} />
           {saving && photoProgress > 0 && <p role="status">Photo upload: {photoProgress}%</p>}
           <p>Object details, photos and check-ins are public. Please don't include personal contact information.</p>
-          <button type="submit" className="journey-button" disabled={saving || !name.trim()}>{saving ? 'Creating on ICP…' : 'Create object & QR code'}</button>
+          <button type="submit" className="journey-button" disabled={saving || photoPreparing || !name.trim()}>{saving ? 'Creating on ICP…' : photoPreparing ? 'Reading photo…' : 'Create object & QR code'}</button>
         </form>
-        {error && <p className="journey-error" role="alert">{error}</p>}
+        {error && <p className="journey-error" role="alert">{error}
+          {photoRecoveryObjectId && <> <Link to={'/object/' + encodeURIComponent(photoRecoveryObjectId)}>Open created object to add a photo</Link></>}
+        </p>}
       </section>
 
       <section className="journey-panel">
