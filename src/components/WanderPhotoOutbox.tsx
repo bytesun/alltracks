@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
+import { createIceStorageUploadActor } from '../lib/iceStorageActor';
+import { reconcileAuthorizedPhotoSession } from '../lib/iceStorageActorTransport';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { publishOwnedWanderPhoto, resumeOwnedWanderPhotoPublication, type WanderPhotoLifecycleBackend } from '../lib/wanderPhotoLifecycle';
 import { listPendingWanderPhotos, removePendingWanderPhoto, updatePendingWanderPhoto, WANDER_PHOTO_OUTBOX_EVENT, type PendingWanderPhoto } from '../lib/offlineWanderPhotos';
@@ -48,7 +50,10 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
       for (const item of pending) {
         if (!navigator.onLine) break;
         if (item.principal && item.principal !== principalId) continue;
+        // A forced retry must not bypass a finalize-uncertain quarantine.
+        if (item.nextAttemptAt === Number.MAX_SAFE_INTEGER && !item.storageSessionId) continue;
         if (!force && item.nextAttemptAt > Date.now()) continue;
+        let recoveredObjectId = item.uploadedStorageObjectId;
         try {
           // A photo captured with a check-in must wait for that exact on-chain
           // checkpoint. Never publish it as an unbound Object gallery photo.
@@ -77,8 +82,22 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
           const checkpoint = resolvedCheckpoint ? {
             timestamp: BigInt(resolvedCheckpoint.timestamp), author: Principal.fromText(resolvedCheckpoint.author),
           } : undefined;
-          if (item.uploadedStorageObjectId) {
-            await resumeOwnedWanderPhotoPublication(objectId, item.uploadedStorageObjectId, backend, checkpoint);
+          // Reconcile an uncertain finalize before issuing any new grant.
+          // A completed remote session can safely resume publication without
+          // re-uploading bytes; all other states remain quarantined.
+          if (item.storageSessionId && !recoveredObjectId) {
+            const storage = createIceStorageUploadActor(agent, storageCanisterId);
+            const recovered = await reconcileAuthorizedPhotoSession(
+              storage, item.storageSessionId, item.uploadedStorageObjectId,
+            );
+            if (recovered.status !== 'complete') {
+              throw new Error(`ICEStorage session is ${recovered.status}; upload remains paused for safe recovery.`);
+            }
+            recoveredObjectId = recovered.objectId;
+            await updatePendingWanderPhoto({ ...item, uploadedStorageObjectId: recoveredObjectId, nextAttemptAt: 0 });
+          }
+          if (recoveredObjectId) {
+            await resumeOwnedWanderPhotoPublication(objectId, recoveredObjectId, backend, checkpoint);
           } else {
             await publishOwnedWanderPhoto(item.file, objectId, agent, backend, checkpoint, undefined, storageCanisterId);
           }
@@ -88,11 +107,18 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         } catch (cause) {
           const message = cause instanceof Error ? cause.message : String(cause);
           const uploadedId = message.match(/Uploaded storage object:\s*([a-zA-Z0-9-]{5,256})/i)?.[1];
+          // An uncertain finalize may already have committed in ICEStorage.
+          // Do not start another upload on automatic sync or manual Retry:
+          // preserve the original file and require session reconciliation.
+          const uncertainFinalize = /Finalize not confirmed:|Do not upload again until reconciled/i.test(message);
+          const sessionId = message.match(/Storage Session ID:\s*([a-zA-Z0-9-]{1,256})/i)?.[1];
           await updatePendingWanderPhoto({ ...item,
-            uploadedStorageObjectId: item.uploadedStorageObjectId ?? uploadedId,
+            storageSessionId: item.storageSessionId ?? sessionId,
+            uploadedStorageObjectId: recoveredObjectId ?? uploadedId,
             attempts: item.attempts + 1,
             lastError: message,
-            nextAttemptAt: Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)),
+            nextAttemptAt: (uncertainFinalize || (item.storageSessionId && !recoveredObjectId) || Boolean(sessionId)) ? Number.MAX_SAFE_INTEGER :
+              Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)),
           });
           break;
         }
@@ -117,7 +143,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
       <p>{uploading ? 'Uploading photo…' : !online ? 'Photo saved offline' :
         !owner ? 'Saved locally — Object owner authorization required' :
         item.lastError ? `Photo not published: ${item.lastError}` : 'Photo saved locally — awaiting upload'}</p>
-      {owner && principalId && online && <button type="button" disabled={uploading}
+      {owner && principalId && online && (item.nextAttemptAt !== Number.MAX_SAFE_INTEGER || item.storageSessionId) && <button type="button" disabled={uploading}
         onClick={() => void sync(true)}>Retry upload</button>}
       <button type="button" disabled={uploading} onClick={() => setDiscardId(item.id)}>Discard local photo</button>
     </div>)}

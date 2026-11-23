@@ -6,7 +6,7 @@ import type { PublicPhotoReader } from './iceStoragePublicPhoto';
 export const ICESTORAGE_BACKEND_CANISTER_ID = '5pqgi-saaaa-aaaal-aaavq-cai';
 
 /**
- * Only the four upload methods are declared. Their Candid signatures must
+ * Upload and session inspection methods are declared. Their Candid signatures must
  * stay in sync with ICEvent/icestorage/src/declarations/backend/backend.did.
  */
 const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
@@ -69,6 +69,7 @@ const idlFactory = ({ IDL }: { IDL: typeof import('@dfinity/candid').IDL }) => {
       uploadObjectChunk: IDL.Func([IDL.Text, IDL.Nat, IDL.Vec(IDL.Nat8)], [UnitResult], []),
       finalizeObjectUpload: IDL.Func([IDL.Text], [SessionResult], []),
       abortObjectUpload: IDL.Func([IDL.Text], [UnitResult], []),
+      getObjectUpload: IDL.Func([IDL.Text], [SessionResult], ['query']),
       readPublicPhotoChunk: IDL.Func([ResourceKey, IDL.Text, IDL.Nat], [ObjectChunkResult], ['composite_query']),
     });
   };
