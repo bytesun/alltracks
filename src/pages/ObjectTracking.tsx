@@ -229,7 +229,7 @@ export function ObjectTracking() {
             {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} compact />}
             <WanderPhotoOutbox objectId={object.id} agent={agent}
               backend={backend as unknown as WanderPhotoLifecycleBackend}
-              owner={isAuthed} principalId={principal?.toText() ?? null}
+              principalId={principal?.toText() ?? null}
               storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />
             <div className="journey-object-body">
               <h3>{object.name}</h3>
