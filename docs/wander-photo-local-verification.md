@@ -22,6 +22,15 @@
 8. Verify storage quota before and after deletion; ICEStorage resource tombstone success alone is not proof of physical byte reclamation.
 9. Verify an upgrade retains publication intents, bindings and pending cleanup.
 
+## Mobile gallery / InvalidBlob regression
+1. On Android, select a gallery photo for a new Object, then wait before creating it. The selected preview should stay readable after the native picker closes; the create button must remain disabled while the photo is being copied.
+2. Turn off connectivity after selecting a photo and create an Object. Verify the Object is created once, and its unpublished photo appears in the local outbox. Inspect IndexedDB `alltracks-wander-photo-outbox/photos`: new records contain `photoBytes: ArrayBuffer` and filename/type metadata, **not** `file: File`.
+3. Reload the page and sign back in. The outbox should reconstruct the photo and retry the upload when connectivity returns; the original gallery permission is no longer needed.
+4. Repeat using a Checkpoint photo and the Object's **Save photo on this device** action. Verify both offline paths survive a reload.
+5. With a file that becomes unreadable before submission, the app must fail **before** creating a new Object and explain that the photo should be reselected.
+6. If upload and backup both fail (for example storage quota exhausted), verify the created Object remains visible with a link to add its photo later, and the form resets so a retry cannot accidentally create a duplicate.
+7. Keep a legacy IndexedDB entry containing `file: File` and verify it can still be listed; subsequent updates should rewrite it into the byte-backed format if the file remains readable.
+
 ## Current constraints
 - Guest uploads are not enabled; only Object owners can upload or bind ICEStorage photos.
 - Backend heartbeat now retries one durable #revoking photo per minute independently of the owner browser, with a persisted round-robin cursor. Immediate cleanup on Checkpoint deletion and owner-page retries remain available.
