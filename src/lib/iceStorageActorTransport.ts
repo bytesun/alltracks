@@ -120,7 +120,7 @@ export function createAuthorizedStorageTransport(
       if (!session) {
         const objectId = objectsBySession.get(sessionId) ?? await recoverObjectId(sessionId);
         const reason = lastError instanceof Error ? lastError.message : String(lastError ?? 'Unknown failure');
-        throw new Error(`Finalize not confirmed: ${reason}. Storage Object ID: ${objectId ?? 'unknown'}. Do not upload again until reconciled.`);
+        throw new Error(`Finalize not confirmed: ${reason}. Storage Session ID: ${sessionId}. Storage Object ID: ${objectId ?? 'unknown'}. Do not upload again until reconciled.`);
       }
       if (!('complete' in session.status)) {
         throw new Error('ICEStorage upload is not complete.');
