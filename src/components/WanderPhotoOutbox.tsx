@@ -94,7 +94,9 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
           // Do not start another upload on automatic sync or manual Retry:
           // preserve the original file and require session reconciliation.
           const uncertainFinalize = /Finalize not confirmed:|Do not upload again until reconciled/i.test(message);
+          const sessionId = message.match(/Storage Session ID:\s*([a-zA-Z0-9-]{1,256})/i)?.[1];
           await updatePendingWanderPhoto({ ...item,
+            storageSessionId: item.storageSessionId ?? sessionId,
             uploadedStorageObjectId: item.uploadedStorageObjectId ?? uploadedId,
             attempts: item.attempts + 1,
             lastError: message,
