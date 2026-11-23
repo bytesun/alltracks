@@ -5,7 +5,7 @@ import { CircleMarker, MapContainer, Polyline, TileLayer, useMap } from 'react-l
 import 'leaflet/dist/leaflet.css';
 import { TrackPoint } from '../types/TrackPoint';
 import { CompletedActivity } from '../types/CompletedActivity';
-import { parseCSV, parseGPX, parseKML } from '../utils/importFormats';
+import { hasValidCoordinates, parseCSV, parseGPX, parseKML } from '../utils/importFormats';
 import { generateGPX } from '../utils/exportFormats';
 import { calculateActivityMetrics, formatDuration } from '../utils/activityMetrics';
 import { getCompletedActivityFromIndexDB } from '../utils/IndexDBHandler';
@@ -65,7 +65,7 @@ const localActivityDetail = (activity: CompletedActivity): ActivityDetail => ({
   movingHours: activity.movingHours,
   elevationGain: activity.elevationGain,
   pace: activity.pace,
-  points: activity.points,
+  points: activity.points.filter(hasValidCoordinates),
 });
 
 const FitActivityBounds: React.FC<{ points: TrackPoint[] }> = ({ points }) => {
@@ -114,7 +114,7 @@ export const TrackPage: React.FC = () => {
       const fileResponse = await fetch(parsed.trackfile.url);
       if (!fileResponse.ok) throw new Error('Unable to download this activity route.');
       const content = await fileResponse.text();
-      const points = parseRemotePoints(content, parsed.trackfile.fileType);
+      const points = parseRemotePoints(content, parsed.trackfile.fileType).filter(hasValidCoordinates);
       const metrics = calculateActivityMetrics(points);
 
       return {
@@ -351,6 +351,9 @@ export const TrackPage: React.FC = () => {
           </div>
 
           <div className="activity-detail-map">
+            {activity.points.length === 0 ? (
+              <p role="status">No valid GPS coordinates are available for this activity.</p>
+            ) : (
             <MapContainer center={[49.2827, -123.1207]} zoom={10} style={{ height: '100%', width: '100%' }}>
               <TileLayer
                 url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
@@ -368,6 +371,7 @@ export const TrackPage: React.FC = () => {
                 <CircleMarker center={[currentPoint.latitude, currentPoint.longitude]} radius={isPlaying ? 8 : 5} pathOptions={{ fillOpacity: 1 }} />
               )}
             </MapContainer>
+            )}
           </div>
           <div className="activity-playback-progress">
             <span>{activity.points.length ? currentPointIndex + 1 : 0} / {activity.points.length}</span>
