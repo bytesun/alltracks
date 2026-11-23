@@ -53,6 +53,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         // A forced retry must not bypass a finalize-uncertain quarantine.
         if (item.nextAttemptAt === Number.MAX_SAFE_INTEGER && !item.storageSessionId) continue;
         if (!force && item.nextAttemptAt > Date.now()) continue;
+        let recoveredObjectId = item.uploadedStorageObjectId;
         try {
           // A photo captured with a check-in must wait for that exact on-chain
           // checkpoint. Never publish it as an unbound Object gallery photo.
@@ -84,8 +85,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
           // Reconcile an uncertain finalize before issuing any new grant.
           // A completed remote session can safely resume publication without
           // re-uploading bytes; all other states remain quarantined.
-          let recoveredObjectId = item.uploadedStorageObjectId;
-          if (item.storageSessionId && item.nextAttemptAt === Number.MAX_SAFE_INTEGER) {
+          if (item.storageSessionId && !recoveredObjectId) {
             const storage = createIceStorageUploadActor(agent, storageCanisterId);
             const recovered = await reconcileAuthorizedPhotoSession(
               storage, item.storageSessionId, item.uploadedStorageObjectId,
@@ -114,10 +114,10 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
           const sessionId = message.match(/Storage Session ID:\s*([a-zA-Z0-9-]{1,256})/i)?.[1];
           await updatePendingWanderPhoto({ ...item,
             storageSessionId: item.storageSessionId ?? sessionId,
-            uploadedStorageObjectId: item.uploadedStorageObjectId ?? uploadedId,
+            uploadedStorageObjectId: recoveredObjectId ?? uploadedId,
             attempts: item.attempts + 1,
             lastError: message,
-            nextAttemptAt: uncertainFinalize ? Number.MAX_SAFE_INTEGER :
+            nextAttemptAt: (uncertainFinalize || (item.storageSessionId && !recoveredObjectId) || Boolean(sessionId)) ? Number.MAX_SAFE_INTEGER :
               Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)),
           });
           break;
