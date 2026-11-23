@@ -48,6 +48,8 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
       for (const item of pending) {
         if (!navigator.onLine) break;
         if (item.principal && item.principal !== principalId) continue;
+        // A forced retry must not bypass a finalize-uncertain quarantine.
+        if (item.nextAttemptAt === Number.MAX_SAFE_INTEGER) continue;
         if (!force && item.nextAttemptAt > Date.now()) continue;
         try {
           // A photo captured with a check-in must wait for that exact on-chain
@@ -88,11 +90,16 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
         } catch (cause) {
           const message = cause instanceof Error ? cause.message : String(cause);
           const uploadedId = message.match(/Uploaded storage object:\s*([a-zA-Z0-9-]{5,256})/i)?.[1];
+          // An uncertain finalize may already have committed in ICEStorage.
+          // Do not start another upload on automatic sync or manual Retry:
+          // preserve the original file and require session reconciliation.
+          const uncertainFinalize = /Finalize not confirmed:|Do not upload again until reconciled/i.test(message);
           await updatePendingWanderPhoto({ ...item,
             uploadedStorageObjectId: item.uploadedStorageObjectId ?? uploadedId,
             attempts: item.attempts + 1,
             lastError: message,
-            nextAttemptAt: Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)),
+            nextAttemptAt: uncertainFinalize ? Number.MAX_SAFE_INTEGER :
+              Date.now() + Math.min(300_000, 5000 * 2 ** Math.min(item.attempts, 6)),
           });
           break;
         }
@@ -117,7 +124,7 @@ export function WanderPhotoOutbox({ objectId, agent, backend, owner, principalId
       <p>{uploading ? 'Uploading photo…' : !online ? 'Photo saved offline' :
         !owner ? 'Saved locally — Object owner authorization required' :
         item.lastError ? `Photo not published: ${item.lastError}` : 'Photo saved locally — awaiting upload'}</p>
-      {owner && principalId && online && <button type="button" disabled={uploading}
+      {owner && principalId && online && item.nextAttemptAt !== Number.MAX_SAFE_INTEGER && <button type="button" disabled={uploading}
         onClick={() => void sync(true)}>Retry upload</button>}
       <button type="button" disabled={uploading} onClick={() => setDiscardId(item.id)}>Discard local photo</button>
     </div>)}
