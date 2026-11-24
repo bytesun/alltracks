@@ -1,0 +1,101 @@
+.wander-object-photos {
+  min-width: 0;
+  width: 100%;
+}
+.wander-photo-carousel {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.wander-photo-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 460px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #edf1ec;
+  touch-action: pan-y pinch-zoom;
+}
+.wander-photo-original {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #315643;
+}
+.wander-photo-original img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+}
+.wander-photo-unavailable {
+  padding: 20px 52px;
+  text-align: center;
+  font-size: .85rem;
+}
+.wander-photo-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #ffffff70;
+  border-radius: 50%;
+  background: #17291fbd;
+  color: #fff;
+  font: 32px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.wander-photo-arrow:hover { background: #17291f; }
+.wander-photo-arrow--prev { left: 12px; }
+.wander-photo-arrow--next { right: 12px; }
+.wander-photo-arrow:focus-visible,
+.wander-photo-original:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -4px;
+  box-shadow: 0 0 0 2px #204b38;
+}
+.wander-photo-count {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border-radius: 999px;
+  background: #17291fbd;
+  color: #fff;
+  padding: 5px 11px;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.wander-photo-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 9px 2px 0;
+  color: #617066;
+  font-size: .82rem;
+}
+.wander-photo-caption a { color: #2a6446; text-decoration: underline; }
+.wander-object-photos--compact .wander-photo-stage {
+  max-height: 210px;
+  border-radius: 12px;
+}
+.wander-object-photos--compact .wander-photo-arrow--prev { left: 6px; }
+.wander-object-photos--compact .wander-photo-arrow--next { right: 6px; }
+.wander-object-photos--compact .wander-photo-count { right: 8px; bottom: 8px; }
+.wander-photo-error { overflow-wrap: anywhere; font-size: .85rem; }
+.wander-photo-error button { cursor: pointer; font: inherit; }
+@media (max-width: 560px) {
+  .wander-photo-stage { max-height: 360px; border-radius: 12px; }
+  .wander-photo-arrow--prev { left: 6px; }
+  .wander-photo-arrow--next { right: 6px; }
+}
