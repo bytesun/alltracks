@@ -11,7 +11,6 @@ import { getObject, loadObjectCheckins, type JourneyCheckin, type ObjectRecord }
 import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
-import { ObjectPhoto } from '../components/ObjectPhoto';
 import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
 import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
@@ -486,12 +485,12 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       {!checkinDialogOpen && message && <p className="journey-message" role="status">{message}</p>}
 
       {object && <section className="journey-panel journey-object-cover" aria-label="Object photos">
-        <div className="journey-section-title"><h2>Object photos</h2><span>ICEStorage</span></div>
-        {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} />}
-        <WanderObjectPhotos objectId={objectId} agent={agent}
+        <div className="journey-section-title"><h2>Object photos</h2></div>
+        <WanderObjectPhotos key={objectId} objectId={objectId} agent={agent}
+          legacyPhotoUrl={object.photoUrl} name={object.name}
           backend={backend as unknown as WanderPhotoLifecycleBackend}
           storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined}
-          showEmpty={!object.photoUrl} />
+          showEmpty />
         {isOwner && <div className="journey-owner-photo">
           <p>Add or restore an Object photo without creating another Object. Published photos are visible to everyone with the journey link.</p>
           <WanderCameraPicker value={objectPhoto} onChange={setObjectPhoto}
