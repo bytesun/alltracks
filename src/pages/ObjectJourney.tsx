@@ -12,6 +12,7 @@ import { GuestTurnstile } from '../components/GuestTurnstile';
 import { CheckinPhoto } from '../components/CheckinPhoto';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
 import { ObjectPhoto } from '../components/ObjectPhoto';
+import { WanderObjectPhotos } from '../components/WanderObjectPhotos';
 import { WanderPhotoOutbox } from '../components/WanderPhotoOutbox';
 import { CHECKIN_OUTBOX_EVENT, isOffline, listPendingCheckins, markPendingError,
   queueObjectCheckin, isDeferredLoginCheckin, isGuestGatewayCheckin, type PendingObjectCheckin } from '../lib/offlineCheckins';
@@ -92,6 +93,10 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [note, setNote] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [checkinPhoto, setCheckinPhoto] = useState<File | null>(null);
+  const [objectPhoto, setObjectPhoto] = useState<File | null>(null);
+  const [objectPhotoPreparing, setObjectPhotoPreparing] = useState(false);
+  const [objectPhotoSaving, setObjectPhotoSaving] = useState(false);
+  const [objectPhotoNotice, setObjectPhotoNotice] = useState('');
   const [consented, setConsented] = useState(false);
   const [publishAsGuest, setPublishAsGuest] = useState(false);
   const [sending, setSending] = useState(false);
@@ -364,6 +369,25 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
     }
   };
 
+  const saveObjectPhoto = async () => {
+    if (!isOwner || !principal || !objectPhoto || objectPhotoSaving || objectPhotoPreparing) return;
+    setObjectPhotoSaving(true);
+    setObjectPhotoNotice('');
+    try {
+      // Save bytes to the durable outbox before any network request, so a
+      // failed grant or interrupted upload never requires another Object.
+      await queueWanderPhoto({
+        objectId, file: objectPhoto, principal: principal.toText(),
+      });
+      setObjectPhoto(null);
+      setObjectPhotoNotice('Photo saved on this device. It will publish automatically when storage is available.');
+    } catch (cause) {
+      setObjectPhotoNotice(cause instanceof Error ? cause.message : 'Unable to save photo locally.');
+    } finally {
+      setObjectPhotoSaving(false);
+    }
+  };
+
   const deleteCheckpoint = async (entry: Checkin) => {
     if (!isAuthed || !principal || deletingCheckpointId) return;
     if (!isOwner && entry.author !== principal.toText()) return;
@@ -461,14 +485,27 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       {loadError && <p className="journey-error" role="alert">{loadError}</p>}
       {!checkinDialogOpen && message && <p className="journey-message" role="status">{message}</p>}
 
-      {object?.photoUrl && (
-        <section className="journey-object-cover" aria-label="Object photo">
-          <ObjectPhoto url={object.photoUrl} name={object.name} />
-        </section>
-      )}
+      {object && <section className="journey-panel journey-object-cover" aria-label="Object photos">
+        <div className="journey-section-title"><h2>Object photos</h2><span>ICEStorage</span></div>
+        {object.photoUrl && <ObjectPhoto url={object.photoUrl} name={object.name} />}
+        <WanderObjectPhotos objectId={objectId} agent={agent}
+          backend={backend as unknown as WanderPhotoLifecycleBackend}
+          storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined}
+          showEmpty={!object.photoUrl} />
+        {isOwner && <div className="journey-owner-photo">
+          <p>Add or restore an Object photo without creating another Object. Published photos are visible to everyone with the journey link.</p>
+          <WanderCameraPicker value={objectPhoto} onChange={setObjectPhoto}
+            disabled={objectPhotoSaving} onPreparingChange={setObjectPhotoPreparing} />
+          <button className="journey-button journey-button-soft" type="button"
+            disabled={!objectPhoto || objectPhotoSaving || objectPhotoPreparing}
+            onClick={() => void saveObjectPhoto()}>
+            {objectPhotoSaving ? 'Saving photo…' : objectPhotoPreparing ? 'Reading photo…' : 'Save & publish photo'}
+          </button>
+          {objectPhotoNotice && <p role="status">{objectPhotoNotice}</p>}
+        </div>}
+      </section>}
 
-
-      {object && online && <WanderPhotoOutbox objectId={objectId} agent={agent}
+      {object && <WanderPhotoOutbox objectId={objectId} agent={agent}
           backend={backend as unknown as WanderPhotoLifecycleBackend}
           principalId={isAuthed ? principal?.toText() ?? null : null}
           storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />}

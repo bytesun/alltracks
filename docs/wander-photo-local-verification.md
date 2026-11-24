@@ -31,6 +31,14 @@
 6. If upload and backup both fail (for example storage quota exhausted), verify the created Object remains visible with a link to add its photo later, and the form resets so a retry cannot accidentally create a duplicate.
 7. Keep a legacy IndexedDB entry containing `file: File` and verify it can still be listed; subsequent updates should rewrite it into the byte-backed format if the file remains readable.
 
+## Public Object photo rendering (regression)
+1. Create an Object with an uploaded JPEG and **no external photo URL**. After upload succeeds, open View Journey: confirm the photo appears under Object photos. The same published image should appear in My Objects. Refresh, then open the journey while signed out: the public image must still render.
+2. For an Object with both a valid external HTTPS photo URL and an ICEStorage upload, verify both photo sources remain visible. For an Object with neither, the journey says `No published photos yet`.
+3. When a published photo read is denied or ICEStorage is unavailable, View Journey must display the read failure and a **Retry loading photos** button rather than silently hiding the Object photo.
+4. As Object owner, use **Save & publish photo** on an existing Object. Check that the local outbox shows the saved photo, publishes it after reconnect, and refreshes the visible photo without creating a duplicate Object.
+5. Ensure the owner can see locally queued photos while offline on View Journey; other viewers must not gain upload rights. Verify no duplicate publication worker was introduced by the public photo display.
+6. Inspect My Objects with up to 20 records for performance and confirm non-photo Objects still render normally.
+
 ## Current constraints
 - Guest uploads are not enabled; only Object owners can upload or bind ICEStorage photos.
 - Backend heartbeat now retries one durable #revoking photo per minute independently of the owner browser, with a persisted round-robin cursor. Immediate cleanup on Checkpoint deletion and owner-page retries remain available.
