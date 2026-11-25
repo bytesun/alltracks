@@ -93,6 +93,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [photoUrl, setPhotoUrl] = useState('');
   const [checkinPhoto, setCheckinPhoto] = useState<File | null>(null);
   const [objectPhoto, setObjectPhoto] = useState<File | null>(null);
+  const [checkinPhotoPreparing, setCheckinPhotoPreparing] = useState(false);
   const [objectPhotoPreparing, setObjectPhotoPreparing] = useState(false);
   const [objectPhotoSaving, setObjectPhotoSaving] = useState(false);
   const [objectPhotoNotice, setObjectPhotoNotice] = useState('');
@@ -408,6 +409,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
 
 
   const submit = async () => {
+    if (checkinPhotoPreparing) return;
     if (!location || !consented || sending || !canCheckin ||
         (online && Boolean(loadError))) return;
     if (isAuthed && !principal) {
@@ -498,7 +500,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           <button className="journey-button journey-button-soft" type="button"
             disabled={!objectPhoto || objectPhotoSaving || objectPhotoPreparing}
             onClick={() => void saveObjectPhoto()}>
-            {objectPhotoSaving ? 'Saving photo…' : objectPhotoPreparing ? 'Reading photo…' : 'Save & publish photo'}
+            {objectPhotoSaving ? 'Saving photo…' : objectPhotoPreparing ? 'Preparing photo…' : 'Save & publish photo'}
           </button>
           {objectPhotoNotice && <p role="status">{objectPhotoNotice}</p>}
         </div>}
@@ -600,7 +602,8 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
               value={note} onChange={(event) => setNote(event.target.value)}
             />
             <label>Check-in photo (optional)</label>
-            <WanderCameraPicker value={checkinPhoto} onChange={setCheckinPhoto} disabled={sending} />
+            <WanderCameraPicker value={checkinPhoto} onChange={setCheckinPhoto} disabled={sending}
+              onPreparingChange={setCheckinPhotoPreparing} />
             <p className="journey-photo-hint">Captured photos are saved on this device. Publishing requires an authorized upload.</p>
           </>}
           <button className="journey-button journey-button-soft" type="button" onClick={locate} disabled={locating || (online && Boolean(loadError)) || !canCheckin}>
@@ -622,7 +625,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
                 : 'I agree to publish this approximate location, note and optional photo link on the public journey map.'}</span>
           </label>
           <button className="journey-button" type="button" onClick={submit}
-            disabled={!location || !consented || !canCheckin || sending || (online && Boolean(loadError))}>
+            disabled={!location || !consented || !canCheckin || sending || checkinPhotoPreparing || (online && Boolean(loadError))}>
             {sending ? 'Saving check-in…' : !isAuthed && !useGuestGateway ? 'Save stop · Sign in later' : online ? 'Save and sync this stop' : 'Save check-in offline'}
           </button>
           {message && <p className="journey-message" role="status">{message}</p>}
