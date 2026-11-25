@@ -76,6 +76,8 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   // Null means an older canister or an unavailable policy read: do not fake a setting.
   const [commentsEnabled, setCommentsEnabled] = useState<boolean | null>(null);
   const [changingComments, setChangingComments] = useState(false);
+  const [commentSettingsMessage, setCommentSettingsMessage] = useState('');
+  const commentSettingsDialogRef = useRef<HTMLDialogElement>(null);
   const [deletingCheckpointId, setDeletingCheckpointId] = useState<string | null>(null);
   const [checkpointToDelete, setCheckpointToDelete] = useState<Checkin | null>(null);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
@@ -349,7 +351,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const toggleComments = async () => {
     if (!isOwner || commentsEnabled === null || changingComments) return;
     setChangingComments(true);
-    setMessage('');
+    setCommentSettingsMessage('');
     try {
       const desired = !commentsEnabled;
       const result = await backend.setObjectCommentsEnabled(objectId, desired);
@@ -359,10 +361,10 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         setNote('');
         setPhotoUrl('');
       }
-      setMessage(result.ok ? 'New comments are enabled.' :
+      setCommentSettingsMessage(result.ok ? 'New comments are enabled.' :
         'New comments are closed. Location-only check-ins remain available.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unable to update comment settings.');
+      setCommentSettingsMessage(error instanceof Error ? error.message : 'Unable to update comment settings.');
     } finally {
       setChangingComments(false);
     }
@@ -477,7 +479,14 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
         <div className="journey-overline">ALLTRACKS · OBJECT JOURNEY</div>
         <div className="journey-cup">{object?.emoji || '📦'}</div>
         <h1>{object?.name || 'Track Me Down'}</h1>
-        <p className="journey-intro">{object?.description || 'Found this object? Help it travel and share where it has been.'}</p>
+        <div className="journey-description">
+          <p className="journey-intro">{object?.description || 'Found this object? Help it travel and share where it has been.'}</p>
+          {isOwner && <button type="button" className="journey-comment-settings-trigger"
+            aria-label="Comment settings" aria-haspopup="dialog" title="Comment settings"
+            onClick={() => commentSettingsDialogRef.current?.showModal()}>
+            <span aria-hidden="true">⚙</span>
+          </button>}
+        </div>
         <p className="journey-hero-note">Scan the QR code to explore this object's journey. You can choose to share a one-time location check-in; this does not enable continuous tracking. <Link to="/objects" style={{ color: 'white' }}>Create your own object</Link></p>
       </section>
 
@@ -509,19 +518,27 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           principalId={isAuthed ? principal?.toText() ?? null : null}
           storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined} />}
 
-      {isOwner && <section className="journey-panel journey-comment-settings">
-        <div className="journey-section-title"><h2>Comment settings</h2><span>OWNER CONTROLS</span></div>
-        <p>Choose whether explorers can attach new notes or photo links.
-          Check-in locations and existing journey history remain available.</p>
-        {commentsEnabled === null ? (
-          <p className="journey-login-notice">Comment controls require an updated ICP backend. Existing check-ins still work; no setting has been changed.</p>
-        ) : (
-          <button type="button" className="journey-button journey-button-soft"
-            disabled={changingComments} onClick={() => void toggleComments()}>
-            {changingComments ? 'Updating…' : commentsEnabled ? 'Pause new comments' : 'Allow new comments'}
-          </button>
-        )}
-      </section>}
+      {isOwner && <dialog ref={commentSettingsDialogRef} className="journey-dialog journey-comment-settings"
+        aria-labelledby="journey-comment-settings-title">
+        <div className="journey-dialog-header">
+          <h2 id="journey-comment-settings-title">Comment settings</h2>
+          <button type="button" className="journey-dialog-close" aria-label="Close comment settings"
+            onClick={() => commentSettingsDialogRef.current?.close()}>×</button>
+        </div>
+        <div className="journey-dialog-body">
+          <p>Choose whether explorers can attach new notes or photo links.
+            Check-in locations and existing journey history remain available.</p>
+          {commentsEnabled === null ? (
+            <p className="journey-login-notice">Comment controls are currently unavailable.</p>
+          ) : (
+            <button type="button" className="journey-button journey-button-soft"
+              disabled={changingComments} onClick={() => void toggleComments()}>
+              {changingComments ? 'Updating…' : commentsEnabled ? 'Pause new comments' : 'Allow new comments'}
+            </button>
+          )}
+          {commentSettingsMessage && <p role="status" className="journey-message">{commentSettingsMessage}</p>}
+        </div>
+      </dialog>}
 
       <section className="journey-stats" aria-label="Journey statistics">
         <div><strong>{checkins.length}</strong><span>Check-ins</span></div>
@@ -549,7 +566,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       </section>
 
       {checkinDialogOpen && (
-        <dialog ref={checkinDialogRef} className="journey-checkin-dialog journey-checkin"
+        <dialog ref={checkinDialogRef} className="journey-dialog journey-checkin"
           aria-labelledby="journey-checkin-title"
           onCancel={() => setCheckinDialogOpen(false)}>
           <div className="journey-dialog-header">

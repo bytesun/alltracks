@@ -26,6 +26,23 @@
 .journey-cup { font-size: 62px; line-height: 1.3; margin-top: 20px; }
 .journey-hero h1 { font-size: clamp(2.5rem, 7vw, 4.2rem); line-height: 1.06; margin: 12px 0; letter-spacing: -.045em; }
 .journey-intro { max-width: 550px; font-size: 1.15rem; line-height: 1.6; }
+.journey-description { display: flex; align-items: flex-start; gap: 10px; }
+.journey-description .journey-intro { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.journey-comment-settings-trigger {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #ffffff55;
+  border-radius: 10px;
+  color: inherit;
+  background: #ffffff19;
+  font: 1.2rem/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.journey-comment-settings-trigger:hover { background: #ffffff33; }
+.journey-comment-settings-trigger:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .journey-hero-note { opacity: .86; font-size: .88rem; line-height: 1.5; margin: 18px 0 0; }
 .journey-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin: 18px 0 24px; }
 .journey-stats div { display: flex; flex-direction: column; gap: 8px; padding: 22px; background: #f1f5ed; border-radius: 18px; }
@@ -173,7 +190,6 @@
 .journey-captcha small { font-size: .75rem; color: #6a796c; }
 
 /* Comment moderation actions are secondary to the map-selection target. */
-.journey-comment-settings { margin-top: 14px; }
 .journey-stop { flex-direction: column; gap: 6px; }
 .journey-stop-select { width: 100%; }
 .journey-delete-comment {
@@ -197,7 +213,7 @@
 /* The journey stays readable until the visitor chooses to add a check-in. */
 .journey-join-panel > p { max-width: 660px; }
 .journey-join-cta { width: auto; min-width: 185px; padding-inline: 22px; }
-.journey-checkin-dialog {
+.journey-dialog {
   width: min(580px, calc(100vw - 28px));
   max-width: 580px;
   max-height: 90dvh;
@@ -210,7 +226,8 @@
   box-shadow: 0 24px 75px #0b241d40;
   overflow: hidden;
 }
-.journey-checkin-dialog::backdrop { background: #102b23a8; }
+.journey-dialog.journey-comment-settings { width: min(440px, calc(100vw - 28px)); }
+.journey-dialog::backdrop { background: #102b23a8; }
 .journey-dialog-header {
   display: flex;
   align-items: center;
@@ -241,7 +258,7 @@
   overscroll-behavior: contain;
 }
 .journey-dialog-body > p { color: #617066; line-height: 1.55; }
-.journey-checkin-dialog input:not([type="checkbox"]):focus-visible {
+.journey-dialog.journey-checkin input:not([type="checkbox"]):focus-visible {
   outline: 2px solid #4f906a;
   outline-offset: 2px;
 }
