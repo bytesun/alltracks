@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { snapshotWanderPhoto, validateWanderPhoto } from '../lib/iceStorageUpload';
+import { validateWanderPhoto } from '../lib/iceStorageUpload';
+import { encodeWanderPhoto, prepareWanderPhoto } from '../lib/prepareWanderPhoto';
 
 /** Camera-first photo picker. Captured images follow the same ICEStorage flow as files. */
 export function WanderCameraPicker({ value, onChange, disabled = false, onPreparingChange }: {
@@ -61,17 +62,22 @@ export function WanderCameraPicker({ value, onChange, disabled = false, onPrepar
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
       setError('Camera is not ready yet.'); return;
     }
-    const canvas = document.createElement('canvas');
-    const maxSide = 2048;
-    const scale = Math.min(1, maxSide / Math.max(video.videoWidth, video.videoHeight));
-    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
-    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
-    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-    if (!blob) { setError('Could not capture photo.'); return; }
-    const file = new File([blob], `wander-${Date.now()}.jpg`, { type: 'image/jpeg' });
-    try { validateWanderPhoto(file); onChange(file); stop(); setError(''); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Invalid photo.'); }
+    setPreparing(true);
+    onPreparingChange?.(true);
+    onChange(null);
+    setError('');
+    try {
+      const now = Date.now();
+      const file = await encodeWanderPhoto(video, video.videoWidth, video.videoHeight, `wander-${now}`, now);
+      validateWanderPhoto(file);
+      onChange(file);
+      stop();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not capture photo.');
+    } finally {
+      setPreparing(false);
+      onPreparingChange?.(false);
+    }
   };
 
   const choose = async (file: File | null) => {
@@ -83,7 +89,7 @@ export function WanderCameraPicker({ value, onChange, disabled = false, onPrepar
     try {
       // Read while the native file input is still populated. Clearing it too
       // early can invalidate mobile content-provider backed photo handles.
-      const snapshot = await snapshotWanderPhoto(file);
+      const snapshot = await prepareWanderPhoto(file);
       onChange(snapshot);
       stop();
     } catch (cause) {
@@ -121,20 +127,20 @@ export function WanderCameraPicker({ value, onChange, disabled = false, onPrepar
           void choose(input.files?.[0] ?? null).finally(() => { input.value = ''; });
         }} />
     </div>
-    {preparing && <p role="status">Reading photo from your device…</p>}
+    {preparing && <p role="status">Preparing photo…</p>}
     {cameraOpen && <div style={{ marginTop: 12 }}>
       <video ref={videoRef} autoPlay playsInline muted
         style={{ width: '100%', maxWidth: 420, borderRadius: 12 }} />
       <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-        <button type="button" style={primaryStyle} disabled={disabled}
+        <button type="button" style={primaryStyle} disabled={disabled || preparing}
           onClick={() => void capture()}>Capture</button>
-        <button type="button" style={secondaryStyle} onClick={stop}>Cancel</button>
+        <button type="button" style={secondaryStyle} disabled={preparing} onClick={stop}>Cancel</button>
       </div>
     </div>}
     {preview && <div style={{ marginTop: 12 }}>
       <img src={preview} alt="Selected photo preview"
         style={{ width: 200, maxWidth: '100%', borderRadius: 10 }} />
-      <div><button type="button" style={secondaryStyle} disabled={disabled}
+      <div><button type="button" style={secondaryStyle} disabled={disabled || preparing}
         onClick={() => onChange(null)}>Remove photo</button></div>
     </div>}
     {error && <p role="alert">{error}</p>}
