@@ -94,6 +94,9 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const [note, setNote] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [checkinPhoto, setCheckinPhoto] = useState<File | null>(null);
+  const objectPhotoDialog = useRef<HTMLDialogElement>(null);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [objectPhotoError, setObjectPhotoError] = useState('');
   const [objectPhoto, setObjectPhoto] = useState<File | null>(null);
   const [checkinPhotoPreparing, setCheckinPhotoPreparing] = useState(false);
   const [objectPhotoPreparing, setObjectPhotoPreparing] = useState(false);
@@ -374,6 +377,7 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
   const saveObjectPhoto = async () => {
     if (!isOwner || !principal || !objectPhoto || objectPhotoSaving || objectPhotoPreparing) return;
     setObjectPhotoSaving(true);
+    setObjectPhotoError('');
     setObjectPhotoNotice('');
     try {
       // Save bytes to the durable outbox before any network request, so a
@@ -381,10 +385,11 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
       await queueWanderPhoto({
         objectId, file: objectPhoto, principal: principal.toText(),
       });
+      objectPhotoDialog.current?.close();
       setObjectPhoto(null);
       setObjectPhotoNotice('Photo saved on this device. It will publish automatically when storage is available.');
     } catch (cause) {
-      setObjectPhotoNotice(cause instanceof Error ? cause.message : 'Unable to save photo locally.');
+      setObjectPhotoError(cause instanceof Error ? cause.message : 'Unable to save photo locally.');
     } finally {
       setObjectPhotoSaving(false);
     }
@@ -503,14 +508,34 @@ function ObjectJourneyPage({ objectId }: { objectId: string }) {
           storageCanisterId={import.meta.env.VITE_ICESTORAGE_CANISTER_ID || undefined}
           showEmpty />
         {isOwner && <div className="journey-owner-photo">
-          <p>Add or restore an Object photo without creating another Object. Published photos are visible to everyone with the journey link.</p>
-          <WanderCameraPicker value={objectPhoto} onChange={setObjectPhoto}
-            disabled={objectPhotoSaving} onPreparingChange={setObjectPhotoPreparing} />
-          <button className="journey-button journey-button-soft" type="button"
-            disabled={!objectPhoto || objectPhotoSaving || objectPhotoPreparing}
-            onClick={() => void saveObjectPhoto()}>
-            {objectPhotoSaving ? 'Saving photo…' : objectPhotoPreparing ? 'Preparing photo…' : 'Save & publish photo'}
-          </button>
+          <button type="button" className="journey-button journey-button-soft" aria-haspopup="dialog"
+            onClick={() => {
+              setObjectPhotoNotice('');
+              setObjectPhotoError('');
+              setPhotoDialogOpen(true);
+              objectPhotoDialog.current?.showModal();
+            }}>Add photo</button>
+          <dialog ref={objectPhotoDialog} className="journey-dialog" aria-labelledby="object-photo-title"
+            onCancel={event => { if (objectPhotoPreparing || objectPhotoSaving) event.preventDefault(); }}
+            onClose={() => { setPhotoDialogOpen(false); setObjectPhoto(null); }}>
+            <div className="journey-dialog-header">
+              <h2 id="object-photo-title">Add photo</h2>
+              <button type="button" className="journey-dialog-close" aria-label="Close photo dialog"
+                disabled={objectPhotoPreparing || objectPhotoSaving}
+                onClick={() => objectPhotoDialog.current?.close()}>×</button>
+            </div>
+            <div className="journey-dialog-body">
+              <p>Published photos are visible to everyone with the journey link.</p>
+              {photoDialogOpen && <WanderCameraPicker value={objectPhoto} onChange={setObjectPhoto}
+                disabled={objectPhotoSaving} onPreparingChange={setObjectPhotoPreparing} />}
+              <button className="journey-button journey-button-soft" type="button"
+                disabled={!objectPhoto || objectPhotoSaving || objectPhotoPreparing}
+                onClick={() => void saveObjectPhoto()}>
+                {objectPhotoSaving ? 'Saving photo…' : objectPhotoPreparing ? 'Preparing photo…' : 'Save & publish photo'}
+              </button>
+              {objectPhotoError && <p role="alert">{objectPhotoError}</p>}
+            </div>
+          </dialog>
           {objectPhotoNotice && <p role="status">{objectPhotoNotice}</p>}
         </div>}
       </section>}
